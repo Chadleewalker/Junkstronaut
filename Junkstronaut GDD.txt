@@ -1,0 +1,506 @@
+﻿Junkstronaut
+Game Design Document — Capstone First Draft
+1. Executive Summary
+A Kessler cascade event has caused all satellites in orbit to be destroyed, creating valuable space junk. Mr. Armstrong, owner of a junkyard, wants you to get up there and collect junk for him. You build a rocket out of junk, salvaging space debris for your crazy boss. You sell the space junk to your boss for upgrades to make better rockets and a better collection system with the goal of bringing down the largest piece of junk in orbit, Armstrong's satellite.
+The Game
+Junkstronaut. In this 2D pixel-art game, you are a young man who works at a junkyard for crazy old Mr. Armstrong. You've been inspired by Mr. Armstrong's knowledge of junk, and space and Armstrong's mysterious satellite.
+Debris rains down constantly — junk that dips too low streaks across the sky and burns up, a standing reminder of what the atmosphere does to anything that enters it too fast. And at the very top of the sky, higher than everything else, hangs Mr. Armstrong's old satellite (name TBD) — the one he lost the day of the cascade.
+You must get the rocket into an orbit or suborbital trajectory, get out of the rocket, manually collect scrap to store in the rocket, and return to the scrapyard.
+The higher you go, the more valuable the loot, but the faster you'll enter the atmosphere. Aerobraking — skipping off the atmosphere to bleed speed across multiple passes — is essential for surviving reentry from high orbits.
+The Core Loop
+1. Upgrade and repair/refuel your ship
+2. Launch the ship into a stable orbit
+3. Collect junk
+4. Land the ship back at the shop and sell the goods to Mr. Armstrong
+Win & Loss Conditions
+The player wins by retrieving Mr. Armstrong's old satellite from the highest orbit and landing it at the junkyard. It is the heaviest object in the game, it is fragile, and it sits above the highest value band — reaching it, hauling it, and setting it down gently requires most of the upgrade tree.
+The player loses when they:
+* Run out of fuel in space (stranded in orbit — there is no rescue)
+* Reach 0 HP (landing too hard, or reentering with a depleted heatshield)
+Landing far from the pad is not a loss — it costs a towing fee (see 2.3.3) that can take up to half a run's value but never digs into savings.
+Three Game Design Pillars
+* #Thematic Genre — Scrapyard Spaceflight. Blue-collar, handmade spacecraft.
+* #Mechanical Genre — Physics Extraction. 2D orbital mechanics and loot extraction.
+* #Unique Feeling — Anxiety from atmospheric reentry and the potential of wasting cargo value.
+Nearly strict design pillars
+2. Game Mechanics
+Upgrade your rocket (the ship is pre-built; upgrades swap parts in — see 2.3.6)
+* Fuel tank
+* Thruster
+* Parachute
+* Landing gear
+* Storage
+* Heat shield
+* Hand magnet
+* Crane magnet
+Rocket
+* Thrusters for translation
+* Thrusters for rotation
+* Stage (jettison the thruster + tank, exposing the heat shield)
+* Deploy parachute
+* Deploy/retract landing gear
+Player
+* Exit rocket
+* Jetpack thrusters for translation
+* Hand magnet to tether debris and tow it back to the ship
+* Multiple tethers deployed at once — more junk per trip, heavier to drag
+* Drag the ship's crane-magnet cable to oversized junk
+* Button to stow tethered debris in the hold
+* Push the ship (emergency)
+2.1 Player Actions
+The game runs in two control contexts — piloting the rocket and floating as the astronaut — plus the shop between runs. The game is keyboard and mouse only; there is no controller support. Inputs below are suggested bindings.
+Rocket (piloting)
+Verb
+	Input
+	What the player sees
+	The decision it enables
+	Main thrust
+	Hold W/Space
+	Engine plume fires; ship accelerates along its nose; fuel gauge drains
+	How hard and long to burn — altitude and orbit vs. fuel reserves
+	Rotate ship
+	Q/E
+	Ship pivots around its center; nose swings
+	Orientation — aim the thrust vector, and point the heat shield retrograde for reentry
+	Lateral (RCS) thrust
+	A/D
+	Side jets nudge the ship sideways without rotating; light fuel use
+	Fine positioning — line up with junk, correct drift, set approach
+	Stage
+	Tap B
+	The spent thruster and tank blow away, exposing the heat shield beneath; the fuel gauge and throttle go dark
+	Committing to reentry — after staging there is no thrust at all; the landing is drag, parachute, and gear from here on. One-way. The skill is when: fly your shallow braking passes before you stage, while you can still shape the orbit; stage once the final descent is set
+	Deploy parachute
+	Tap C
+	Chute blooms once plasma has cleared; deployed while plasma is still burning, it shreds and tears away
+	Timing the deploy off the plasma cue — wait it out, or gamble early and lose the chute
+	Deploy/retract landing gear
+	Tap G
+	Legs extend below the ship
+	Commit to landing config; forgetting it forces a belly scrape (auto-"hard" landing)
+	Enter/exit rocket
+	F
+	Control and camera swap between ship and astronaut
+	When it's safe to leave the cockpit, and when to get back before you drift or run dry
+	Astronaut (EVA)
+Verb
+	Input
+	What the player sees
+	The decision it enables
+	Jetpack thrust
+	WASD
+	Astronaut drifts the pressed way; personal fuel drains; also cancels spin
+	Chase distant junk vs. conserve fuel
+	Aim hand magnet
+	Mouse
+	Targeting line sweeps out to ~1/8 of a screen (extended by magnet upgrades); the reticle dims when every tether slot is occupied
+	Which piece of debris to commit to
+	Fire hand magnet
+	Left click
+	The hand magnet shoots out on its cable and clangs onto junk in range; the cable snaps taut, the spool winds the piece in to a short leash, and it trails behind you
+	Commit to a target — a miss wastes a beat and a little drift; latching at high closing speed snaps the cable taut hard enough to tear the magnet off
+	Tow (implicit)
+	Jetpack while tethered
+	Each tethered piece drags behind on its cable; the astronaut's handling gets visibly heavier — slower acceleration, longer stops, cables swinging wide on turns. Cables draw tight and creak when a piece is loading up
+	How many pieces to string together before hauling them back — trips saved vs. control lost; how gently to fly the load home
+	Release tether
+	Right click (nearest) / Shift+Right click (all)
+	The magnet cuts power, the piece drifts free where it is, and handling snaps back
+	Dumping ballast — shed a piece to save a burn, or drop the string entirely to chase the ship
+	Stow debris
+	E at the ship
+	Every tethered piece within reach of the hold is drawn in, compacted, and slotted; cargo count ticks up
+	Whether this haul is worth the fuel, time, and cargo slots at this altitude
+	Drag crane cable
+	Hold R at the ship
+	The astronaut unspools the ship's crane-magnet cable and tows it along; jetpack handling gets much heavier. Tap stow on the target to plant the magnet — CLANG — and the ship's winch takes over
+	Bringing the ship's muscle to junk too big to tether by hand — the ship gets close, you close the gap
+	Push the ship (emergency)
+	Hold E at the hull
+	The astronaut braces against the hull and fires the jetpack; the ship creeps, personal fuel drains fast
+	Get out and push — a last-resort nudge for a staged ship stuck in a bad orbit. A rescue tool, not an engine
+	Shop (between runs)
+Verb
+	Input
+	What the player sees
+	The decision it enables
+	Buy upgrade
+	Navigate + confirm
+	Part swaps onto the ship; stats change (see the upgrade list in 2.3.6)
+	What to prioritize next run — reach higher, land safer, or haul more
+	Sell haul
+	Auto on landing
+	Sale screen tallies cargo, then subtracts landing-grade downgrades and any tow fee
+	Payout moment — the real decision already happened in how you landed
+	2.2 Moment-to-Moment Play
+A representative run, mid-game, third or fourth flight.
+You throttle up off Mr. Armstrong's pad and take off into the atmosphere. As the ground falls away you ease off, rotate the ship until the nose points along your path, and give a short burn to round out into a stable arc.
+You exit the rocket. Control snaps to the astronaut and the ship becomes a floating anchor behind you. A tumbling satellite panel drifts off to your right; you jetpack toward it. You aim the hand magnet and fire — it clangs onto the panel's edge and the spool winds it into a short leash behind your shoulder.
+A second piece, a bent truss section, hangs a little further out. You could haul the panel home first, but that's a round trip and jetpack fuel you'd rather keep. You burn out to the truss and fire your second tether. Now you're dragging two pieces. The jetpack answers noticeably slower, the panel swings wide every time you turn, and the trip back to the ship takes twice the fuel you budgeted — but it's one trip, not two.
+Something glints above you — a solar array on a faster orbit, well off to one side. Fragile, and worth more than everything you're already dragging. You run the arithmetic: crossing to it costs jetpack fuel you wanted for the trip back, and closing on something moving that differently means a patient approach or a torn-off magnet. You let it go this time, and make a note of the altitude.
+You coast back with the string trailing behind you and stow at the hold: both pieces are drawn in, crushed flat, and slotted. Cargo reads 4 of 6.
+Fuel's getting low. You enter the rocket. Now for reentry. You rotate retrograde and burn to drop your trajectory into the atmosphere. The shield plate reads 82% — plenty for a single committed pass from this low. Then you commit: stage. The spent thruster and tank tumble away behind you, the heat shield is bare to the airflow, and the throttle is dead — drag is the only brake you have left.
+The heat bar starts climbing; drag grabs the ship; plasma builds across the shield. You hold retrograde and wait. When the plasma finally dissipates, you deploy the parachute and landing gear. The pad drifts up toward you; the trajectory line says you'll come down just short of the pad's center — still inside the free zone, so no tow fee. It's a soft landing. The haul sells the moment you're down.
+2.3 Systems as the Player Meets Them
+2.3.1 Reentry: Staging, Heat & the Deploy Sequence
+What the player experiences: As the rocket dips into the atmosphere above a certain speed, heat begins to build and drag is applied to the ship. The deeper or faster the ship dips, the faster the heat bar climbs and the more drag it takes. Plasma appears when velocity is too high, which signals the player not to deploy the parachute. Build up too much heat and the heat shield won't hold. At certain reentry angles and speeds, direct reentry isn't survivable — the player must aerobrake, using shallow atmosphere passes to bleed speed before committing to a full reentry.
+The heat shield sits behind the thruster and tank; it is only exposed by staging, which jettisons them. Staging is one-way: there is no thrust afterward, so the landing must be finished on drag, parachute, and gear. Reentering without staging leaves the shield covered — heat pours straight into cargo and hull — though a player carrying enough fuel can instead brake propulsively and land on thrust.
+The shield is ablative — a consumable. Every atmosphere pass burns away plate: a small fixed toll per pass from thermal cycling (heating and cooling cracks the material), plus a heat cost that grows steeply with how hot the pass runs. One screaming plunge is expensive; a dozen feather-light passes are expensive; a planned sequence of a few committed passes is the cheap path. The plate never regenerates in flight; Mr. Armstrong re-plates it between runs.
+The intended descent follows from the parts: coarse braking happens before staging — shallow passes with the naked hull soaking slow heat, while thrust remains to raise or lower the periapsis between passes — and staging is the final commit, cutting the stage loose for a one-or-two-pass shielded endgame. Stage too early and you're locked into whatever orbit you had; stage too late and the hull has been cooking. If a staged ship is trapped in a slow decay anyway, the last resort is to get out and push: the astronaut braces against the hull and burns jetpack fuel for a small, desperate orbit change. A fully depleted shield burns the cargo slot by slot before it ever touches the hull.
+The player is never told a burn-up is coming. The hull glow climbs from dull red toward white, the audio builds, and the plasma itself shifts color temperature — orange is a normal reentry; a shift toward violet-white means the shield is approaching failure. The rule itself is taught ambiently before the player ever launches: deorbiting background debris visibly streaks and burns up in the sky above the junkyard.
+Once the plasma dissipates (heat below the safe threshold), it's safe to deploy the parachute. Deploy the landing gear for a soft landing.
+Key values:
+* Heat starts building above roughly half of orbital speed while in atmosphere (tunable threshold)
+* Heat shield is exposed only after staging; it protects the shield-facing side only — off-retrograde drift lets heat build faster (cosine of the angle)
+* Staging is one-way: no main or RCS thrust remains after jettison
+* Unstaged reentry has no shield protection — heat builds much faster (propulsive braking/landing remains possible but is fuel-hungry); shallow unstaged passes are survivable because cargo damage only begins at 100% heat
+* Ablation per pass = fixed thermal-cycling toll + a heat-dependent cost that rises steeply with peak heat — the two knobs are tuned so the cheapest descent is 2–4 committed passes, never a single plunge and never feathering
+* Shield plate does not regenerate in flight; re-plating is part of launch prep (2.3.6)
+* A depleted shield behaves as unshielded: heat runs straight to cargo, then hull
+* Get-out-and-push: the EVA jetpack can apply a small thrust to the hull — enough to rescue a decaying orbit, not to fly the ship
+* Heat rises superlinearly with entry speed (real convective heating scales roughly with velocity cubed) — each altitude band up is disproportionately hotter to return from; heat shield upgrades buy margin, not immunity
+* Mass slows deceleration: under the same drag, a heavier ship sheds speed slower, spends longer at heat-building velocities, and integrates more total heat — a full hold from the top band may need several aerobrake passes where an empty ship needs one
+* Plasma generates based on velocity, mass of the ship, and depth into the atmosphere — so a heavier ship keeps generating plasma down to lower speeds, opening the chute window later and lower
+* Parachute is safe once plasma is no longer generated; deployed while plasma is active, it shreds — and with the stage already gone, drag alone rarely slows the ship enough to survive
+* Cargo damage begins at 100% heat: one cargo slot damaged every ~3 seconds while maxed; fragile pieces take double, so a fragile haul is the first thing a hot reentry costs you
+* Hull HP damage begins only after all cargo is damaged
+* Heat dissipates in ~5 seconds once below the safe speed
+________________
+
+
+2.3.2 Touchdown Quality
+What the player experiences: Landings are graded. Hit the pad hard and you'll damage goods and the hull. Forgetting to deploy landing gear causes double damage. Damage scales with touchdown speed.
+Key values:
+* Soft landing: under ~5 m/s vertical
+* Hard landing: 5+ m/s (damage scales with landing velocity past 5 m/s)
+* No landing gear: double landing damage
+* Fragile cargo takes double landing damage — a hard landing that a solid haul shrugs off can wreck a fragile one
+* Descent speed under the parachute grows with ship mass (roughly with its square root) — a greedy haul drifts toward the hard-landing line under the same chute, which is what the Parachute upgrade exists to counter
+________________
+
+
+2.3.3 Towing Fee (Landing Distance)
+What the player experiences: Missing the pad zone requires a tow back to the junkyard. Mr. Armstrong will do it for a fee, which he deducts off the top of the scrap sale. Land close and the fee is zero.
+The rules as the player learns them: The fee scales linearly with distance from the pad, capping at 50% of the haul's value at the far side of the planet. A bad landing can halve a run's payout, but it can never zero it out or dig into savings — you always keep at least half of what you brought down.
+Key values:
+* Free within ~1 screen of the pad — that zone is the pad
+* Beyond that, the penalty grows linearly with distance, reaching its maximum of 50% of the scrap's value at the far side of the planet (half the circumference away) — payout is 100% at the junkyard and never drops below 50% anywhere
+* Fee shown as a line item on the sale screen next to each run's payout
+________________
+
+
+2.3.4 Two Magnets: Hand Magnet & Crane Magnet
+What the player experiences: Two capture tools at two scales. The hand magnet — a salvaged electromagnet on a winch spool, clipped to the suit — is the everyday tool: fire it at junk within about 1/8 of a screen, it clangs on, and the spool winds the piece in to a short leash that trails behind you as you fly. The crane magnet — the yard's car-crusher magnet, unbolted from Armstrong's crane and welded to the rocket along with its winch drum — handles junk too big to tow by hand: fly the ship to a rough rendezvous, EVA out dragging its cable, plant the crane magnet on the piece, and let the winch do the pulling. It is one assembly — magnet at the end of the cable, winch drum on the ship — and it is upgraded as one part.
+Tethers and the greed decision. The suit carries more than one spool. A tethered piece doesn't teleport into the hold — it stays on the line, and the player tows it home. Because the tethers are independent, the player can string several pieces together before making the trip back: fire, fly, fire again, and haul the whole load in at once. Every piece added is mass the jetpack has to move. Acceleration drops, stopping takes longer, and the load swings wide on every turn — the astronaut handles like a tugboat instead of a diver. Stowing at the ship's hold clears every tethered piece at once and the handling snaps back.
+The tension is trips versus control. One piece at a time is safe, precise, and slow, and each round trip costs jetpack fuel and orbital time the player would rather spend on the descent. A full string is efficient and unwieldy, and it's the version where things go wrong: overshooting the ship, missing the hold, burning EVA fuel to arrest a load you can't stop, or slewing hard enough that a trailing piece swings out, snaps its cable taut off-axis, and tears its magnet loose.
+How a magnet actually lets go. Each tether is evaluated on its own — one cable's tension has nothing to do with what the other cables are carrying. A magnet holds up to a fixed force and no further, and the tension in a cable is whatever it takes to make that piece follow the astronaut. That produces one clean rule with two consequences worth stating plainly, because they run opposite to intuition:
+Steady thrust almost never pops a magnet. Tension under a constant burn is the piece's mass times the astronaut's acceleration — and the astronaut's acceleration is already suppressed by the total towed mass. Add a second piece and everything accelerates less, so tension per cable goes down. A heavy load is sluggish, not fragile. A player flying smoothly can tow the maximum string all day and never lose a piece.
+Jerk pops magnets. Tension spikes when a cable goes from slack to taut in an instant, and there are exactly two moments that do it: the initial latch, when the magnet lands on something with closing speed and the cable snaps out to full length, and a hard direction change, when a trailing piece keeps its old momentum and the cable comes taut sideways. Both are things the player does, not things that happen to them. Fly gently, stop before you turn, match speed before you fire, and no magnet ever slips. Yank the load around a corner and the heaviest piece on the string is the first to go.
+This is what makes the maneuver readable rather than punitive: failure is caused by a specific input the player just made, it's telegraphed a half-second in advance (cable pulls straight, the visual slack goes out of it, the line brightens and creaks), and it's recoverable — a sheared piece drifts off at low relative speed a few meters away, so the cost is the fuel and seconds to go re-latch it, never the piece itself. Losing salvage permanently to shear should be essentially impossible; losing your patience with it is the point.
+Junk size, fragility, and the compactor. Every piece of debris carries two authored properties independent of its sprite dimensions: a size class and a fragile flag.
+Size class — small, medium, oversized — sets what a piece costs to bring home and what tool takes it. Small and medium are hand-tetherable. Oversized junk rejects the hand magnet entirely and must be winched in whole on the crane cable.
+The hold's compactor — the same crusher lineage as the crane magnet — crushes what it can into scrap blocks on stow, which is what lets a piece visibly larger than the cargo door plausibly ride home. The compactor is an upgrade with tiers, and each tier raises the largest class it can crush. Junk the compactor can't handle still goes in the hold; it just occupies its uncrushed slot cost, so an under-upgraded compactor means a hold that fills up on volume long before mass becomes the problem. Crushing changes volume, never mass — the compactor raises how much you can carry, and the difficulty of carrying it is unchanged.
+Fragile cuts across all three size classes. A fragile piece — glass, solar array, antenna, instrument housing — has half the durability of a solid piece and cannot be crushed at any compactor tier. So fragility is bulk plus risk: a fragile piece pays full uncrushed slot cost forever and takes double damage from reentry heat and hard landings.
+Fragile junk is rare and disproportionately valuable — a single intact fragile piece is worth several solid ones from the same band, and its payout is gated on skill rather than on upgrade tier. It is also deliberately awkward to get to. Fragile pieces spawn on their own orbits rather than in the drifting clumps common junk forms: further out within their band, moving faster relative to a parked ship, often a burn away from wherever the player left the rocket. Reaching one costs a real ship maneuver or a long jetpack crossing, and closing on something with that much relative speed is exactly the situation where latch jerk shears a magnet. The whole chain — spot it, decide it's worth the fuel, cross to it, match speed carefully enough to latch, tow it gently, land soft — is one continuous skill test with a single payout at the end.
+They read from a distance: a fragile piece catches the light and glints on a slow cycle, so the player sees the opportunity early and gets to make the decision rather than discover it.
+Fragile-and-oversized is the worst combination in the game, and it's the class Mr. Armstrong's satellite belongs to — it can't be crushed, it can't be hand-tethered, and it arrives damaged if the touchdown isn't soft. The win condition isn't just survive the descent; it's land it gently.
+The rules as the player learns them: Heavier junk winds in slower and tows heavier. Magnets hold up to a force limit, so latching at speed or slewing a load hard tears them off — capture and towing both mean being smooth, not docking-perfect. Cutting power releases instantly and cleanly. Oversized pieces — one or two per band, and the satellite above the top band — can only be taken with the crane cable, so the endgame capture technique is practiced all game long. Fragile pieces are rare, worth far more, harder to reach, and forgive less.
+Key values:
+* Hand magnet range: ~1/8 of the screen at base, extended by magnet upgrades
+* Tether slots: 2 at base, up to 4 at max hand-magnet upgrade (tunable) — the reticle dims when all slots are full
+* Each tethered piece adds its mass to the astronaut's effective mass: jetpack acceleration and rotation authority scale inversely with the total
+* Tethered pieces trail on cable with slack — they lag on acceleration and swing on turns rather than moving rigidly with the astronaut
+* Shear is per-tether: each cable computes its own tension against its own magnet's hold force; tethers never pool or share load
+* Shear fires on impulsive tension only — latch jerk (scales with closing speed × piece mass) and swing jerk (scales with the astronaut's rate of direction change × piece mass). Steady-state towing tension is below the hold force by construction
+* Hold force scales with the hand magnet upgrade tier; heavier pieces sit closer to the limit at every tier
+* Shear is telegraphed ~0.5 s ahead (cable straightens, brightens, audio strains) and is recoverable — the piece detaches at low relative velocity within re-latch range
+* Release is power-off: instant, clean detach, the piece keeps its drift. Release-nearest and release-all are separate inputs
+* Stowing happens at the hold, clears all tethers in reach in one action, and crushes everything the current compactor tier can handle
+* Size classes: small (1 slot crushed / 2 uncrushed), medium (2 / 4), oversized (crane-cable only, 6 crushed / most of a hold uncrushed) — class is authored per debris type, independent of sprite scale
+* Fragile flag: half durability, never crushable at any tier, double damage from reentry heat and hard landings, and a value premium (tunable) to make it worth taking
+* Compactor tiers: t1 crushes small, t2 small+medium, t3 everything not flagged fragile
+* Wind-in speed scales with magnet strength vs. object mass — big salvage means more seconds drifting on the line
+* Oversized junk class: crane-cable only, winched into the hold
+________________
+
+
+2.3.5 Cargo Mass & Handling
+What the player experiences: An empty rocket feels zippy; a full hold feels sluggish. Heavier ships are harder to slow down during reentry. The same rule applies to the astronaut on EVA — a string of tethered junk makes the jetpack feel like it's pushing a train.
+The rules as the player learns them: Every piece of junk adds mass, and mass reduces acceleration from the same thruster. Fuel burns faster per meter-per-second gained. The player learns to budget fuel for the trip home — and, on EVA, to budget it for the trip back to the hold with a load in tow.
+Key values:
+* A full hold roughly doubles the rocket's mass at starting storage size
+* Thrust is fixed per thruster upgrade, so acceleration scales inversely with mass
+* The same inverse-mass rule governs the jetpack: astronaut acceleration = jetpack thrust / (suit mass + total tethered mass)
+* Tethered mass is temporary; stowed mass is permanent for the rest of the run, so EVA sluggishness previews the reentry the player is buying
+* The trajectory prediction line always reflects current mass, so the effect is visible
+________________
+
+
+2.3.6 Fuel, Launch Economics & Upgrades
+What the player experiences: Every launch costs money. Mr. Armstrong fits a fresh stage (thruster + tank, since the last one burned up behind you), fills it, re-plates the heat shield, and fixes your hull. He also sells upgrades.
+Key values:
+* Launch cost: a fresh stage with a full tank costs about the value of 2–3 pieces of cheap junk (a lazy run still breaks even)
+* Shield re-plating is billed by the % ablated last run — clean flying is literally cheaper
+* Repair clause: hull damage is repaired at a flat fee per % healed
+* Upgrades (draft list): Fuel tank (capacity), Thruster (thrust), Storage (cargo slots), Heat shield (heat capacity & plate thickness), Hull (HP), Hand magnet (cable length, strength, hold force & tether slots), Crane magnet (reel power for oversized junk), Compactor (largest size class it can crush), Parachute (lower descent speed at a given mass), Jetpack (EVA fuel & thrust), Reentry Sensor (see below)
+* Storage is deliberately double-edged: a bigger hold raises the profit ceiling and the difficulty of the flight home (see 2.3.1/2.3.2 mass effects). The Parachute upgrade is its counterweight — they're natural paired purchases
+* Tether slots are double-edged the same way at EVA scale: more slots mean fewer trips and a clumsier astronaut, and the Jetpack upgrade is their counterweight
+* The Compactor is the one upgrade that raises carrying capacity without adding ship mass — it buys volume, not tonnage, so it is the safe alternative to Storage when the player is already struggling with the ride home. It has no effect on fragile cargo, which is what stops it from trivializing the high bands
+* Reentry Sensor (instrument upgrade): a salvaged weather-satellite sensor that tints the trajectory prediction line by projected heat load — white, orange, red-means-burn-up. Prediction is earned, not given: before buying it, the player flies on the sky's lessons, hull feel, and plasma color alone. Because the prediction line is already mass-aware (2.3.5), the red segment automatically reflects how greedy the current haul is. Before staging, it also projects passes-to-land against shield plate remaining — a doomed decay shows its math before the stage is cut
+________________
+
+
+2.3.7 Junk Value & Altitude (draft)
+What the player experiences: The junk worth chasing lives higher up. Low, easy suborbital hops find cheap scrap panels; stable low orbits hold real satellite wreckage; the high bands hold the rare, valuable cores — but coming home from up there means a much hotter, longer reentry.
+The rules as the player learns them: Altitude bands gate value. Reaching a band takes tank and thruster upgrades; surviving the return from it takes heat shield upgrades; making the trip worth it takes storage and magnet upgrades. The upgrade tree and the value curve are the same climb seen from two sides.
+Value also costs mass and bulk: high-band junk is dense, heavy, and more often fragile, so the better the haul, the harder the ride home — heavier reentries, slower winding, clumsier towing, faster touchdowns. Difficulty scales with success automatically, and no thruster upgrade fully cancels it, because the player keeps filling the bigger hold. The capstone of this curve is Mr. Armstrong's satellite: the heaviest object in the game, sitting above the top band. Capturing it is the crane-cable technique at maximum stakes — a rough rendezvous at the top of the sky, a long cable drag on draining jetpack fuel, and Armstrong's own crane magnet planted on Armstrong's own satellite. Retrieving it — the win condition — is the fattest, hottest, worst-handling descent the player will ever fly, at full upgrades. The final challenge is attached to the prize itself, so power creep can't flatten it.
+Key values (all tunable, pending Playtester sweeps):
+* Three value bands: suborbital (cheap), low orbit (mid), high orbit (rare/valuable)
+* Junk value scales with the altitude band it spawns in
+* Junk mass scales with its value band — the valuable stuff physically fights you, both on the tether and on the way down
+* Higher bands skew toward the medium size class and toward fragile pieces, so slots fill faster, tether loads get heavier, and more of the haul is at risk on the way down
+* Fragile spawn rate is low and band-weighted: roughly 1 in 10 pieces in the suborbital band rising to 1 in 4 in the high band (tunable)
+* Fragile pieces spawn off the common debris clumps — higher within their band and at greater relative velocity to a parked ship — so reaching one costs a deliberate maneuver rather than a drift
+* A fragile piece is worth several solid pieces of the same size class from the same band: enough that one recovered intact reshapes a run's payout, and enough that losing one to a hard landing is felt
+* Mr. Armstrong's satellite is fragile and oversized: it barely fits a maxed hold uncrushed, roughly doubles the ship's mass on its own, and arrives damaged unless the touchdown is soft
+* Reentry speed — and therefore heat — scales with the altitude you return from, so the value curve and the risk curve rise together
+2.4 Progression, Failure & Recovery
+Launch, collect, sell, upgrade, repeat.
+* Run out of HP: game over.
+* Stranded in space with no fuel: game over.
+* Land off-pad: tow fee per 2.3.3 — a setback, never a loss.
+* Bring Mr. Armstrong's satellite home: the game is won.
+3. AI Architecture
+3.1 Agent Roster
+Agent: Researcher
+* Role: Looks up real orbital and reentry physics and scales it down to my game's small planet so my starting numbers aren't arbitrary.
+* What it produces: A parameters document with sourced values — orbital velocity at game scale, reentry heating thresholds, plausible drag curves vs. mass and velocity — used as starting values for the config file and as the baseline the Playtester's sweep results are compared against.
+* Gameplay effect: Reentry behaves the way player intuition expects — heat builds with speed and depth, plasma appears at plausible velocities — so the deploy sequence (stage, chute, gear) feels grounded.
+* What it does NOT do: It runs once, up front. It doesn't write code. Its numbers are hypotheses that the Playtester tests.
+Agent: Coder
+* Role: Implements the mechanics specced in Section 2 as GDScript in Godot.
+* What it produces: Game code and scenes, with every tunable value (gravity, thrust, drag, tank size, heat thresholds, tether slot count) exposed in a single config file rather than hardcoded — structured that way specifically so the Playtester can sweep values without touching code.
+* Gameplay effect: Everything the player touches — but most directly, the fact that tuning lives in one file means physics changes feel connected.
+* What it does NOT do: It doesn't decide values. It implements rules; the numbers inside them come from the Researcher, the Playtester, and me.
+Agent: Playtester
+* Role: Flies the game automatically, thousands of times, to find out what the physics numbers actually do.
+* What it produces: Sweep reports (CSV plus graphs) from automated flights in headless Godot — varying gravity, thrust, drag, mass, tank size, and tether load — answering questions like: can a full-cargo ship orbit, stage, deorbit, and land under 5 m/s with different physics configurations; at each altitude band's intended gear tier, is a full-hold soft landing achievable (i.e., does the difficulty curve rise on the return leg without ever becoming impossible); does the ablation curve put the optimal pass count at 2–4 from every band (neither a single plunge nor feathered passes should ever be the cheapest descent); at what tether count does EVA fuel spent per piece stop falling (i.e., is the maximum load ever the wrong choice, and is it ever the only choice); how hard does a player have to slew a maximum load before a magnet shears, and is that rate reachable by normal flying; and is the capstone run — Mr. Armstrong's satellite at maximum mass — beatable at end-game config. Results are compared against the Researcher's baseline, and each report proposes a candidate value set for me to fly.
+* Gameplay effect: A difficulty curve that's actually fair — every loss condition in Section 1 stays avoidable, reentry is survivable at max cargo, and the economy claims in 2.3.6 are verified.
+* What it does NOT do: It doesn't judge fun.
+Agent: QA
+* Role: Turns every rule in Section 2.3 into an automated test so later changes can't silently break approved behavior.
+* What it produces: A regression test suite (GUT) encoding the spec: the parachute shreds if deployed while plasma is active, staging is one-way and kills all thrust, shield ablation accumulates per pass and never regenerates in flight, a depleted shield behaves as unshielded, each tether computes shear independently against its own hold force, shear fires on impulsive tension and never on steady-state towing, tether slots cannot be exceeded, astronaut acceleration scales inversely with total tethered mass, release restores handling and leaves the piece drifting, stowing clears all tethers in reach and applies size-class slot costs, the compactor crushes at or below its tier and never crushes a fragile piece, fragile cargo takes double heat and landing damage, oversized junk rejects the hand magnet and accepts the crane cable, no-gear landings take double damage, the tow fee scales linearly with distance and clamps at 50% without going negative, cargo damages before hull. When a test fails after a code change, the change is rejected and returns to the Coder with the failing test as the bug report.
+* Gameplay effect: The rules the player learns stay true. A code change can't quietly break a game feature.
+* What it does NOT do: It doesn't tune values or judge whether numbers are right — it tests that the code matches the spec. That boundary is what separates it from the Playtester.
+Agent: Art Director
+* Role (one sentence, plain English): Finds pixel-art asset packs I can buy or use for free, vets their licenses, and enforces visual consistency across everything that enters the game.
+* What it produces: A sourced asset shortlist (pack, price, license terms, attribution requirements), plus a size-class and fragility mapping for every debris sprite adopted — which pack sprites read as small, medium, or oversized, and which read as breakable (glass, panels, dishes) at the game's scale.
+* Gameplay effect: A coherent pixel-art look on a short timeline for each feature I add, and debris whose apparent size and apparent fragility match what it costs to haul.
+* What it does NOT do: It never generates final art.
+3.2 How the Agents Work Together
+The pipeline is a loop with one entry point and one gate. Artifacts, not conversations, are what pass between agents — every handoff below is a file that lives in the repo.
+The one-time setup pass
+1. Researcher → params/baseline.md. Real orbital and reentry physics scaled to a small planet: surface gravity, orbital velocity at each altitude band, atmospheric density curve, the velocity at which convective heating becomes significant, plausible drag coefficients vs. mass. Sourced, with the scaling arithmetic shown.
+2. Me → config/game_params.tres. I transcribe the Researcher's numbers into the Godot config resource as starting values. This is the file every later agent reads and only the Playtester and I write to.
+The per-feature loop (runs once per mechanic in §2.3)
+3. Me → feature ticket. One §2.3 subsection, restated as a scoped ticket: the rules, the key values, and the acceptance criteria pulled straight from the "Key values" bullets.
+4. Ticket → Coder → GDScript + scenes. The Coder implements rules only. Any number it needs, it reads from config/game_params.tres; if a needed value doesn't exist there, it adds the field and leaves it null rather than inventing a literal. Hardcoded magic numbers are a rejection condition.
+5. Coder → QA → tests/ (GUT suite). QA receives the same feature ticket and the Coder's implementation, and encodes the ticket's rules as regression tests — parachute shreds during plasma, staging kills all thrust permanently, ablation never regenerates in flight, shear is computed per tether and fires on jerk rather than steady load, tether slots cap correctly and astronaut acceleration scales inversely with towed mass, stowing clears tethers and charges slots by size class, fragile pieces are never crushed, oversized junk rejects the hand magnet, no-gear landing doubles damage, tow fee clamps between 50% and 100% and never goes negative, cargo damages before hull.
+   * Failure path: a red test returns to the Coder with the failing assertion as the bug report. The ticket does not advance until the suite is green. QA never edits game code and never changes a config value to make a test pass — if a test is wrong, it comes to me, not to the Coder.
+6. Green suite → Playtester → reports/sweep_NN.csv + graphs. The Playtester runs headless Godot across a grid of config values and reports outcomes: can a full-cargo ship from each band orbit, stage, deorbit, and land under 5 m/s; where does the ablation curve put the cheapest pass count; what tether count minimizes EVA fuel per piece recovered; is the capstone satellite run beatable at end-game config. Each report ends with one proposed value set and a diff against the Researcher's baseline, flagging any parameter that has drifted far from physical plausibility.
+   * Failure path: if a sweep finds no config in which a band is survivable at full cargo, that's a design bug, not a tuning bug. It comes to me and usually goes back out as a revised ticket in step 3 — not to the Coder as a code fix.
+7. Playtester's proposed values → me → I fly it. I apply the candidate config and play it. If it's right, the values are committed and QA re-runs the suite against the new numbers to confirm no rule broke under retuning. If it's wrong, I say why it felt wrong and the Playtester sweeps a narrower range.
+The parallel track
+8. Art Director → art/shortlist.md. Runs independently of the physics loop, keyed to whichever feature is in flight: candidate pixel-art packs with price, license terms, attribution requirements, and palette/resolution compatibility against what's already in the project, plus the size-class mapping for any debris sprites in the pack. It hands me a shortlist; I buy and integrate. It never generates final art and never commits assets.
+The ordering matters in one specific way: QA is written from the ticket, not from the Coder's implementation. If QA read the code, it would encode whatever the Coder did, including the bugs. Writing tests from the spec is what makes step 5 a real gate instead of a rubber stamp.
+________________
+
+
+3.3 The Human in the Loop
+Five checkpoints, and my sign-off gates all five. The honest through-line is that every one of them is a judgment about feel, and feel is the thing none of these agents can evaluate — the Playtester can tell me a landing is survivable at 4.8 m/s, but not whether the last two seconds before touchdown are tense or tedious.
+Checkpoint 1 — Feature ticket (before the Coder starts). I decide what gets built and in what order, and I decide when a §2.3 rule is actually settled enough to implement. The agents can't make this call because it's a scope decision against a semester deadline, not a technical one.
+Checkpoint 2 — Config sign-off (after the Playtester's sweep). The Playtester hands me a value set that is fair; I decide whether it is fun. These come apart constantly. A reentry that survives comfortably at every band is fair and boring. A shield ablation curve where 2–4 passes is mathematically optimal still has to feel like a decision rather than arithmetic. A four-tether load that is mathematically the efficient choice still has to feel unwieldy in the hands. I fly the candidate config before it's committed, every time.
+Checkpoint 3 — Anxiety check on reentry (per band, once implemented). Pillar three is a feeling, and it's the pillar most likely to quietly die during tuning. Each time a new altitude band comes online I fly a full-hold return specifically to answer: does the plasma-to-chute window still make my hands sweat? No agent can report on this, because the target isn't a number in a CSV — it's whether the player's stomach drops.
+Checkpoint 5 — Tether feel (phase 3a, before the mechanic enters the game). The multi-tether haul is the only mechanic in the design I can't evaluate on paper — I don't know whether dragging a string of junk reads as satisfying weight or as sluggish controls until I fly it. So it gets a tech demo of its own, and a go/no-go from me before phase 3b builds on it. This is also the checkpoint most likely to send a rule back to §2.3.4 rather than to the config file, which is why it sits before the feature ticket rather than after the sweep.
+Checkpoint 4 — Art integration (before any asset lands in the project). The Art Director gives me a licensed, palette-compatible shortlist. I pick, because "does this pack look like the same game as the rocket sprite" is a coherence judgment. I also personally verify every license before purchase — attribution and commercial-use terms are my legal exposure, not an agent's.
+What I explicitly do not delegate: the design pillars in §1. If a Playtester sweep says the game would be measurably more balanced with propulsive landings restored after staging, the answer is no — staging being one-way is the pillar. Agents optimize inside the design; they don't get to edit it.
+________________
+
+
+4. Technical Strategy
+4.1 Stack & Scope
+Engine / language / key tools
+Layer
+	Choice
+	Engine
+	Godot 4.x (2D), GDScript
+	Physics
+	Custom gravity integration on CharacterBody2D — not Godot's built-in physics, since orbital integration needs to be deterministic and rewindable for headless sweeps
+	Input
+	Keyboard and mouse only — no controller support this build (one input map to design, test, and document)
+	Testing
+	GUT (Godot Unit Test), run headless via godot --headless --script
+	Tuning
+	Single config/game_params.tres resource; no tunable value hardcoded anywhere in the codebase
+	AI pipeline
+	Claude Code on Windows/PowerShell, running against a project scaffolded by my own Harness setup; Docker for reproducible headless sweep runs
+	Art
+	Purchased/free pixel-art packs, Deep-Fold Pixel Planet Generator for the planet, Aseprite for gap-filling sprites, GIMP for export
+	Version control
+	Git; every Playtester report and config candidate committed alongside the code it was measured against
+	Semester scope — what ships
+A complete vertical slice of the core loop across two of the three altitude bands, playable end to end:
+* Launch, rotation, main and RCS thrust, fuel drain (§2.1 Rocket)
+* Orbital integration with a mass-aware trajectory prediction line (§2.3.5)
+* EVA: jetpack, hand magnet fire/tow/stow with 2 tether slots, per-tether shear, small and medium size classes, the fragile flag, and a tier-1 compactor (§2.3.4, hand magnet only)
+* Tether tech demo — a standalone scene that exists before the mechanic is committed to the game (see phase 3)
+* Reentry: staging, ablative heat shield, plasma, parachute, landing gear (§2.3.1)
+* Touchdown grading and the tow fee (§2.3.2, §2.3.3)
+* Shop with a reduced upgrade set: fuel tank, thruster, storage, heat shield, parachute, hand magnet — 2 tiers each, 12 purchases
+* Suborbital and low-orbit bands with distinct value and mass curves, including fragile spawns in both (§2.3.7)
+Explicitly deferred — not building this semester
+* The third (high) band and Mr. Armstrong's satellite. The win condition ships as a stub: the satellite is visible in the sky as the goal, but the capstone run is post-semester. This is the largest single cut and it's deliberate — the endgame depends on the crane magnet, maxed upgrades, and the hardest reentry in the game, and all three are downstream of a slice that must work first.
+* The crane magnet and the oversized junk class. Cut with the band it exists to serve. Hand magnet only this semester, which also means no uncrushed cargo — everything that comes home this build gets compacted.
+* Tether slots 3 and 4. The hand magnet upgrade ships with the range and strength tiers only; the third and fourth spools are the first thing added if phases 1–4 finish early, since the towing physics is already built for N.
+* Compactor tiers 2 and 3. Tier 1 ships, so the player meets crushing as a rule and meets fragility as its exception; the upgrade path for it is post-semester along with the oversized class it mostly serves.
+* Controller support. Keyboard and mouse only. A second input map is polish, not slice.
+* Debris collisions and momentum transfer (Appendix open question — now resolved as a cut). HP threats are landing-only for this build. Debris is decorative and collectible, not dangerous.
+* Time compression / on-rails warp. Mitigated by scoping the planet small enough that a two-band orbit period is under a minute. If the Researcher's scaling makes periods long, warp comes back as a required feature and the third band gets cut harder.
+* Jetpack and reentry-sensor upgrade tiers. The sensor is a nice-to-have instrument; the game must be readable without it, which is the design intent anyway (§2.3.6).
+* Sound design beyond placeholder reentry audio. The plasma shriek is a pillar-three device and gets a real pass; everything else is placeholder.
+4.2 Agent Roles in the Build Plan
+14-week semester. Phases are sequential; the Art Director track runs across all of them.
+Phase
+	Weeks
+	Active agents
+	Deliverable
+	Verified by
+	0 — Parameters
+	1
+	Researcher
+	params/baseline.md; populated game_params.tres
+	Me — sanity-check the scaling arithmetic against the planet size
+	1 — Flight core
+	2–4
+	Coder, QA
+	Launch, thrust, rotation, gravity integration, trajectory line
+	GUT: orbit is stable over N periods; QA gate
+	2 — First tuning loop
+	5
+	Playtester, me
+	Sweep 1: gravity/thrust/tank grid; committed flight config
+	Me — Checkpoint 2, I fly the candidate
+	3a — Tether tech demo
+	6
+	Coder, me
+	Standalone scene: an astronaut, a debris field, N tethers, on-screen tension/hold-force debug readout
+	Me — Checkpoint 5, does towing a load feel good before it's in the game
+	3b — EVA & collection
+	7
+	Coder, QA
+	Exit/enter, jetpack, hand magnet fire/tow/release/stow, multi-tether mass, size classes, fragility, tier-1 compactor
+	GUT: per-tether shear, no shear under steady thrust, tether slot cap, fragile never crushed, towed mass affects acceleration; QA gate
+	4 — Reentry
+	8–10
+	Coder, QA, Playtester
+	Staging, heat, ablation, plasma, parachute, gear, landing grade
+	GUT: staging one-way, chute shreds in plasma, ablation never regenerates. Playtester sweep 2: is the optimal pass count 2–4?
+	5 — Anxiety pass
+	11
+	Playtester, me
+	Reentry feel tuning; hull glow, audio, plasma color
+	Me — Checkpoint 3, per band
+	6 — Economy & shop
+	12
+	Coder, QA, Playtester
+	Tow fee, sale screen, 12 upgrade purchases, band values
+	GUT: fee clamps 50–100%. Playtester sweep 3: does the economy let a lazy run break even?
+	7 — Art integration
+	13
+	Art Director, me
+	Final asset pass over placeholder sprites
+	Me — Checkpoint 4, license + coherence
+	8 — Polish & submit
+	14
+	QA, me
+	Full regression green; build; documentation
+	Me — full playthrough of both bands
+	The Art Director produces a shortlist at the start of phases 1, 3, and 4 so that art sourcing is never on the critical path.
+4.3 Token Budget
+Model and access. Primary access is Claude Code on a Claude Max 20x subscription ($200/month), which is where the actual work happens and which is not metered per token. The budget below is computed at Claude API rates anyway, as a worst-case cost if I have to fall back to metered API access. Rates used: Sonnet-tier at $3/M input and $15/M output (the standard rate; an introductory rate of $2/$10 is in effect through 31 August 2026, so this estimate is conservative for the first half of the semester).
+What a "session" is. One focused Claude Code working session on a single scoped ticket — roughly 45–90 minutes, one feature slice, ending when the QA suite is green or when I stop to review. Input per session is dominated by repo context (the relevant scenes and scripts, the config resource, and the §2.3 subsection being implemented); output is code and test files.
+Per-session estimates
+Session type
+	Input
+	Output
+	Total
+	Coder (feature slice)
+	60k
+	12k
+	72k
+	QA (test authoring)
+	40k
+	10k
+	50k
+	Playtester (harness + report analysis)
+	50k
+	8k
+	58k
+	Art Director (sourcing pass)
+	25k
+	5k
+	30k
+	Weekly mix. 4 Coder + 1 QA + 1 Playtester + ~0.5 Art Director (it runs three times across the semester, amortized):
+(4 × 72k) + 50k + 58k + (0.5 × 30k) = 288k + 50k + 58k + 15k = 411k tokens/week
+Semester total
+Weekly pipeline 411k × 14 weeks = 5,754k
+Researcher one-time, front-loaded = 250k
+Design/GDD chat ~40k/week × 14 = 560k
+                                             --------
+
+
+Subtotal ≈ 6,564k (~6.6M tokens)
+Buffer (25%) ≈ 1,641k
+                                             --------
+
+
+Total estimate ≈ 8.2M tokens
+Worst-case metered cost. At a roughly 80/20 input/output split on 8.2M tokens: 6.6M input × $3/M = $19.80, plus 1.6M output × $15/M = $24.00 → ≈ $44 for the semester. Prompt caching would cut the input side substantially, since the repo context is the same prefix session after session, so the real figure is likely well under this. The Max subscription covers the work regardless; this arithmetic exists to show the project doesn't depend on the subscription being generous.
+Buffer / overrun plan. In order, what gets compressed if I hit the ceiling:
+1. Drop the Playtester from weekly to every-other-week and widen the sweep grid, trading agent turns for compute time (headless runs cost machine hours, not tokens).
+2. Cut Art Director sourcing to a single pass in phase 7 and ship placeholder art longer.
+3. Reduce the upgrade set from 2 tiers to 1 tier per part (12 purchases → 6), which removes an entire economy-tuning sweep.
+4. Cut the low-orbit band and ship the slice suborbital-only. This is the last resort and it costs a design pillar, so it's the thing I'd rather trade weeks for.
+4.4 Constraints
+Constraint: Agent context can't hold the game
+* What it is: No agent in the roster can see the whole project. A Coder session that had to read every scene, every script, the full GDD, and the test suite before writing a line would spend its entire context on orientation and produce worse code with less room to think.
+* Why it binds: This is the constraint I've actually hit, repeatedly, working in Claude Code on Windows. The failure mode isn't a hard error — it's quiet degradation. A long session starts inventing numbers it can't see, re-implementing a helper that already exists two files over, or "fixing" a rule it never read. On a physics game where a single wrong constant silently changes whether reentry is survivable, that kind of quiet drift is expensive to catch.
+* What we do about it: Three structural decisions, all of which exist because of this constraint:
+   1. One config file, no exceptions. Every tunable lives in config/game_params.tres. An agent needs one small file, not the whole codebase, to know what a number is — and the Playtester can sweep values without ever loading game code. Hardcoded literals are a rejection condition in code review specifically because they'd force the next session to read code it shouldn't need.
+   2. QA is written from the ticket, not the code. Handing QA the §2.3 spec instead of the implementation means it needs one page of context rather than a codebase, and it means the tests encode intent rather than whatever the Coder happened to do.
+   3. Tickets are one §2.3 subsection. The GDD is deliberately structured so that each subsection is a self-contained, implementable unit with its own "Key values" list. That structure isn't just for the reader — it's the unit of work the pipeline runs on.
+Constraint: Solo developer, no artist
+* What it is: I'm one person, this is my first game, and there is no one making original art.
+* Why it binds: Pixel art for a physics game is deceptively large — a rocket with staging states, an astronaut with jetpack and EVA animations, three bands of distinct debris, plasma and hull-glow effects, a junkyard. At my sprite speed that's more hours than the physics.
+* What we do about it: The Art Director sources packs rather than commissioning or generating art; Aseprite work is scoped to gap-filling only (sprites no pack provides, edited into an existing palette); the planet is procedurally generated via Deep-Fold rather than hand-drawn. The visual style — blue-collar salvage, everything mismatched and welded together — is chosen partly because it tolerates assets from more than one pack. The theme absorbs the constraint. The size-class system in §2.3.4 is part of the same absorption: because slot cost is authored per debris type rather than derived from sprite dimensions, and because the hold compacts what it takes in, whatever debris sprites the packs actually provide can be assigned a class and used. Nothing in the design depends on finding sprites that look like specific broken satellite parts.
+Constraint: Headless determinism
+* What it is: The Playtester's value comes from thousands of automated flights. Those flights are only comparable if identical inputs produce identical outcomes.
+* Why it binds: Godot's built-in 2D physics is not frame-rate-independent in a way I can rely on across headless runs, and a sweep whose results shift run to run is worse than no sweep — it produces confident, wrong numbers.
+* What we do about it: Custom fixed-timestep gravity integration rather than the built-in physics server, all randomness seeded from config, and sweeps run inside Docker so the environment is identical between my machine and any re-run. This decision was made for the agent pipeline and happens to be the right call for orbital mechanics anyway.
+4.5 Risks
+1. Reentry tuning eats the semester. §2.3.1 is the most interconnected system in the game — ablation, mass, plasma, chute timing, and the value curve are all coupled, and the U-shaped ablation cost curve in particular may not have a tuning that actually produces a 2–4 pass optimum. Mitigation: Phase 4 has three weeks, and phase 5 exists solely as tuning slack. If the U-curve won't tune, the fallback is a flat per-pass ablation cost with a hard cap on passes — less elegant, same anti-feathering effect, one afternoon of work.
+2. The difficulty curve inverts. The design's central bet is that mass scaling makes the return leg harder as hauls improve. If upgrades outpace mass, the game gets easier as it progresses — the exact failure I'm designing against. Mitigation: This is a specific, testable Playtester question, and it's on the sweep list for phases 4 and 6 rather than something I discover at the end. If mass alone won't hold the curve, the lever is band-gated shield ablation rates: higher bands ablate faster per pass regardless of upgrade tier. Fragile junk is a second, structurally different hedge: because its payout depends on approach discipline and touchdown softness rather than on gear, it is the one reward in the economy that upgrades cannot buy outright — a run's ceiling stays tied to how well the player flies it.
+3. Multi-tether towing is annoying rather than tense. This is the risk I'm least able to reason my way to an answer on. Trailing cables with slack are a physics problem and a readability problem at once — loads that snag, oscillate, or clip through the ship turn a greed decision into a fight with the controls — and shear in particular sits on a knife edge between tense and unfair, because a mechanic that takes salvage away is only fun if the player can see exactly why it happened. Mitigation: Phase 3a is a standalone tech demo built specifically to answer this before the mechanic is load-bearing anywhere else — an astronaut, a debris field, adjustable tether count, and a live readout of per-cable tension against hold force. Two things get decided there and nowhere else: whether a two-piece tow is legible on screen, and whether normal flying can shear a magnet by accident (it shouldn't; only deliberate yanking should). The fallbacks are staged, cheapest first: soften shear to a warning-then-slip with no detach; then drop shear entirely and let mass alone carry the tension; then rigid attachment, where pieces snap to fixed points on the suit and only contribute mass. Each of those keeps the trips-versus-control decision intact — shear is the removable layer, not the mechanic.
+4. Scope creep back into the deferred list. The crane magnet and the satellite are the most exciting parts of the design and the easiest to start building early. Mitigation: The cuts in 4.1 are written down here, and phase 8 is a polish-and-ship phase with no new features in it. If phases 1–4 finish early, the surplus goes to the third band — and only then.
+________________
+
+
+Appendix — Open Questions
+* Debris mass & collisions. Asteroids are reframed as scrap. Sketch: every piece of debris has mass; colliding with the ship transfers momentum and deals hull damage scaling with relative velocity and combined mass. Decide whether this ships or gets cut — if cut, HP threats are landing-only.
+* Tether count vs. hold size. Base tether slots (2) and base cargo slots (6) need to be set against each other. If tethers ≥ slots, a single EVA trip can fill the hold and the greed decision collapses; if tethers are far below slots, the player makes tedious round trips. Playtester sweep target in phase 3.
+* Fragile value premium, spawn rate, and reach cost. Three coupled knobs: how rare fragile pieces are, how much more they're worth, and how far off the beaten path they spawn. Too generous and the optimal run is all glass; too stingy and the player learns to ignore the glint, which wastes the mechanic. The target is that a fragile piece is a decision most of the time — sometimes clearly worth the detour, sometimes clearly not. Phase 6 economy sweep.
+* Size-class granularity. Three classes (small / medium / oversized) may be one too many for a two-band slice. If the packs don't give visually distinct debris at two obvious scales, collapse to small vs. oversized and let mass alone carry the difference.
+* Final upgrade list. The list in 2.3.6 is a draft — jetpack and parachute tiers are the cuttable candidates if it needs trimming. Roughly 3 tiers per upgrade paces the game (~18 purchases).
+* Name the satellite. The capstone object needs a proper name — it's Mr. Armstrong's, so the name is a character beat.
+* Value-vs-altitude numbers. 2.3.7's bands need concrete values — a Playtester sweep target once the economy is coded.
+* Time compression. Multi-pass aerobraking means waiting out orbit periods between passes. If periods at game scale run long, an on-rails time warp keeps a 3-pass descent to minutes of real time — decide once the Researcher pins the planet scale.

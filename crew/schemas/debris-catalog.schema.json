@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Junkstronaut debris catalog",
+  "description": "The Debris Designer's output. Physical identity only — no prices. The Economy Balancer values these; the Spec Auditor recomputes the summaries.",
+  "type": "object",
+  "required": ["agent", "size_classes", "debris", "band_summary"],
+  "properties": {
+    "agent": { "const": "debris-designer" },
+    "size_classes": {
+      "type": "object",
+      "required": ["small", "medium", "oversized"],
+      "patternProperties": {
+        "^(small|medium|oversized)$": {
+          "type": "object",
+          "required": ["slots_crushed", "slots_uncrushed", "hand_tetherable"],
+          "properties": {
+            "slots_crushed": { "type": "integer", "minimum": 1 },
+            "slots_uncrushed": { "type": "integer", "minimum": 1 },
+            "hand_tetherable": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "debris": {
+      "type": "array",
+      "minItems": 18,
+      "maxItems": 30,
+      "items": {
+        "type": "object",
+        "required": ["id", "display_name", "band", "size_class", "fragile", "mass_kg", "spawn_weight"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "display_name": { "type": "string", "minLength": 3 },
+          "band": { "enum": ["suborbital", "low", "high"] },
+          "size_class": { "enum": ["small", "medium", "oversized"] },
+          "fragile": { "type": "boolean" },
+          "mass_kg": { "type": "number", "exclusiveMinimum": 0 },
+          "spawn_weight": { "type": "integer", "minimum": 1 },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "band_summary": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["band", "piece_count", "fragile_fraction", "mean_mass_kg"],
+        "properties": {
+          "band": { "enum": ["suborbital", "low", "high"] },
+          "piece_count": { "type": "integer", "minimum": 1 },
+          "fragile_fraction": { "type": "number", "minimum": 0, "maximum": 1 },
+          "mean_mass_kg": { "type": "number", "exclusiveMinimum": 0 }
+        }
+      }
+    },
+    "design_notes": { "type": "array", "items": { "type": "string" } },
+    "revision_notes": { "type": "array", "items": { "type": "string" } }
+  }
+}

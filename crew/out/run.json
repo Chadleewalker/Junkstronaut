@@ -1,0 +1,51 @@
+{
+  "crew": "junkstronaut-tuning-crew",
+  "mode": "stub",
+  "finished_at": "2026-07-26T22:32:41.970Z",
+  "duration_s": 0,
+  "design_document": "Junkstronaut GDD.txt",
+  "models": [
+    "claude-opus-5"
+  ],
+  "agents": [
+    {
+      "name": "researcher",
+      "attempts": 1
+    },
+    {
+      "name": "debris-designer",
+      "attempts": 1,
+      "revisions": 0
+    },
+    {
+      "name": "economy-balancer",
+      "revisions": 0
+    },
+    {
+      "name": "spec-auditor",
+      "verdict": "pass",
+      "audits": 1
+    }
+  ],
+  "audit": {
+    "verdict": "pass",
+    "checks_total": 16,
+    "checks_failed": 0,
+    "observations": 9
+  },
+  "catalog_concerns": [
+    "antenna_whip - mass_kg 3 (with fragile true). At 3 kg it is the lightest piece in the game and costs 2 uncrushed slots, so at any fragile premium that satisfies 'worth several solid pieces' it becomes the strictly dominant suborbital pick: 180 value per 2 slots and 3 kg, against 120 per 2 slots and 24 kg for two hull panels - better value AND lighter, with the double-damage risk fully avoidable by landing softly. GDD 2.3.4 wants fragile to read as 'bulk plus risk'; at 3 kg there is no bulk penalty in mass terms and the risk is optional. I cannot fix this by pricing without dropping the premium below the level 2.3.7 requires. A mass in the 10-14 kg range, or a 4-slot uncrushed cost, would restore the trade.",
+    "rtg_capsule - size_class small (at 88 kg, non-fragile, 1 slot crushed). Six of these fill a base hold with 528 kg, which is 8.8x the densest possible suborbital hold and 5.9x the spawn-weighted high-band hold of 230 kg that every mass-derived number in this file uses. It is the only piece in the catalog whose mass-per-slot (88) is more than double the next best in its band (gold_foil_instrument_can at 48), so it defines a degenerate maximum-density strategy that no parachute tier can land softly. Either the mass or the size class should move; its own notes already call it 'absurdly heavy for one slot'.",
+    "insulation_blanket_wad - mass_kg 4 (with slots_crushed 1). Combined with scorched_hull_panel at 12 kg, the suborbital band's spawn-weighted density is 8.06 kg per slot, which is what forces dry_mass_kg down to 60 to keep GDD 2.3.5's doubling claim arithmetically true. A 60 kg rocket at the baseline's 3.5 m^2 reference area is a thin-walled scrap tube and sits awkwardly against eva.suit_mass_kg = 45. Raising the suborbital band's per-slot density by roughly 2-3x - most cheaply by lifting the two lightest smalls - would let dry mass land somewhere physically comfortable without touching the slot count the GDD puts on screen."
+  ],
+  "artifacts": [
+    "params/baseline.json",
+    "data/debris_catalog.json",
+    "config/game_params.json",
+    "config/game_params.tres",
+    "config/game_params.gd",
+    "audit/audit_report.json",
+    "audit/audit_report.md",
+    "report/dashboard.html"
+  ]
+}

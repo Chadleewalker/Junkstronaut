@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Junkstronaut — Interactive Design Review</title>
+<style>
+  :root{
+    --bg:#16181D; --panel:#1F232B; --text:#E8E6E1; --muted:#8A8F98;
+    --hairline:#2A2F38;
+    --blocking:#E5484D; --major:#F5A623; --minor:#5A6270;
+    --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,"Liberation Mono",monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#F3F2ED; --panel:#FFFFFF; --text:#1A1C20; --muted:#5A6270;
+      --hairline:#D9D7D0;
+      --minor:#6B7280;
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:auto}
+  @media (prefers-reduced-motion: no-preference){ html{scroll-behavior:smooth} }
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); font-size:16px; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit}
+  .wrap{max-width:1100px; margin:0 auto; padding:0 24px}
+  section{padding:56px 0; border-top:1px solid var(--hairline)}
+  section:first-of-type{border-top:0}
+  .eyebrow{font:600 12px/1 var(--mono); letter-spacing:.24em; text-transform:uppercase; color:var(--muted); margin:0 0 14px}
+  h2.section-title{font-size:24px; letter-spacing:.02em; margin:0 0 6px; font-weight:700}
+  .section-sub{color:var(--muted); font-size:15px; margin:0 0 28px; max-width:70ch}
+  @media (prefers-reduced-motion: no-preference){
+    .fade{opacity:0; transform:translateY(10px); animation:fu .5s ease forwards}
+    @keyframes fu{to{opacity:1; transform:none}}
+  }
+
+  /* stamps + chips */
+  .stamp{display:inline-block; border:1px solid; padding:2px 8px; font:700 12px/1 var(--mono);
+    letter-spacing:.14em; text-transform:uppercase; border-radius:2px; background:transparent; white-space:nowrap}
+  .stamp.BLOCKING{color:var(--blocking); border-color:var(--blocking)}
+  .stamp.MAJOR{color:var(--major); border-color:var(--major)}
+  .stamp.MINOR{color:var(--minor); border-color:var(--minor)}
+  .stamp.big{font-size:14px; padding:4px 11px; letter-spacing:.18em}
+  .out{display:inline-block; border:1px dashed var(--muted); color:var(--muted);
+    padding:2px 8px; font:700 12px/1 var(--mono); letter-spacing:.12em; text-transform:uppercase; border-radius:2px}
+  .chip{display:inline-block; border:1px solid var(--hairline); color:var(--muted);
+    padding:3px 9px; font:600 12px/1.3 var(--mono); letter-spacing:.03em; border-radius:2px;
+    background:transparent; cursor:pointer; margin:0}
+  .chip:hover,.chip:focus-visible{border-color:var(--text); color:var(--text); outline:none}
+  button.chip{font-family:var(--mono)}
+
+  /* masthead */
+  .masthead{display:grid; grid-template-columns:1fr; gap:36px; padding-top:52px}
+  @media(min-width:820px){ .masthead{grid-template-columns:1.4fr 1fr} }
+  .mast-title{font-size:48px; line-height:1.02; margin:6px 0 12px; letter-spacing:-.01em; font-weight:800}
+  .mast-sub{color:var(--muted); font:600 13px/1 var(--mono); letter-spacing:.06em; text-transform:uppercase}
+  .verdict{font-size:18px; line-height:1.5; margin:18px 0 0; max-width:52ch}
+  .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; align-content:start}
+  .stat{background:var(--panel); border:1px solid var(--hairline); border-radius:3px; padding:16px 14px}
+  .stat .num{font:800 40px/1 var(--sans)}
+  .stat .lab{font:600 11px/1.3 var(--mono); letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-top:8px}
+  .stat.b .num{color:var(--blocking)}
+
+  /* controls */
+  .toolbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:0 0 22px}
+  .toggle{display:inline-flex; border:1px solid var(--hairline); border-radius:3px; overflow:hidden}
+  .toggle button{background:transparent; color:var(--muted); border:0; padding:7px 12px;
+    font:600 12px/1 var(--mono); letter-spacing:.04em; cursor:pointer}
+  .toggle button[aria-pressed="true"]{background:var(--panel); color:var(--text)}
+  .toggle button:not(:first-child){border-left:1px solid var(--hairline)}
+  .toggle button:focus-visible{outline:2px solid var(--muted); outline-offset:-2px}
+  .ctl-label{font:600 11px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+
+  /* Viz1 bars */
+  .bars{display:flex; flex-direction:column; gap:12px}
+  .bar-row{display:grid; grid-template-columns:150px 1fr; gap:14px; align-items:center}
+  .bar-row .rl{font:600 13px/1.2 var(--mono); color:var(--text); text-align:right; letter-spacing:.02em}
+  .bar-row .rl small{display:block; color:var(--muted); font-size:11px; letter-spacing:.06em}
+  .track{display:flex; height:38px; background:transparent; border-radius:2px; overflow:hidden; min-width:2px}
+  .track.agg{height:46px}
+  .seg{display:flex; align-items:center; justify-content:center; color:#0c0d10; font:800 16px/1 var(--sans);
+    cursor:pointer; border-right:1px solid var(--bg); min-width:0; transition:filter .12s}
+  .seg:last-child{border-right:0}
+  .seg:hover,.seg:focus-visible{filter:brightness(1.12); outline:none}
+  .seg.BLOCKING{background:var(--blocking)}
+  .seg.MAJOR{background:var(--major)}
+  .seg.MINOR{background:var(--minor); color:#E8E6E1}
+  .agg-note{color:var(--muted); font:600 11px/1 var(--mono); letter-spacing:.06em; margin:6px 0 18px 164px}
+  .legend{display:flex; flex-wrap:wrap; gap:16px; margin-top:20px; font:600 12px/1 var(--mono); color:var(--muted); letter-spacing:.04em}
+  .legend .sw{display:inline-block; width:14px; height:14px; border-radius:2px; vertical-align:-2px; margin-right:6px}
+
+  /* Viz2 matrix */
+  .matrix{border-collapse:separate; border-spacing:0; margin:0 auto}
+  .matrix caption{caption-side:top; text-align:left; color:var(--muted); font-size:13px; margin-bottom:12px}
+  .matrix th{font:600 12px/1 var(--mono); color:var(--muted); letter-spacing:.06em; font-weight:600; padding:6px}
+  .matrix th.corner{font-size:10px; text-align:right; color:var(--muted); vertical-align:bottom}
+  .matrix th.col{writing-mode:horizontal-tb}
+  .matrix th.row{text-align:right; padding-right:10px; white-space:nowrap}
+  .mcell{width:64px; height:56px; padding:0; text-align:center; vertical-align:middle}
+  .mcell button{width:58px; height:52px; border:1px solid var(--hairline); background:transparent;
+    position:relative; cursor:pointer; border-radius:2px; color:var(--text); font:700 15px/1 var(--sans); display:block; margin:0 auto}
+  .mcell button:focus-visible{outline:2px solid var(--text); outline-offset:1px}
+  .mcell button.inert{cursor:default; background:
+    repeating-linear-gradient(45deg,transparent 0 5px,var(--hairline) 5px 6px); border-style:dashed; color:transparent}
+  .mcell button.disag{border:1px solid var(--blocking)}
+  .mk{position:absolute; right:4px; top:3px; display:flex; gap:3px}
+  .mk .dot{width:7px; height:7px; border-radius:50%; background:var(--muted)}
+  .mk .sq{width:7px; height:7px; border:1px solid var(--muted); background:transparent}
+  .mcount{position:absolute; left:0; right:0; top:50%; transform:translateY(-50%); pointer-events:none}
+  .drawer{margin-top:20px; background:var(--panel); border:1px solid var(--hairline); border-radius:3px; padding:18px 20px; min-height:60px}
+  .drawer h4{margin:0 0 4px; font-size:15px}
+  .drawer .link-item{border-top:1px solid var(--hairline); padding:12px 0}
+  .drawer .link-item:first-of-type{border-top:0}
+  .drawer .kind{font:700 11px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+  .drawer p{margin:6px 0 0; font-size:15px; line-height:1.5}
+  .linkbtn{background:transparent; border:1px solid var(--blocking); color:var(--blocking);
+    font:700 12px/1 var(--mono); letter-spacing:.06em; padding:7px 12px; border-radius:2px; cursor:pointer; margin-top:14px}
+  .linkbtn:focus-visible{outline:2px solid var(--blocking); outline-offset:2px}
+
+  /* Viz3 flow */
+  .flow-tally{display:flex; flex-wrap:wrap; gap:2px; margin-top:26px; border:1px solid var(--hairline); border-radius:3px; overflow:hidden}
+  .tseg{flex:1 1 auto; background:var(--panel); border:0; color:var(--text); cursor:pointer;
+    padding:14px 10px; font:600 13px/1.3 var(--mono); text-align:center; letter-spacing:.03em; min-width:120px}
+  .tseg:hover,.tseg:focus-visible{background:var(--hairline); outline:none}
+  .tseg .tn{display:block; font:800 26px/1 var(--sans); margin-bottom:6px}
+  .tseg.zero{color:var(--muted); cursor:default}
+  .tseg.zero:hover{background:var(--panel)}
+
+  /* Viz4 top5 */
+  .card{border-top:1px solid var(--hairline); padding:26px 0}
+  .card:first-child{border-top:0}
+  .card-head{display:grid; grid-template-columns:96px 1fr; gap:20px; align-items:start; width:100%;
+    background:transparent; border:0; text-align:left; color:inherit; cursor:pointer; padding:0}
+  .card-head:focus-visible{outline:2px solid var(--muted); outline-offset:6px; border-radius:3px}
+  .rank{font:800 90px/.8 var(--sans); color:var(--muted); opacity:.32; letter-spacing:-.04em}
+  .card-main .row1{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:12px}
+  .card-stmt{font-size:27px; line-height:1.24; font-weight:600; margin:8px 0 14px; letter-spacing:-.01em}
+  .flags{display:flex; flex-wrap:wrap; gap:7px; align-items:center}
+  .flags .fl-lab{font:600 11px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-right:4px}
+  .expand-hint{font:600 12px/1 var(--mono); color:var(--muted); letter-spacing:.06em; margin-top:14px}
+  .trail{margin:22px 0 0 116px; display:none}
+  .trail.open{display:block}
+  .trail-block{border-left:2px solid var(--hairline); padding:2px 0 2px 18px; margin-bottom:18px}
+  .trail-block h5{margin:0 0 8px; font:700 12px/1 var(--mono); letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+  .trail-block p{margin:0 0 8px; font-size:16px; line-height:1.55}
+  .trail-src{font:600 12px/1.4 var(--mono); color:var(--muted); margin-bottom:6px}
+
+  /* Viz5 disagreements */
+  .disag{border-top:1px solid var(--hairline); padding:28px 0}
+  .disag:first-of-type{border-top:0}
+  .disag h3{font-size:21px; margin:0 0 6px; font-weight:700}
+  .disag .summ{color:var(--muted); font-size:15px; margin:0 0 20px; max-width:78ch}
+  .positions{display:grid; gap:16px}
+  .positions.c3{grid-template-columns:1fr}
+  .positions.c2{grid-template-columns:1fr}
+  @media(min-width:760px){ .positions.c3{grid-template-columns:repeat(3,1fr)} .positions.c2{grid-template-columns:repeat(2,1fr)} }
+  .pos{border:1px solid var(--hairline); border-radius:3px; padding:16px 16px 18px; transition:border-color .12s}
+  .pos:hover{border-color:var(--muted)}
+  .pos .who{margin-bottom:10px}
+  .pos p{margin:0; font-size:16px; line-height:1.5}
+  .escalate{margin-top:18px; display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap}
+  .escalate p{margin:0; font-size:15px; max-width:70ch; color:var(--text)}
+  .filter-clash{background:transparent; border:1px solid var(--hairline); color:var(--muted);
+    font:600 12px/1 var(--mono); letter-spacing:.04em; padding:7px 11px; border-radius:2px; cursor:pointer; margin-top:14px}
+  .filter-clash:hover,.filter-clash:focus-visible{border-color:var(--text); color:var(--text); outline:none}
+  .empty-state{color:var(--muted); font-size:16px}
+
+  /* Viz6 table */
+  .filters-strip{position:sticky; top:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--hairline);
+    padding:12px 0; margin-bottom:18px; display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+  .filters-strip .fs-lab{font:700 11px/1 var(--mono); letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+  .active-filter{display:inline-flex; align-items:center; gap:7px; border:1px solid var(--text); color:var(--text);
+    padding:4px 6px 4px 10px; border-radius:2px; font:600 12px/1 var(--mono); letter-spacing:.03em}
+  .active-filter button{background:transparent; border:0; color:var(--muted); cursor:pointer; font:700 13px/1 var(--mono); padding:0 3px}
+  .active-filter button:hover{color:var(--text)}
+  .clear-all{background:transparent; border:0; color:var(--muted); cursor:pointer; font:600 12px/1 var(--mono);
+    text-decoration:underline; letter-spacing:.04em}
+  .clear-all:hover{color:var(--text)}
+  .controlbar{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:16px}
+  select,input[type=search]{background:var(--panel); color:var(--text); border:1px solid var(--hairline);
+    border-radius:3px; padding:8px 10px; font:600 13px/1 var(--mono); letter-spacing:.02em}
+  input[type=search]{min-width:200px; font-family:var(--sans); font-weight:400}
+  select:focus-visible,input:focus-visible{outline:2px solid var(--muted); outline-offset:-1px}
+  .sev-chips{display:inline-flex; gap:6px}
+  .sev-chips button{background:transparent; border:1px solid var(--hairline); border-radius:2px; cursor:pointer;
+    padding:6px 10px; font:700 11px/1 var(--mono); letter-spacing:.1em}
+  .sev-chips button.BLOCKING{color:var(--blocking)} .sev-chips button.MAJOR{color:var(--major)} .sev-chips button.MINOR{color:var(--minor)}
+  .sev-chips button[aria-pressed="true"].BLOCKING{background:var(--blocking); color:#0c0d10; border-color:var(--blocking)}
+  .sev-chips button[aria-pressed="true"].MAJOR{background:var(--major); color:#0c0d10; border-color:var(--major)}
+  .sev-chips button[aria-pressed="true"].MINOR{background:var(--minor); color:#E8E6E1; border-color:var(--minor)}
+  .count-live{font:600 12px/1 var(--mono); color:var(--muted); letter-spacing:.04em; margin-left:auto}
+  table.ftable{width:100%; border-collapse:collapse}
+  table.ftable th{text-align:left; font:700 11px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase;
+    color:var(--muted); padding:10px 10px; border-bottom:1px solid var(--hairline); cursor:pointer; user-select:none; white-space:nowrap}
+  table.ftable th .arr{opacity:.5; margin-left:4px}
+  table.ftable th[aria-sort="ascending"] .arr,table.ftable th[aria-sort="descending"] .arr{opacity:1; color:var(--text)}
+  table.ftable td{padding:12px 10px; border-bottom:1px solid var(--hairline); font-size:15px; vertical-align:top}
+  tr.frow{cursor:pointer}
+  tr.frow:hover td{background:var(--panel)}
+  tr.frow:focus-visible{outline:2px solid var(--muted); outline-offset:-2px}
+  td.c-title{font-weight:600; max-width:420px}
+  td.c-trace{font:400 12px/1.5 var(--mono); color:var(--muted); max-width:220px}
+  td.c-num{font:600 13px/1 var(--mono); color:var(--muted)}
+  td.c-rev{font:600 12px/1 var(--mono); color:var(--muted); letter-spacing:.04em}
+  tr.detail td{background:var(--panel); border-bottom:1px solid var(--hairline)}
+  tr.detail .d-inner{padding:6px 4px 10px}
+  tr.detail p{margin:0 0 8px; font-size:15px; line-height:1.6; max-width:88ch}
+  tr.detail .d-refs{font:600 12px/1.5 var(--mono); color:var(--muted)}
+  .no-results{color:var(--muted); font-size:15px; padding:24px 4px}
+  .flash td{animation:none}
+  @media (prefers-reduced-motion: no-preference){
+    .flash td{animation:flash 1.2s ease}
+    @keyframes flash{0%,30%{background:var(--panel)} 100%{background:transparent}}
+  }
+
+  /* tooltip */
+  #tip{position:fixed; z-index:50; background:var(--panel); border:1px solid var(--hairline); border-radius:3px;
+    padding:10px 12px; max-width:340px; font-size:13px; line-height:1.45; color:var(--text); pointer-events:none;
+    display:none; box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+  #tip .tt-h{font:700 12px/1.3 var(--mono); letter-spacing:.04em; margin-bottom:5px}
+  #tip .tt-h .stamp{margin-left:6px}
+  #tip ul{margin:6px 0 0; padding-left:16px} #tip li{margin:2px 0}
+
+  footer{border-top:1px solid var(--hairline); padding:34px 0 60px; color:var(--muted)}
+  footer .method{font:600 13px/1.6 var(--mono); letter-spacing:.03em}
+  footer .src{font-size:13px; margin-top:8px}
+  .skip{position:absolute; left:-9999px; top:0}
+  .skip:focus{left:12px; top:12px; background:var(--panel); padding:8px 12px; border:1px solid var(--text); z-index:100; border-radius:3px}
+  h1,h2,h3,h4,h5{font-weight:700}
+</style>
+</head>
+<body>
+<a href="#findings" class="skip">Skip to findings table</a>
+<div id="tip" role="status" aria-live="polite"></div>
+
+<div class="wrap">
+
+  <!-- MASTHEAD -->
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">Interactive Design Review · Round 5</p>
+      <h1 class="mast-title" id="doc-title">Junkstronaut</h1>
+      <p class="mast-sub" id="doc-sub"></p>
+      <p class="verdict" id="verdict-line"></p>
+    </div>
+    <div class="stats" aria-label="Headline counts">
+      <div class="stat"><div class="num" id="s-total">0</div><div class="lab">Total findings</div></div>
+      <div class="stat b"><div class="num" id="s-block">0</div><div class="lab">Blocking</div></div>
+      <div class="stat"><div class="num" id="s-disag">0</div><div class="lab">Unresolved</div></div>
+    </div>
+  </header>
+
+  <!-- VIZ 1 -->
+  <section id="viz-severity">
+    <p class="eyebrow">Viz 1 — Orientation</p>
+    <h2 class="section-title">Severity Breakdown</h2>
+    <p class="section-sub">Where the weight of criticism sits, per lens and overall. Blocking findings cluster in three lenses, not spread evenly. Click any segment to filter the findings table.</p>
+    <div class="toolbar">
+      <span class="ctl-label">View</span>
+      <div class="toggle" role="group" aria-label="Bar view">
+        <button id="tg-view-per" aria-pressed="true">Per reviewer</button>
+        <button id="tg-view-agg" aria-pressed="false">Aggregate only</button>
+      </div>
+      <span class="ctl-label">Basis</span>
+      <div class="toggle" role="group" aria-label="Severity basis">
+        <button id="tg-basis-final" aria-pressed="true">Final severity</button>
+        <button id="tg-basis-r1" aria-pressed="false">Round 1 severity</button>
+      </div>
+    </div>
+    <div class="bars" id="bars"></div>
+    <div class="legend" aria-hidden="true">
+      <span><span class="sw" style="background:var(--blocking)"></span>Blocking</span>
+      <span><span class="sw" style="background:var(--major)"></span>Major</span>
+      <span><span class="sw" style="background:var(--minor)"></span>Minor</span>
+    </div>
+  </section>
+
+  <!-- VIZ 2 -->
+  <section id="viz-matrix">
+    <p class="eyebrow">Viz 2 — The multi-agent payoff</p>
+    <h2 class="section-title">Cross-Examination Matrix</h2>
+    <p class="section-sub">Round 2 traffic: who engaged whom, and whether it was a <strong>connection</strong> (combined-lens discovery) or a <strong>conflict</strong> (clash). Cells outlined in red are clashes that hardened into unresolved board disagreements. Click a cell for the full notes.</p>
+    <div style="overflow-x:auto">
+      <table class="matrix" id="matrix">
+        <caption>Rows engage columns. Diagonal is inert — a lens does not cross-examine itself.</caption>
+      </table>
+    </div>
+    <div class="legend" aria-hidden="true">
+      <span><span class="mk" style="position:static;display:inline-flex"><span class="dot"></span></span> connection</span>
+      <span><span class="mk" style="position:static;display:inline-flex"><span class="sq"></span></span> conflict</span>
+      <span><span class="sw" style="background:transparent;border:1px solid var(--blocking)"></span> feeds unresolved disagreement</span>
+      <span>fill intensity = number of links</span>
+    </div>
+    <div class="drawer" id="matrix-drawer" aria-live="polite">
+      <h4>Select a cell</h4>
+      <p style="color:var(--muted);margin:0">Click any matrix cell to see the verbatim Round-2 notes exchanged between those two lenses.</p>
+    </div>
+  </section>
+
+  <!-- VIZ 3 -->
+  <section id="viz-flow">
+    <p class="eyebrow">Viz 3 — What cross-examination did</p>
+    <h2 class="section-title">Finding Flow · Round 1 → After Cross-Examination</h2>
+    <p class="section-sub">Cross-examination did not soften this board — it reinforced it. Almost every finding was held or strengthened, exactly one was upgraded in severity, and nothing was weakened or withdrawn. That emptiness is the headline. Click an outcome to filter the table.</p>
+    <div id="flow-svg-wrap" role="img" aria-label="Slope chart. Round 1 severity buckets on the left flow to final severity buckets on the right. Only one finding changed bucket: systems-designer F4 moved from minor to major."></div>
+    <div class="flow-tally" id="tally" role="group" aria-label="Cross-examination outcome tally"></div>
+  </section>
+
+  <!-- VIZ 4 -->
+  <section id="viz-top5">
+    <p class="eyebrow">Viz 4 — The centerpiece</p>
+    <h2 class="section-title">Top 5 Issues</h2>
+    <p class="section-sub">The five highest severity × confidence issues, ranked. Click a card to open its full trail — original finding, cross-examination, final status. Click a reviewer chip to filter the table to that lens.</p>
+    <div id="top5"></div>
+  </section>
+
+  <!-- VIZ 5 -->
+  <section id="viz-disag">
+    <p class="eyebrow">Viz 5 — What the board could not settle</p>
+    <h2 class="section-title">Active Disagreements</h2>
+    <p class="section-sub">The conflicts cross-examination could not resolve, shown as opposing positions side by side. These are the cells outlined in red in the matrix above.</p>
+    <div id="disagreements"></div>
+  </section>
+
+  <!-- VIZ 6 -->
+  <section id="findings">
+    <p class="eyebrow">Viz 6 — The ground truth</p>
+    <h2 class="section-title">Findings Table</h2>
+    <p class="section-sub">Every finding in one place. Filter by lens, severity, round, or outcome; sort any column; search titles and summaries. This is where every visualization above filters into.</p>
+
+    <div class="filters-strip" id="filters-strip">
+      <span class="fs-lab">Filters</span>
+      <span id="active-filters" style="display:flex;gap:8px;flex-wrap:wrap"></span>
+      <span id="no-filter" style="color:var(--muted);font:600 12px/1 var(--mono);letter-spacing:.04em">none active — showing all</span>
+      <button class="clear-all" id="clear-all" style="margin-left:auto">Clear all ✕</button>
+    </div>
+
+    <div class="controlbar">
+      <select id="f-reviewer" aria-label="Filter by reviewer"><option value="">All reviewers</option></select>
+      <div class="sev-chips" role="group" aria-label="Filter by severity">
+        <button class="BLOCKING" data-sev="BLOCKING" aria-pressed="false">Blocking</button>
+        <button class="MAJOR" data-sev="MAJOR" aria-pressed="false">Major</button>
+        <button class="MINOR" data-sev="MINOR" aria-pressed="false">Minor</button>
+      </div>
+      <select id="f-round" aria-label="Filter by round">
+        <option value="">All findings</option>
+        <option value="r2">Revised in Round 2</option>
+      </select>
+      <select id="f-outcome" aria-label="Filter by outcome">
+        <option value="">All outcomes</option>
+        <option value="STRENGTHENED">Strengthened</option>
+        <option value="HELD">Held</option>
+        <option value="UPGRADED">Upgraded</option>
+      </select>
+      <input type="search" id="f-search" placeholder="Search titles &amp; summaries…" aria-label="Search findings">
+      <span class="count-live" id="count-live"></span>
+    </div>
+
+    <table class="ftable" id="ftable">
+      <thead><tr>
+        <th data-col="reviewer" aria-sort="none">Reviewer<span class="arr">↕</span></th>
+        <th data-col="number" aria-sort="none">#<span class="arr">↕</span></th>
+        <th data-col="severity" aria-sort="none">Severity<span class="arr">↕</span></th>
+        <th data-col="title" aria-sort="none">Finding<span class="arr">↕</span></th>
+        <th data-col="outcome" aria-sort="none">R2 outcome<span class="arr">↕</span></th>
+        <th data-col="trace">Traces</th>
+      </tr></thead>
+      <tbody id="ftbody"></tbody>
+    </table>
+    <div class="no-results" id="no-results" hidden>No findings match the current filters.</div>
+  </section>
+
+  <footer>
+    <p class="method">Six isolated agent contexts · parallel review · cross-examination · moderated synthesis</p>
+    <p class="src" id="src-line"></p>
+  </footer>
+</div>
+
+<script>
+const DATA =
+/*__DATA__*/
+{
+  "document": {
+    "title": "Junkstronaut",
+    "subtitle": "First Draft GDD",
+    "source_file": "gdd.txt",
+    "review_date": "2026-07-20",
+    "board": ["systems-designer","narrative-critic","player-psychologist","feasibility-lead","adversarial-qa","business-analyst"]
+  },
+  "findings": [
+    {"reviewer":"systems-designer","id":"F1","severity":"BLOCKING","title":"The win object has no upgrade path that reaches it","description":"The satellite is described as 'landable only near full upgrades' (§2.6), but tracing descent systems against the upgrade tree, the math never closes. Post-staging braking is parachute-only (staging is one-way, no thrust after), the parachute terminal speed grows with ~√mass and ships at fixed mid-tier values (non-upgradeable), and the satellite roughly doubles ship mass (~1.41× a normal maxed haul, already past the hard-landing line). None of the three purchasable upgrades (Fuel, Thruster, Storage) reduce chute descent speed. There is no lever that buys down the satellite's touchdown speed under the fixed chute, so the endgame goal appears mechanically unwinnable as specified.","references":"§2.6 (landable only near full upgrades), §2.2 (one-way staging), §2.3 (√mass chute speed), §2.5 (fixed-tier parachute, three upgrades)"},
+    {"reviewer":"systems-designer","id":"F2","severity":"MAJOR","title":"The upgrade tree doesn't touch the game's hardest system","description":"§4 names the reentry loop as the central difficulty engine, but the three purchasable upgrades all address the ascent: Fuel tank and Thruster ease the climb and are irrelevant once staged, and Storage explicitly worsens the descent. Heat shield, parachute, and jetpack are fixed-tier. So the player spends the whole economy buying capacity to fly higher and heavier while the reentry challenge has no player-controlled counter-lever and only gets harder. It is not a difficulty curve but a difficulty ramp with no brake; the systems coexist rather than interlock.","references":"§4 (central difficulty engine), §2.5 (upgrades and fixed-tier reentry gear), §2.6 (difficulty scales with success)"},
+    {"reviewer":"systems-designer","id":"F3","severity":"MAJOR","title":"Jetpack fuel is a load-bearing resource that is never defined","description":"Jetpack fuel gates the core greed decision (every EVA trip costs fuel) and triggers a loss condition (stranded, no fuel), yet the document never specifies its capacity, refill rule, whether it is a separate pool from rocket-tank fuel, whether running dry mid-EVA strands the player, or how it scales. The jetpack ships at fixed mid-tier values and cannot be upgraded. Without a capacity/refill model there is no way to reason about EVA pacing or how close the player skates to the stranding loss.","references":"§2.4 (greed decision, jetpack fuel), §2.5 (fixed-tier jetpack, Armstrong refills tank), §1 (stranded-no-fuel loss)"},
+    {"reviewer":"systems-designer","id":"F4","severity":"MAJOR","severity_note":"Round 1 MINOR, upgraded to MAJOR in Round 2","title":"The economy has a floor, one anchor, and no fail state","description":"The only quantified economic statement is that launch cost equals ~2-3 cheap pieces so a lazy run breaks even; no piece values, upgrade prices, run length, or fuel-per-distance are given. With a guaranteed breakeven floor and loss conditions being only crash/strand, there is no economic fail state and no downward pressure, making progression a monotonic grind gated only by patience. The breakeven claim also omits the repair sink (flat fee per % on hull/heat shield), so a hard-landing run pays launch plus repairs and is net-negative, meaning the true break-even boundary is not modeled by the single stated anchor.","references":"§2.5 (launch cost / breakeven / repair fee), §1 (loss conditions), §2.3 (land-anywhere sale)"},
+    {"reviewer":"systems-designer","id":"F5","severity":"MINOR","title":"The soft-landing requirement fights the chute window for heavy loads","description":"§2.3 says soft landings require deploying the chute early to shed speed, but §2.2 says a chute deployed during plasma shreds, so deployment must wait until plasma clears, which for heavy holds opens later and lower. These rules pull opposite directions for exactly the heavy hauls the game funnels players toward; for a sufficiently heavy haul the earliest legal deployment may already be too low/fast for a soft landing. This is the mechanism under F1 but also affects ordinary greedy hauls, so a legal deploy window across the normal mass range needs confirming.","references":"§2.3 (deploy early for soft landing), §2.2 (plasma shreds chute, window opens later/lower)"},
+    {"reviewer":"narrative-critic","id":"F1","severity":"MAJOR","title":"The protagonist has no identity, no stake, and no reason to want the ending","description":"The Executive Summary gives Armstrong a clear motivation (he wants his lost satellite back), but the player character is only ever 'you fly a rocket built from scrap.' The document never says who the junkstronaut is or why they climb toward Armstrong's satellite instead of farming panels forever. The win condition is framed entirely as Armstrong's goal with no reward, resolution, or personal stake attached. The satellite is mechanically just the top of the upgrade tree and narratively the climax, but the finale is someone else's desire with no character for the emotional payoff to land on.","references":"§1 (Executive Summary, Armstrong's want), Win line 6 (retrieve the satellite)"},
+    {"reviewer":"narrative-critic","id":"F2","severity":"MAJOR","title":"Armstrong is written as a character but implemented as a vending machine","description":"The narrative leans hard on Armstrong (named, owns the junkyard, has a want, his satellite is the endgame), yet every point of contact with him is transactional and silent: sell to Armstrong for upgrades, haul auto-sells on landing, Armstrong fills the tank and repairs for a flat fee. There is no dialogue, cutscene, narrative UI, or delivery mechanism anywhere. The one character the story depends on never speaks and is only a price list, so the personal-quest framing in Section 1 never reaches the screen.","references":"§1, §2.1 (haul auto-sells), §2.5 (Armstrong fills tank / repairs)"},
+    {"reviewer":"narrative-critic","id":"F3","severity":"MAJOR","severity_note":"Held at MAJOR, flagged STRENGTHENED in Round 2","title":"The climax may be quietly hollow: returning a damaged satellite","description":"§2.6 states the satellite arrives damaged unless the touchdown is soft, while the Win condition simply says 'retrieve the satellite' and ignores its condition. So the emotional peak (handing a man back his prized possession) can resolve with a dented, scorched delivery, and the document never addresses whether that still counts as a win, whether Armstrong reacts, or whether damage undercuts the ending. Either damage should matter to the resolution or the document should admit the condition is cosmetic; as written the payoff is undefined at the moment it matters most.","references":"§2.6 (arrives damaged unless soft), Win line 6 (retrieve, condition unstated)"},
+    {"reviewer":"narrative-critic","id":"F4","severity":"MINOR","title":"'Starting with' promises a campaign the game doesn't deliver","description":"The hook says Armstrong wants it back 'starting with his own lost satellite,' framing the satellite as the first objective in a larger reclamation. But the satellite is also the Win condition and the heaviest object in the game, i.e. the end, not the start. The single line of setup contradicts the actual arc; the game both opens and closes on the same object. Cut 'starting with,' or acknowledge that this satellite is the whole story, because the phrasing promises a saga the scope can't cash.","references":"§1 (hook, 'starting with'), Win line 6 (heaviest object / endgame)"},
+    {"reviewer":"narrative-critic","id":"F5","severity":"MINOR","severity_note":"Held at MINOR, reinforced in Round 2","title":"Unreconciled tone: is this anxious or a scrapyard comedy?","description":"The #Feeling pillar names the intended emotion as anxiety from atmospheric reentry, but the surrounding voice (the title Junkstronaut, blue-collar handmade spacecraft, the magnet that 'clangs on') reads wry and comedic. Tension and junkyard slapstick can coexist, but the document never states which tone governs, and they imply very different presentations of the reentry moment (white-knuckle survival vs. Looney-Tunes plummet). With no stated tonal intent to arbitrate, downstream art and audio have nothing to align to and the anxiety pillar risks being undercut by a jokey frame.","references":"§7 (#Feeling anxiety pillar), §2.4 (magnet clangs on), title/theme (blue-collar scrap)"},
+    {"reviewer":"player-psychologist","id":"F1","severity":"BLOCKING","title":"The hardest, most punishing mechanic has no described onboarding","description":"The entire skill ceiling lives in the reentry/deploy sequence: shape descent with the engine, stage (one-way, no thrust after), wait for plasma to clear by reading a subtle hull-glow shift, then deploy chute then gear in order. A chute deployed during plasma shreds; any mistake loses the run's cargo or kills the player. The document describes no tutorial, safe first flight, practice mode, or forgiving early band. A new player's first reentry is a multi-step timing puzzle with permanent failure and no thrust to correct, a classic quit trigger. The game cannot ship a teachable version of its core fantasy without an onboarding plan, and none exists.","references":"§2.2 (reentry sequence, one-way staging), §1 (loss conditions, anxiety pillar), omission of any tutorial/onboarding section"},
+    {"reviewer":"player-psychologist","id":"F2","severity":"MAJOR","title":"Control scheme is overloaded and inconsistent across contexts","description":"The rocket context asks the player to juggle seven distinct verbs on non-standard keys (Thrust W, rotate Q/E, RCS A/D, stage B, parachute C, gear G, exit/enter F) during the most stressful phase, and several bindings fight muscle memory. Worse, the two contexts reuse the same keys with different meanings: in the rocket W is thrust and A/D is RCS, but in EVA WASD is jetpack. Players must context-switch their entire hand model on every F press, and with one-way staging and a shredding chute a single fat-finger is catastrophic. The doc never addresses input legibility, remapping, or on-screen prompts.","references":"§2.1 (control table, dual WASD meanings), §1 (K&M only), omission of remapping/HUD-prompt discussion"},
+    {"reviewer":"player-psychologist","id":"F3","severity":"MAJOR","title":"The reward loop is built on loss aversion, and it peaks at the worst moment","description":"Motivation is framed as fear of loss rather than anticipation of gain (the #Feeling pillar, the greed decision, the value gradient). Player investment and catastrophic-loss risk both peak at the same instant: the descent with a full hold, the run the player cares about most is the one most likely to end in total loss because mass raises heat, delays the chute, and increases touchdown speed. Loss-aversion research says the sting dwarfs the joy of the prior safe sale. Predicted outcomes: players haul timid half-empty loads (collapsing the greed fantasy), or keep gambling, keep losing, and quit. There is no counterweight, no partial credit, no positive reinforcement for a successful greedy run.","references":"§1 (Feeling pillar), §2.3, §2.4, §2.6, §3 (feedback loop), omission of positive-reinforcement/partial-success reward"},
+    {"reviewer":"player-psychologist","id":"F4","severity":"MAJOR","severity_note":"Held at MAJOR, reframed in Round 2 (entangled with winnability)","title":"Long-term motivation rests on a repetitive grind toward a single goal","description":"Winning requires the satellite, landable only near full upgrades, and upgrades are 9 purchases. With launch cost near breakeven and thin profit per run, the player must repeat the same loop many times to bank nine tiers. The content backing that grind is thin: exactly one suborbital band, no enemies, events, biome/level/mission variety, or narrative beats between launches, with variety systems (size classes, fragile flag, compactor, oversized junk) already cut. The loop is identical every run with only numbers creeping up. The psychological question 'why do I launch a 20th time?' is unanswered.","references":"§1 (win = single satellite), §2.5 (9 purchases, thin margins), §2.6 (single band), §4.3 (variety systems cut), omission of run-to-run variety"},
+    {"reviewer":"player-psychologist","id":"F5","severity":"MINOR","severity_note":"Held at MINOR, second-sourced in Round 2","title":"The single most important feedback cue is a subtle color shift under time pressure","description":"The go/no-go signal for the whole descent (when it is safe to deploy the chute without shredding it) is communicated as the hull glow fading from white toward orange. This asks a player in a high-anxiety moment to distinguish a gradual color transition in 2D pixel art and act within a narrow window. Color-only cues are a known accessibility/legibility problem (especially color-blind players), and a gradient cue is even harder than a discrete state change. The doc specifies no threshold indicator, audio cue, gauge, or explicit 'SAFE TO DEPLOY' prompt, yet mis-timing destroys the run.","references":"§2.2 (hull glow white→orange deploy cue), omission of non-color/audio/gauge feedback"},
+    {"reviewer":"feasibility-lead","id":"F1","severity":"MAJOR","severity_note":"Reframed in Round 2 as the enabling condition for the top BLOCKER; held MAJOR (borderline)","title":"The Playtester needs an agent that can fly the game, and the doc never says who does","description":"The Playtester runs headless Godot across a config grid and answers questions like 'Can a full-hold ship land under 5 m/s?' and 'Is the satellite run beatable at full upgrades?' Varying a config grid is trivial, but every such question requires something to actually pilot the ship (thrust, EVA, magnet-tow, stow, reenter, stage in the plasma window, open the chute in time). That control policy is the hard part and is completely omitted: no scripted autopilot, recorded input trace, or heuristic controller. Without a defined pilot the sweep measures nothing reproducible. The game still ships via hand-tuning, which is why this is MAJOR not BLOCKING, but the headline value prop is at risk.","references":"§3, §4.3 (Playtester questions), §4.4 (hand-tuning fallback), omission of flight-control policy"},
+    {"reviewer":"feasibility-lead","id":"F2","severity":"MAJOR","severity_note":"Held at MAJOR, confidence upgraded in Round 2","title":"'Deterministic' is asserted as a foundation but CharacterBody2D collisions don't guarantee it","description":"The Playtester architecture is 'enabled by deterministic fixed-timestep integration' and §4.1 promises custom fixed-timestep gravity on CharacterBody2D. A hand-rolled integrator can be deterministic, but the game leans on Godot's built-in 2D collision system for core mechanics (magnet contact, gear/parachute/hull touchdown grading, towed leash). Godot's physics solver, contact resolution, and move_and_slide are not contractually deterministic across runs/machines, and floating-point contact ordering is exactly where reproducibility breaks. If a sweep diverges, the outcome table is untrustworthy. The doc treats determinism as settled rather than engineered/verified; no QA invariant checks run-to-run reproducibility.","references":"§3 (deterministic integration), §4.1 (CharacterBody2D deterministic), §2.4, §2.6 (collision-driven mechanics)"},
+    {"reviewer":"feasibility-lead","id":"F3","severity":"MAJOR","title":"The coupled loop backloads all integration risk; sweeps can't run until the game is nearly complete","description":"The design's virtue is that difficulty emerges from a single closed feedback loop (cargo mass → heat → chute delay → touchdown speed → cargo damage → economy → upgrades → capacity), coupled and nonlinear. But that has a schedule consequence the doc never acknowledges: the reentry and economy sweeps each require nearly the whole game standing up at once, since you cannot meaningfully sweep one link of a coupled loop in isolation. So the two sweeps, the project's core justification, land at the end of the week and depend on every prior mechanic shipping on time; any single slipped mechanic blocks both sweeps. §4.3 lists cuts but never flags this end-of-week integration cliff.","references":"§3 (closed feedback loop), §4.2, §4.3 (sweeps, cut list)"},
+    {"reviewer":"feasibility-lead","id":"F4","severity":"MAJOR","title":"Mechanic count vs. one-per-session cadence in 7 days, and an over-clean token budget","description":"§3 states the Coder implements one mechanic per session, but the spec requires ~12+ mechanics (thrust/rotate, RCS, staging, parachute, gear, EVA jetpack, magnet tether + towed-mass physics, heat/drag, plasma window, touchdown grading, fuel/economy, 9-purchase upgrade tree, satellite endgame), each gated by a QA session and feeding a Playtester session plus the sweep harness. That is one-plus mechanic per day with zero slack for the red-test rework the QA loop generates. Also the budget is stated in raw tokens, but Claude Pro's limit is a rolling message/usage cap, not a clean weekly token pool, and reserving Opus for the hardest problems assumes on-demand Opus access that Pro rate-limits.","references":"§3 (one mechanic per session, QA/Playtester loop), §4.1 (subscription), §4.2 (token budget, Opus reservation)"},
+    {"reviewer":"feasibility-lead","id":"F5","severity":"MINOR","title":"Sweep-harness half-day timebox is inconsistent with Findings 1-2","description":"§4.4 calls the sweep harness the one piece of pure infrastructure and timeboxes it at half a day with hand-tuning fallback. Half a day is plausible for the config-grid runner alone, but only because the timebox silently excludes the flight-control policy (F1) and the determinism guarantee (F2) that make the harness output meaningful. The fallback ('game ships either way') is honest and correct, so this is MINOR, but the timebox measures the easy 20% of the harness and calls it the whole job.","references":"§4.4 (half-day timebox, hand-tuning fallback)"},
+    {"reviewer":"adversarial-qa","id":"F1","severity":"BLOCKING","severity_note":"Held at BLOCKING, independently reconstructed; more confident in Round 2","title":"The win object may be physically unlandable, and upgrades don't help","description":"The win requires soft-landing the satellite, but the document's own physics push the landing past the fail line and no purchasable upgrade can pull it back. The satellite roughly doubles ship mass, chute descent speed grows ~√mass (soft = under ~5 m/s), and the parachute ships at fixed non-upgradeable values. Doubling mass raises descent speed ~1.41×, so a normal maxed haul would need to descend near ~3.5 m/s to stay under 5. The three upgrades (Fuel, Thruster, Storage) don't improve descent speed and Storage worsens it; staging removes powered descent. Upgrades improve reach, not landability. Either the win is gated on a landing with no growth lever, or the satellite silently ignores the √mass rule; this must be resolved before build.","references":"§1 (Win, landable near full upgrades), §2.6 (doubles mass, arrives damaged), §2.3 (√mass, ~5 m/s), §2.5 (fixed chute), §2.2/§2.4 (stage away thruster)"},
+    {"reviewer":"adversarial-qa","id":"F2","severity":"MAJOR","severity_note":"Held at MAJOR, noted double/triple-sourced and STRENGTHENED in Round 2","title":"Economic soft-lock: bankruptcy is not a defined loss (or recovery) state","description":"The only loss states are 'stranded with no fuel' or '0 HP.' Nothing covers a player who is alive, landed, and simply too poor to launch again. Breaks even means a cautious run nets ~zero and never funds an upgrade, so progress requires risk; a risky run that ends in a hard-but-survivable landing sells damaged cargo for less than launch cost, a net loss. Repeat and the balance trends toward and below the launch price, an undefined unrecoverable state with no loss screen and no restart trigger. The document needs either a bankruptcy loss condition or a guaranteed-affordable-launch floor.","references":"§1 (loss states), §2.5 (launch cost / breakeven), §2.3 (hard landing damages cargo)"},
+    {"reviewer":"adversarial-qa","id":"F3","severity":"MAJOR","title":"Jetpack fuel vs. tank fuel: the EVA-stranding case is unhandled","description":"The document treats fuel as one thing at the shop but two things in play and never closes the EVA-runs-dry case. Jetpack fuel (every EVA trip costs it) is distinct from rocket-tank fuel (Armstrong fills the tank at launch), yet the doc never says how the jetpack refuels, whether it is finite per launch, or whether it shares the tank. The concrete edge case: an astronaut who exhausts jetpack fuel while EVA and away from the rocket is drifting with no way back and an unstowed hold. Is that 'stranded with no fuel'? Can they cold-drift back? Is there reserve? Undefined, and §2.6 encourages pushing near the top of the envelope, so this case is hit regularly.","references":"§2.4 (trip costs jetpack fuel), §2.5 (Armstrong fills tank), §1 (stranded loss), §2.6 (top of envelope)"},
+    {"reviewer":"adversarial-qa","id":"F4","severity":"MAJOR","title":"A shredded parachute is not covered by launch repairs; chute-less relaunch is possible","description":"The parachute can be destroyed in play (deployed during plasma it shreds), but the repair rule names only hull and heat shield. Read literally, launch repairs don't restore the chute, so a player could relaunch with a shredded/absent chute, guaranteeing an unavoidable hard landing, or worse a cascade where each hard landing damages hull/cargo further while the root cause (no chute) is never repairable at the shop. At minimum the parachute must be added to launch-repair scope, or its post-shred persistence explicitly defined.","references":"§2.2 (chute shreds in plasma), §2.5 (repairs hull/heat shield only)"},
+    {"reviewer":"adversarial-qa","id":"F5","severity":"MINOR","severity_note":"Held at MINOR, reframed in Round 2 as part of the loss-aversion cluster","title":"Cargo-ablation order is unspecified: exploit and/or feel-bad","description":"Reentry heat destroys cargo one slot per ~3 s at 100% heat (hull only after all cargo), but the document never says which slot goes first. Two failure modes fall out: an exploit, where predictable/player-controllable destruction lets a player load cheap sacrificial panels as ablative shielding, blunting the greed-vs-survival tension; and a feel-bad, where destroying the most valuable piece first (or randomly) loses the run's value to an invisible coin flip with no counterplay. Either way it interacts with 'value scales with mass' (heavier = more valuable = most wanted protected). The ordering rule is load-bearing for balance and must be specified.","references":"§2.2 (one slot per ~3 s, hull after all cargo), §2.6 (value scales with mass)"},
+    {"reviewer":"business-analyst","id":"F1","severity":"MAJOR","title":"The document is two documents fused; game-content spec is crowded out by production methodology","description":"Roughly half the page (Section 3 AI Architecture and Section 4 Technical Strategy / Token Budget) is about how the game will be built by AI agents over seven days, not about the game, with detailed token counts, model selection, GUT invariants, and cut lists. Meanwhile the parts a GDD normally nails down are thin or missing: expected playtime, session length, number of distinct junk pieces, runs-to-endgame, difficulty pacing across a session. The reader is never told which audience the document serves (player pitch, developer build plan, or assignment grader); it reads as all three at once, weakening each. A developer four days in cannot answer 'how long is this game and how many runs to the satellite' from the text.","references":"§3-§4 (lines 34-54, token/GUT/cut detail), §2.6 (game content one paragraph), no playtime/session-length figure anywhere"},
+    {"reviewer":"business-analyst","id":"F2","severity":"MAJOR","title":"No target audience, no market positioning, no comparables","description":"The document defines a theme (Scrapyard Spaceflight, blue-collar handmade spacecraft) and a feeling (anxiety from atmospheric reentry) but never states who this is for or where it sits in the market: no target-player description, genre placement, named comparables, or platform-reach/distribution statement beyond '2D pixel art, keyboard and mouse only, Godot.' For 2026 the physics-salvage / EVA-hauling / reentry space has recognizable neighbors, and a one-line 'X-meets-Y for players who liked Z' would anchor the pitch. Its absence means feel and scope decisions can't be checked against any intended audience.","references":"§1 (Executive Summary lines 3-7), §7 (Pillars), platform stated only as a build constraint (line 4)"},
+    {"reviewer":"business-analyst","id":"F3","severity":"MAJOR","severity_note":"Held at MAJOR, strengthened in Round 2 (highest-value omission)","title":"Content volume is thin and undefined; the whole game is one loop with a single climax","description":"After the aggressive cut list, the game contains one suborbital band with functionally identical junk (every piece is one slot; the satellite is simply very heavy), differentiated only by mass and value. There is one win object and no post-game. The document never states how many runs the 9-purchase economy takes, so it is impossible to tell whether this is a 30-minute experience or a 10-hour grind, and that single number determines whether one homogeneous band can sustain engagement. Cutting size classes, fragile flags, compactor, crane magnet, and oversized junk was correct for a 7-day scope but leaves the content extremely uniform, and nothing addresses the resulting repetition risk.","references":"§2.6 (one suborbital band), §4.3 (junk variety collapsed into mass), §2.5 (9 purchases, no run-count/playtime)"},
+    {"reviewer":"business-analyst","id":"F4","severity":"MINOR","severity_note":"Held at MINOR, reframing of 'safety net' withdrawn to 'unverified reassurance' in Round 2","title":"The marketed 'feeling' is undercut by the safety nets, and only activates late","description":"The stated emotional hook is the #Feeling pillar (anxiety from reentry and fear of wasting cargo value), but two designed-in safety nets blunt it for most of the game: 'a lazy run still breaks even' and 'an intact landing sells the haul wherever you come down.' With a guaranteed break-even floor and land-anywhere selling, the anxiety only has teeth when the player deliberately hauls high-value high-mass cargo, i.e. late game; early and cautious play carries no stakes. The pitch promises tension from minute one; the systems deliver it much later and only under greedy play. The document should soften the pillar claim or acknowledge the hook is a late-game payoff.","references":"§7 (#Feeling pillar line 7), §2.5 (break-even floor line 31), §2.3 (land-anywhere sale line 27)"}
+  ],
+  "cross_examination": [
+    {"reviewer":"systems-designer","conflicts":[
+      {"with":"adversarial-qa","about":"Economic soft-lock (QA F2) vs. own F4. QA reads the economy as a downward spiral into unrecoverable bankruptcy; systems-designer read it as a monotonic grind with no downward pressure because §2.5 guarantees a lazy run breaks even. Reconciliation defended: the breakeven floor is conditioned on an intact lazy run, so a patient safe player never goes bankrupt but never progresses (systems failure mode), while a player who takes the demanded risk and lands hard can spiral (QA failure mode). Concedes QA's framing is the sharper, more severe reading."},
+      {"with":"business-analyst","about":"Anxiety hook gated late (BA F4) vs. own F4. No real conflict but a boundary dispute: both land on the pillar having no teeth until greedy late-game play. Systems push-back: from the systems side this is not a positioning footnote but evidence the difficulty curve is flat-then-cliff, the same root as own F2 (no counter-lever, difficulty only ramps). The late activation is the shape of the progression."}
+    ],"connections":[
+      {"with":"feasibility-lead","insight":"Own F1 (satellite unwinnable on paper) × Feasibility F1 (Playtester has no pilot). The one tool meant to catch the unwinnable endgame has no flight-control policy to fly the reentry, so the safety net designed to falsify the BLOCKER is itself unbuilt; nobody discovers the satellite is unlandable until a human tries it late in week one. Determinism gap (Feasibility F2) compounds it. The scariest combination on the board."},
+      {"with":"adversarial-qa","insight":"Own F2 (upgrade tree ignores reentry) × QA cross-cutting note (low-arc runs skip heat entirely). Since upgrades only buy ascent capacity, the rational response to the un-counterable reentry ramp is to avoid reentry: farm the non-satellite economy on low arcs under the heat threshold with the engine retained and chute never needed. The hardest system has no counter-lever AND a legal bypass, hollowing the difficulty curve for ~9 tiers of grind."},
+      {"with":"player-psychologist","insight":"Own F2/F4 × Psychologist F3 (loss aversion, no positive reinforcement). The greedy late game is punishing on both the mechanical axis (harder every tier, no brake) and the affective axis (no triumph payoff, only relief). A progression that gets monotonically harder with no counter-lever and no positive reinforcement is the exact recipe for the haul-timid/quit behavior the psychologist predicts."}
+    ],"revisions":[
+      {"finding":"F4","action":"UPGRADED","detail":"MINOR → MAJOR. After QA F2 the same missing economic model produces a concrete unrecoverable soft-lock; an undefined terminal state is build-blocking-adjacent, not a tuning nicety. Explicitly merged with QA's bankruptcy case."},
+      {"finding":"F5","action":"HELD","detail":"Held at MINOR, claim narrowed. QA F1 supplied the concrete descent-speed math that strengthens the satellite (F1) case; F5's independent value is now only the claim about ordinary greedy non-satellite hauls, scoped to confirming a legal deploy window exists across the normal mass range."},
+      {"finding":"F1","action":"HELD","detail":"Held at BLOCKING, strengthened. QA independently reached the same BLOCKING conclusion from the same passages with the arithmetic spelled out; confidence up."}
+    ]},
+    {"reviewer":"narrative-critic","conflicts":[
+      {"with":"player-psychologist","about":"Psych F3 builds its loss-aversion analysis assuming 'anxiety' is the settled governing feel, but narrative F5 argues tone is not settled (the voice pulls comedic and the doc never arbitrates). Narrative's side: the psychologist is tuning a critique against a tonal commitment the document hasn't made; if the shipped presentation leans wry/slapstick, the sting of a lost haul may land as a comic pratfall, changing the behavioral prediction. The tonal undefinedness is upstream of the psychology and should be resolved first."},
+      {"with":"business-analyst","about":"Mild tension on severity. BA rates its feeling-undercut MINOR and narrative rates its tone finding MINOR too, but stacking own F4 ('starting with' promises a saga) onto BA F3 (single win object, no post-game, one band) suggests the 'starting with' line is symptomatic of a document that gestures at a world-reclamation story while the content scope refuses one. Held F4 at MINOR as a fix but now reads it as a symptom of a MAJOR-scale content/story mismatch."}
+    ],"connections":[
+      {"with":"systems-designer","insight":"Systems F1 (satellite mechanically unlandable soft) × own F3 (climax may be hollow). If a soft landing is not achievable then the ONLY ending the game can produce is the hollow one; the triumphant return F1 says the structure promises may be unreachable, leaving 'hand back the scorched, dented satellite' as the mandatory finale. Also Systems F2 (ramp with no brake) reinforces own F1's missing-stake problem: if progression only makes the ride home scarier, the player has even less narrative reason to climb toward Armstrong's goal."},
+      {"with":"adversarial-qa","insight":"QA F1 reaches own F3's cliff from the pure winnability angle (upgrades improve reach, not landability): two reviewers who don't care about story independently establish the narrative climax may be forced into its worst form. QA's low-arc bypass note also gives a second tonal fork for F5 (a farm-bypassable anxiety pillar is even harder to read as white-knuckle survival)."},
+      {"with":"player-psychologist","insight":"Psych F3 (no designed positive reinforcement, nothing makes a successful greedy run feel triumphant) × own F2 (Armstrong is a mute vending machine). A named character who wants his satellite back is the natural cheap source of triumphant payoff, and the doc gives him no voice or delivery mechanism; the missing reward-feedback and the mute Armstrong are the same hole from two lenses. Psych F4 ('why launch a 20th time?') is own F1's missing-stake problem measured in retention."},
+      {"with":"business-analyst","insight":"BA F4 (marketed anxiety hook switches on late, blunted by break-even and land-anywhere selling) dovetails with own F5: the promised feeling is both late (BA) and tonally contested (narrative), so the pillar is exposed on two axes at once."}
+    ],"revisions":[
+      {"finding":"F3","action":"HELD","detail":"Held at MAJOR, flagged STRENGTHENED. Systems F1 and QA F1 convert 'the payoff is undefined' into 'the mechanics may force the hollow payoff.' Kept MAJOR not BLOCKING only because the narrative fix (define whether damaged delivery counts, give Armstrong a reaction) is cheap and independent of the physics; the winnability BLOCKER is Systems/QA's to own."},
+      {"finding":"F5","action":"HELD","detail":"Held at MINOR, reinforced. QA's low-arc bypass and BA F4's late-activation both support that the anxious frame is weaker in practice than the pillar claims; no longer treated as merely a downstream art-alignment worry."},
+      {"finding":"all","action":"NO_WITHDRAWALS","detail":"Nothing in the five reviews contradicts a Round 1 finding; the cross-lens traffic runs entirely toward corroboration."}
+    ]},
+    {"reviewer":"player-psychologist","conflicts":[
+      {"with":"business-analyst","about":"BA F4 rates 'feeling undercut, activates late' MINOR (not enough tension early); psychologist rates the reward structure MAJOR (too much punishment when it fires). These are the same curve from two ends and together make both worse: hours of stakes-free break-even busywork (BA) followed by a sudden cliff where the first greedy run wipes the whole haul (psych) is the worst possible retention shape. Holds MAJOR and argues BA's finding is under-rated; a hook absent early AND over-punishing late is a structural motivation failure, and the safety nets are precisely why the eventual loss stings (the player was lulled)."},
+      {"with":"systems-designer","about":"Implicit tension with Systems F1 / QA F1 (satellite may be mechanically unwinnable). Not a conflict so much as a raising of stakes for own F4: if they are right, the player grinds nine tiers toward a goal that on arrival cannot be landed, converting a monotony risk into an outright betrayal of the reward contract, the ultimate quit trigger. Defers on the physics but holds that the psychological damage of an unwinnable-feeling climax is severe."}
+    ],"connections":[
+      {"with":"feasibility-lead","insight":"Feasibility F1 (no pilot policy; scripting an autopilot for this reentry is the single hardest technical task) × own F1 (no onboarding). If automating the pilot is the hardest task in the project, expecting an unassisted human to execute the same sequence on their first descent with permanent-loss stakes and no tutorial is exactly the wall flagged. The difficulty of the autopilot is independent evidence for the difficulty of onboarding; F1 gains a second witness from an unrelated lens."},
+      {"with":"adversarial-qa","insight":"QA F2 (economic soft-lock) + QA F4 (unrepaired chute) × own F3. Beyond the emotional weight of losing a full haul, QA adds two mechanical death spirals: a hard landing can sell for less than the next launch (bankruptcy trend) and a shredded chute is not repaired (guaranteed hard-land relaunch). Combined with loss aversion, the burned player is pushed into a spiral of poorer, more dangerous runs with no recovery ramp and no loss screen, turning 'they quit' from a soft failure into a mechanically enforced one. Positive-reinforcement/partial-credit (F3's ask) would also serve as the missing recovery ramp."},
+      {"with":"narrative-critic","insight":"Narrative F5 (unreconciled tone) × own F1 (onboarding). A comedic frame sets the expectation that failure is cheap and funny, while the systems deliver permanent run-wiping punishment; that mismatch makes the un-onboarded first death land as a betrayal of tone, not just a difficulty spike, sharpening the quit risk. The tonal ambiguity and the missing tutorial compound."}
+    ],"revisions":[
+      {"finding":"F4","action":"HELD","detail":"Held MAJOR, reframed. In light of Systems F1 / QA F1 the 'monotony' framing understates it: if the endgame is unlandable the risk is not boredom but a grind that pays out in a broken promise. Severity kept (the variety/pacing gap is real regardless), but flagged as entangled with the winnability dispute the board must resolve first."},
+      {"finding":"F5","action":"HELD","detail":"Held MINOR. QA F4 leans on the same subtle white→orange cue, giving a second source; considered upgrading to MAJOR but the cue is a symptom while F1 (onboarding) and F3 (loss aversion) are load-bearing, so F5 stays MINOR as the concrete fix supporting both."},
+      {"finding":"F1,F2,F3","action":"HELD","detail":"No change in severity; all three picked up corroboration from at least one other lens and none were contradicted."}
+    ]},
+    {"reviewer":"feasibility-lead","conflicts":[
+      {"with":"systems-designer","about":"Own F1 severity (MAJOR) vs. Systems F1 + QA F1 (BLOCKING). Round 1 graded the missing pilot MAJOR-not-BLOCKING because the game still ships via hand-tuning, but SD/QA's BLOCKING math means the thing most needing verification (satellite winnability on a coupled nonlinear loop) is exactly what a solo dev hand-tuning in the last day is least able to eyeball. Not fully conceding, since the non-satellite economy still ships and is playable, but the fallback does not cover the win condition, so it may ship the unwinnable game SD/QA describe."}
+    ],"connections":[
+      {"with":"adversarial-qa","insight":"Own F1 × Systems F1 / QA F1 (satellite unwinnable, both BLOCKING). SD and QA prove from the √mass rule and fixed chute that the win object cannot be soft-landed (a design-math BLOCKER); this lens explains why the error survives to a shipped build, because the one automated safeguard (the Playtester answering 'is the satellite run beatable?') cannot fly the ship to answer it. The verification gap and the design gap are the same hole from two sides. Separately, own F2 (determinism unproven) × QA F5 (cargo-ablation order unspecified, or random): if ablation order or any tie-break is RNG-driven and unseeded, the economy sweep's determinism claim is dead on arrival, the same config grid returning different outcomes."},
+      {"with":"player-psychologist","insight":"Own F4 (12+ mechanics, no slack) × Psychologist F1 (no onboarding, BLOCKING) and F2 (control scheme needs remapping/HUD prompts). Both of the psychologist's fixes are unbudgeted engineering: a tutorial/safe-first-flight and input remapping + on-screen deploy prompts are each effectively additional Coder sessions that appear nowhere in the ~12-session count or token math. The design board wants these built; the schedule has no room. The mechanic list counted is already the floor, and the game-feel reviewers are adding to it."},
+      {"with":"business-analyst","insight":"Own F3-F4 × BA F1 (the doc is two documents; method crowds out game spec). Even the over-specified methodology half is technically under-specified: it asserts determinism it hasn't earned (F2) and a Playtester it can't build (F1). So the document isn't just lopsided toward method; the method it leans on has load-bearing holes. BA's 'under-specifies the game' and this lens's 'the AI tooling is where the risk lives' are complementary, not competing."}
+    ],"revisions":[
+      {"finding":"F1","action":"HELD","detail":"Reframed the fallback, held at MAJOR (borderline). Stands by MAJOR for 'the Playtester can't fly' but withdraws the implication that hand-tuning makes the risk benign. Given SD F1 / QA F1, hand-tuning is not a safety net for the winnability question; absent a scripted pilot the satellite BLOCKER cannot be detected before ship by any process the document describes. Makes F1 the enabling condition for the board's top BLOCKER."},
+      {"finding":"F2","action":"HELD","detail":"Upgraded confidence, held severity. QA F5's random-ablation possibility gives determinism a concrete in-scope way to break (game-logic RNG, not just physics contact ordering), a second independent failure path. Severity stays MAJOR; certainty that this needs an explicit ruling goes up."},
+      {"finding":"F3,F4,F5","action":"NO_WITHDRAWALS","detail":"Stand as written; nothing in the other reviews contradicts the schedule/budget/timebox analysis, and Psych F1/F2 and BA F1 reinforce F4."}
+    ]},
+    {"reviewer":"adversarial-qa","conflicts":[
+      {"with":"systems-designer","about":"Own F2 vs. Systems F4 (and BA F4) 'the economy has a breakeven floor / no downward pressure.' A direct conflict: Systems says guaranteed breakeven floor, no fail state, monotonic grind; BA calls breakeven a safety net. QA defends the opposite (money trends down into unrecoverable bankruptcy) and argues Systems' own second bullet concedes it: 'damaged runs are net-negative' is precisely the downward pressure their headline denies. The breakeven claim holds only for a clean lazy run; once a hard-but-survivable landing damages cargo and adds a repair bill the floor is gone. F2 stands and is strengthened by Systems' repair-sink observation."},
+      {"with":"player-psychologist","about":"Own F2 vs. Psychologist F3 'players haul timid to avoid the pain.' Not a hard contradiction but a tension: if timid play dominates, players sit on the breakeven line (looking like Systems' grind, not QA's spiral). Rebuttal: timid play is only safe if breakeven truly holds, and it doesn't; a timid run that still catches a hard landing (which Psych F1 says new players routinely botch) is net-negative. Both behaviors converge on the same unhandled state, so the psychology finding actually widens the population that reaches the edge case."}
+    ],"connections":[
+      {"with":"narrative-critic","insight":"Own F1 × Narrative F3: the hollow climax is not an edge case, it's the default. If no upgrade lever buys the satellite's touchdown speed under 5 m/s, the soft landing may be unreachable, so the damaged delivery Narrative treats as a risk is the guaranteed outcome. It's not 'the ending might feel hollow' but 'the ending mechanically cannot be the good one,' converting a story-logic gap and a systems gap into one load-bearing question: is a soft satellite landing physically possible?"},
+      {"with":"feasibility-lead","insight":"Own F1 × Feasibility F1: the Playtester can't answer the one question that matters. Even a perfect pilot cannot land a fixed chute under doubled mass if the math forbids it, so the sweep's headline question has two stacked failure modes (no pilot to run it, and no winnable answer to find). A 'not beatable' result would be indistinguishable from 'pilot too weak,' so winnability must be resolved analytically before it is ever handed to an underspecified autopilot."},
+      {"with":"player-psychologist","insight":"Own F5 × Psychologist F3: ablation order is a loss-aversion amplifier. If the order strips the most valuable piece first (or randomly), it lands the sting exactly on the full-hold greedy run whose investment and loss both peak at descent, so the feel-bad branch of F5 is a direct multiplier on the rage-quit trigger. The ordering rule should be specified and biased player-favorable (cheap-first)."}
+    ],"revisions":[
+      {"finding":"F2","action":"HELD","detail":"Held at MAJOR, now double/triple-sourced. Nearly upgraded after Systems independently reached the repair-sink net-negative math and BA flagged the fragility of the breakeven claim; three lenses touch the same soft economic floor. Kept MAJOR not BLOCKING only because it's a slow-onset state, but the moderator should note it survived STRENGTHENED since a colleague's finding supplied the exact mechanism (repairs) the argument needed."},
+      {"finding":"F5","action":"HELD","detail":"Kept at MINOR, withdrew the implication that it's isolated. The connection to Psychologist F3 shows it's a node in the broader 'descent punishes the run you care about most' complaint, to be reported as part of that cluster rather than on its own."},
+      {"finding":"F1,F3,F4","action":"NO_WITHDRAWALS","detail":"Drew no colleague contradiction; F1 in particular was independently reconstructed by Systems, so more confident, not less."}
+    ]},
+    {"reviewer":"business-analyst","conflicts":[
+      {"with":"adversarial-qa","about":"Own F4's 'safety net' framing is partly wrong. Round 1 treated 'a lazy run still breaks even' as a safety net removing early stakes; QA argues break-even holds only for the timid run and any risk-taking hard landing sells for less than launch cost, trending toward bankruptcy, while Systems reads the same floor as a monotonic patience-grind. The three readings can't all be literally true because the document never quantifies a single price and so supports all three. Defends the positioning side (the pitch markets break-even as reassurance) while conceding QA owns the sharper higher-severity economic version; the board should treat 'does break-even actually hold?' as one question with a positioning face and a fail-state face."},
+      {"with":"feasibility-lead","about":"Own F3 (content thin/undefined) vs. Feasibility's closing verdict ('the game is scoped defensibly for one week, the cuts are well-reasoned'). Both right on their own axis (buildable-in-7-days vs. satisfying-as-experience), but presses that 'scoped defensibly for a week' is precisely the frame that produced a single homogeneous band, one win object, no post-game, and no run-count. Feasibility's own F3 (coupled loop backloads integration) reinforces this: if the whole game must stand up at end-of-week there is no schedule room to add content variety if a playtest reveals monotony, so the thinness becomes locked in."}
+    ],"connections":[
+      {"with":"player-psychologist","insight":"Own F3 (thin content, no run-count) + Psychologist F4 (monotony, 'why launch a 20th time?'). Independently hitting the same wall from opposite lenses, converging on run-count-to-completion as the pivot variable for the entire game's viability: ~6-8 runs and one band is fine; ~20+ and both the monotony rage-quit and the repetition risk fire hard. The document omits the one number that resolves both reviews, elevating 'state target playtime / run-count' to the highest-leverage single addition in the doc."},
+      {"with":"narrative-critic","insight":"Own F2 (no audience/positioning) + Narrative F5 (unreconciled tone). You cannot position a product until you know its tone, and the tone is undecided (anxiety pillar vs. Junkstronaut comedic register). The two candidate tones target opposite audiences (a Return of the Obra Dinn anxiety audience vs. a Human: Fall Flat slapstick audience) wanting opposite art, audio, and marketing. The tonal indecision and the positioning vacuum are the same gap; fixing one requires fixing the other."},
+      {"with":"systems-designer","insight":"Own F1 (methodology crowds out game content) + Narrative F1-F2 (player has no stake; Armstrong is a vending machine). Caught that §2.6's game content is one thin paragraph; Narrative shows what specifically fell out of it (the protagonist's identity, Armstrong's presence as a character, any delivery/resolution beat). The narrative payoff for the single climax is literally absent because the page budget went to token cadences and GUT invariants, making the case that the doc's investment is mis-allocated, not just imbalanced in length."}
+    ],"revisions":[
+      {"finding":"F4","action":"HELD","detail":"Kept at MINOR but re-scoped. Withdraws the characterization of break-even as a working 'safety net,' better described as an 'unverified reassurance': the pitch offers a floor the economy may not provide. Remains a positioning concern distinct from QA's fail-state finding, so kept as its own MINOR while deferring to QA/Systems as owners of the higher-severity economic-integrity version."},
+      {"finding":"F3","action":"HELD","detail":"Held at MAJOR, strengthened. Independent corroboration from Player-Psychologist (monotony) and partial support from Systems (monotonic grind) converge on the same missing run-count number. Not upgraded to BLOCKING (a spec gap, not a proven break) but more confident this is the single highest-value omission."},
+      {"finding":"F1","action":"HELD","detail":"Held at MAJOR, no change. Feasibility's framing (the AI tooling is the assignment) is a fair counter but doesn't dissolve the production concern: as a document meant to drive a game's production, the game half is still under-specified. Both can be true."}
+    ]}
+  ],
+  "synthesis_top5": [
+    {"rank":1,"title":"The win object is mechanically unlandable","severity":"BLOCKING","problem_statement":"The satellite roughly doubles ship mass, chute descent speed grows with √mass, and the parachute ships at fixed non-upgradeable values; none of the three upgrades buys down touchdown speed and staging removes powered descent, so 'landable only near full upgrades' describes a capability the upgrade tree does not contain.","flagged_by":["systems-designer","adversarial-qa","narrative-critic","feasibility-lead"],"flagged_by_detail":"systems-designer (F1), adversarial-qa (F1); connected by narrative-critic (F3) and feasibility-lead (F1)","outcome":"STRENGTHENED","outcome_detail":"Two isolated reviewers independently reconstructed the same BLOCKER; QA spelled out the arithmetic (a normal maxed haul would need ~3.5 m/s for 1.41× to stay under ~5 m/s). Narrative showed the hollow damaged-satellite climax is the mechanically default outcome; feasibility showed the one tool meant to catch it cannot."},
+    {"rank":2,"title":"The punishing reentry sequence has no onboarding","severity":"BLOCKING","problem_statement":"The entire skill ceiling lives in a one-way-staging, wait-for-plasma, deploy-chute-then-gear timing sequence where a single mistake permanently loses the run's cargo or kills the player, and the document describes no tutorial, safe first flight, practice mode, or forgiving early band.","flagged_by":["player-psychologist"],"flagged_by_detail":"player-psychologist (F1)","outcome":"STRENGTHENED","outcome_detail":"Feasibility-lead F1 (scripting an autopilot for this exact sequence is the single hardest technical task) is independent evidence for the difficulty of the human onboarding, a second witness from an unrelated lens. Narrative's tone gap (F5) sharpens it: a comedic frame makes the un-tutored first death read as a betrayal of tone."},
+    {"rank":3,"title":"Economic bankruptcy soft-lock","severity":"MAJOR","severity_note":"Upgraded during cross-examination","problem_statement":"The only loss states are 'stranded, no fuel' and '0 HP.' A player who survives hard landings with damaged, below-cost hauls (paying launch plus per-% repairs) can trend below the launch price into an alive, un-stranded, un-recoverable state with no loss screen.","flagged_by":["adversarial-qa","systems-designer","business-analyst"],"flagged_by_detail":"adversarial-qa (F2); systems-designer (F4, upgraded MINOR → MAJOR in Round 2); business-analyst (F4, conceded)","outcome":"STRENGTHENED","outcome_detail":"Triple-sourced. Systems-designer's own repair-sink observation supplied the exact downward-pressure mechanism QA's argument needed; QA further showed the psychologist's timid-play population also reaches this state, widening it."},
+    {"rank":4,"title":"The AI Playtester cannot fly the game, and determinism is unproven","severity":"MAJOR","severity_note":"MAJOR ×2","problem_statement":"The Playtester is asked whether the satellite run is beatable and whether a full-hold ship can land under 5 m/s, but the document specifies no flight-control policy to fly the reentry. Separately, 'deterministic' is asserted while core mechanics ride Godot's non-contractually-deterministic 2D collision system.","flagged_by":["feasibility-lead"],"flagged_by_detail":"feasibility-lead (F1, F2)","outcome":"STRENGTHENED","outcome_detail":"Reframed as the enabling condition for issue #1: absent a scripted pilot, the satellite BLOCKER cannot be detected before ship by any process the document describes. QA's F5 (unspecified, possibly random cargo-ablation order) gave the determinism finding a concrete in-scope failure path beyond physics contact-ordering."},
+    {"rank":5,"title":"Thin, undefined content and the missing run-count number","severity":"MAJOR","problem_statement":"After the cut list the game is one suborbital band of functionally identical mass-in-a-slot junk leading to a single win object with no post-game, and the document never states target playtime or how many runs the 9-purchase economy takes, the pivot number that decides whether one homogeneous band sustains engagement.","flagged_by":["business-analyst","player-psychologist","narrative-critic"],"flagged_by_detail":"business-analyst (F3); player-psychologist (F4); reinforced by narrative-critic (F1/F2: blank protagonist, mute vending-machine Armstrong)","outcome":"STRENGTHENED","outcome_detail":"Business-analyst and player-psychologist independently hit the same wall from opposite lenses, converging on run-count-to-completion as the pivot variable for the entire game's viability and the highest-leverage single addition in the doc."}
+  ],
+  "unresolved_disagreements": [
+    {"id":"A","title":"Does 'break-even' describe a floor, a trap, or a reassurance?","summary":"Three lenses read the same line ('a lazy run still breaks even') three ways. Cross-examination partly converged (systems-designer conceded QA's is the sharper reading, business-analyst withdrew 'safety net' for 'unverified reassurance'), but the design ruling underneath is escalated: does break-even actually hold, and what is the intended economic fail/recovery state? The document quantifies no price, so it currently supports all three faces.","positions":[
+      {"reviewer":"systems-designer","argument":"A guaranteed floor → no downward pressure → a monotonic patience-grind."},
+      {"reviewer":"adversarial-qa","argument":"Not a floor once repairs enter → downward spiral into an undefined bankruptcy state."},
+      {"reviewer":"business-analyst","argument":"A marketed safety net that removes early-game stakes and delays the anxiety pillar."}
+    ],"escalation":"Escalated to the board: does break-even actually hold, and what is the intended economic fail/recovery state? One answer resolves all three faces."},
+    {"id":"B","title":"Is the game anxious, or a scrapyard comedy?","summary":"The board cannot settle which tone governs from the document. Business-analyst connects this to the positioning vacuum (F2): the two tones target opposite audiences (Obra Dinn-anxiety vs. Human: Fall Flat-slapstick) wanting opposite art, audio, and marketing. Pick the governing tone; it gates both the retention model and the market position.","positions":[
+      {"reviewer":"narrative-critic","argument":"Tone is genuinely undecided (the anxiety pillar vs. the wry Junkstronaut / 'clangs on' register), and this indecision is upstream of the psychology; it should be resolved before anyone can assert how loss feels."},
+      {"reviewer":"player-psychologist","argument":"Builds the loss-aversion retention analysis on the assumption that 'anxiety' is the settled, governing feel."}
+    ],"escalation":"Escalated: pick the governing tone; it gates both the retention model and the market position."}
+  ],
+  "verdict_one_line": "Not yet ready to drive production: resolve satellite winnability first, the keystone the progression, the narrative climax, and the Playtester's headline question all depend on.",
+  "aggregate_counts": {
+    "total_findings": 29,
+    "blocking_issues": 3,
+    "unresolved_disagreements": 2
+  }
+};
+/*__ENDDATA__*/
+
+// ---------- normalization ----------
+const REVIEWERS = [
+  {id:'systems-designer',   name:'Systems Designer',    short:'SYS'},
+  {id:'narrative-critic',   name:'Narrative Critic',    short:'NAR'},
+  {id:'player-psychologist',name:'Player Psychologist', short:'PSY'},
+  {id:'feasibility-lead',   name:'Feasibility Lead',    short:'FEA'},
+  {id:'adversarial-qa',     name:'Adversarial QA',      short:'QA'},
+  {id:'business-analyst',   name:'Business Analyst',    short:'BIZ'},
+];
+const RMAP = Object.fromEntries(REVIEWERS.map(r=>[r.id,r]));
+const SEV_ORDER = {BLOCKING:0,MAJOR:1,MINOR:2};
+const SEVS = ['BLOCKING','MAJOR','MINOR'];
+
+// per-finding cross-exam outcome + round-1 severity (traced from the review data)
+const OUTCOME = {
+  'systems-designer|F1':'STRENGTHENED','systems-designer|F2':'HELD','systems-designer|F3':'HELD','systems-designer|F4':'UPGRADED','systems-designer|F5':'HELD',
+  'narrative-critic|F1':'HELD','narrative-critic|F2':'HELD','narrative-critic|F3':'STRENGTHENED','narrative-critic|F4':'HELD','narrative-critic|F5':'STRENGTHENED',
+  'player-psychologist|F1':'STRENGTHENED','player-psychologist|F2':'HELD','player-psychologist|F3':'HELD','player-psychologist|F4':'HELD','player-psychologist|F5':'STRENGTHENED',
+  'feasibility-lead|F1':'STRENGTHENED','feasibility-lead|F2':'STRENGTHENED','feasibility-lead|F3':'HELD','feasibility-lead|F4':'HELD','feasibility-lead|F5':'HELD',
+  'adversarial-qa|F1':'STRENGTHENED','adversarial-qa|F2':'STRENGTHENED','adversarial-qa|F3':'HELD','adversarial-qa|F4':'HELD','adversarial-qa|F5':'HELD',
+  'business-analyst|F1':'HELD','business-analyst|F2':'HELD','business-analyst|F3':'STRENGTHENED','business-analyst|F4':'HELD'
+};
+const FINDINGS = DATA.findings.map(f=>{
+  const key = f.reviewer+'|'+f.id;
+  const outcome = OUTCOME[key] || 'HELD';
+  const round1Severity = (key==='systems-designer|F4') ? 'MINOR' : f.severity;
+  return {...f, key, outcome, round1Severity,
+    revised: outcome==='STRENGTHENED'||outcome==='UPGRADED',
+    reviewerName: RMAP[f.reviewer].name, reviewerShort: RMAP[f.reviewer].short};
+});
+const findingRef = (rev,id)=>FINDINGS.find(f=>f.reviewer===rev && f.id===id);
+
+// ---------- helpers ----------
+const $ = s=>document.querySelector(s);
+const el = (t,c,html)=>{const e=document.createElement(t); if(c)e.className=c; if(html!=null)e.innerHTML=html; return e;};
+const esc = s=>String(s).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function stamp(sev,big){return `<span class="stamp ${sev}${big?' big':''}">${sev}</span>`;}
+
+// tooltip
+const tip = $('#tip');
+function showTip(html,x,y){
+  tip.innerHTML=html; tip.style.display='block';
+  const w=tip.offsetWidth, h=tip.offsetHeight;
+  let nx=x+14, ny=y+14;
+  if(nx+w>window.innerWidth-8) nx=x-w-14;
+  if(ny+h>window.innerHeight-8) ny=y-h-14;
+  tip.style.left=Math.max(8,nx)+'px'; tip.style.top=Math.max(8,ny)+'px';
+}
+function hideTip(){tip.style.display='none';}
+
+// ---------- masthead ----------
+$('#doc-title').textContent = DATA.document.title;
+$('#doc-sub').textContent = DATA.document.subtitle + '  ·  reviewed ' + DATA.document.review_date;
+$('#verdict-line').textContent = DATA.verdict_one_line;
+$('#s-total').textContent = FINDINGS.length;
+$('#s-block').textContent = FINDINGS.filter(f=>f.severity==='BLOCKING').length;
+$('#s-disag').textContent = DATA.unresolved_disagreements.length;
+$('#src-line').textContent = 'Document reviewed: ' + DATA.document.source_file + '  ·  ' + DATA.document.title + ' — ' + DATA.document.subtitle;
+
+// ---------- Viz 1: severity bars ----------
+let barView='per', barBasis='final';
+function sevCounts(list,basis){
+  const c={BLOCKING:0,MAJOR:0,MINOR:0};
+  list.forEach(f=>{ c[basis==='r1'?f.round1Severity:f.severity]++; });
+  return c;
+}
+function renderBars(){
+  const host=$('#bars'); host.innerHTML='';
+  const basis=barBasis;
+  // aggregate row
+  const aggCounts=sevCounts(FINDINGS,basis);
+  const aggTotal=FINDINGS.length;
+  host.appendChild(barRow('AGGREGATE', 'all lenses', aggCounts, aggTotal, aggTotal, null, true));
+  const note=el('div','agg-note','Aggregate scaled to '+aggTotal+' findings. Reviewer rows below scaled to a max of 5.');
+  host.appendChild(note);
+  if(barView==='per'){
+    REVIEWERS.forEach(r=>{
+      const list=FINDINGS.filter(f=>f.reviewer===r.id);
+      const c=sevCounts(list,basis);
+      host.appendChild(barRow(r.name, r.id, c, list.length, 5, r.id, false));
+    });
+  }
+}
+function barRow(label, sub, counts, total, scaleMax, reviewerId, agg){
+  const row=el('div','bar-row');
+  const rl=el('div','rl', esc(label)+'<small>'+total+' finding'+(total===1?'':'s')+'</small>');
+  const track=el('div','track'+(agg?' agg':''));
+  const widthUnit = 100/scaleMax; // % per finding
+  SEVS.forEach(sev=>{
+    const n=counts[sev]; if(!n) return;
+    const seg=el('button','seg '+sev);
+    seg.style.width=(n*widthUnit)+'%';
+    seg.textContent=n;
+    seg.setAttribute('aria-label', label+': '+n+' '+sev+' finding'+(n===1?'':'s'));
+    seg.addEventListener('mousemove',e=>{
+      const titles = FINDINGS.filter(f=> (barBasis==='r1'?f.round1Severity:f.severity)===sev && (reviewerId? f.reviewer===reviewerId : true)).map(f=>f.reviewerShort+' '+f.id+' — '+f.title);
+      showTip('<div class="tt-h">'+esc(label)+' '+stamp(sev)+'</div>'+n+' finding'+(n===1?'':'s')+'<ul>'+titles.slice(0,8).map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul>', e.clientX,e.clientY);
+    });
+    seg.addEventListener('mouseleave',hideTip);
+    seg.addEventListener('click',()=>{ hideTip(); setFilter({reviewer: reviewerId||null, severity: sev}); });
+    track.appendChild(seg);
+  });
+  row.appendChild(rl); row.appendChild(track);
+  return row;
+}
+$('#tg-view-per').onclick=()=>{barView='per';setPressed('tg-view-per','tg-view-agg');renderBars();};
+$('#tg-view-agg').onclick=()=>{barView='agg';setPressed('tg-view-agg','tg-view-per');renderBars();};
+$('#tg-basis-final').onclick=()=>{barBasis='final';setPressed('tg-basis-final','tg-basis-r1');renderBars();};
+$('#tg-basis-r1').onclick=()=>{barBasis='r1';setPressed('tg-basis-r1','tg-basis-final');renderBars();};
+function setPressed(on,off){$('#'+on).setAttribute('aria-pressed','true');$('#'+off).setAttribute('aria-pressed','false');}
+renderBars();
+
+// ---------- Viz 2: matrix ----------
+// build links from cross_examination
+const links = [];
+DATA.cross_examination.forEach(cx=>{
+  (cx.conflicts||[]).forEach(c=> links.push({from:cx.reviewer,to:c.with,kind:'CONFLICT',note:c.about}));
+  (cx.connections||[]).forEach(c=> links.push({from:cx.reviewer,to:c.with,kind:'CONNECTION',note:c.insight}));
+});
+// Directed conflict pairs that genuinely hardened into an unresolved board
+// disagreement. Mere co-occurrence in a disagreement's position list is NOT
+// sufficient: e.g. the systems-designer→business-analyst conflict is the
+// "anxiety hook gated late" boundary dispute, which never escalated, even
+// though both also appear in disagreement A. Only the escalated conflicts
+// recorded in unresolved_disagreements (SYNTHESIS.md) are marked here —
+// disagreement A (break-even economy) is the systems-designer↔adversarial-qa
+// clash plus business-analyst→adversarial-qa; disagreement B (tone) is the
+// narrative-critic→player-psychologist clash.
+const disagPairKey={
+  'systems-designer|adversarial-qa':'A',
+  'adversarial-qa|systems-designer':'A',
+  'business-analyst|adversarial-qa':'A',
+  'narrative-critic|player-psychologist':'B'
+};
+function cellData(from,to){
+  const ls=links.filter(l=>l.from===from && l.to===to);
+  const kinds=new Set(ls.map(l=>l.kind));
+  const hasConflict=kinds.has('CONFLICT');
+  const disId = (hasConflict && disagPairKey[from+'|'+to]) ? disagPairKey[from+'|'+to] : null;
+  return {ls,kinds,hasConflict,disId,count:ls.length};
+}
+let maxCount=1;
+REVIEWERS.forEach(a=>REVIEWERS.forEach(b=>{ if(a.id!==b.id) maxCount=Math.max(maxCount,cellData(a.id,b.id).count); }));
+function renderMatrix(){
+  const tbl=$('#matrix');
+  // clear existing rows except caption
+  [...tbl.querySelectorAll('thead,tbody')].forEach(n=>n.remove());
+  const thead=el('thead'); const htr=el('tr');
+  htr.appendChild(el('th','corner','engages →<br>▼ engaged by'));
+  REVIEWERS.forEach(r=> htr.appendChild(el('th','col', r.short)));
+  thead.appendChild(htr); tbl.appendChild(thead);
+  const tb=el('tbody');
+  REVIEWERS.forEach(from=>{
+    const tr=el('tr');
+    const th=el('th','row', from.short); th.scope='row'; tr.appendChild(th);
+    REVIEWERS.forEach(to=>{
+      const td=el('td','mcell');
+      const b=el('button');
+      if(from.id===to.id){
+        b.className='inert'; b.disabled=true; b.setAttribute('aria-label',from.short+' does not cross-examine itself'); b.textContent='·';
+      } else {
+        const d=cellData(from.id,to.id);
+        if(d.count>0){
+          const intensity = 0.28 + 0.5*((d.count-0)/maxCount);
+          b.style.background='rgba(90,98,112,'+intensity.toFixed(2)+')';
+          const cnt=el('span','mcount', d.count); b.appendChild(cnt);
+          const mk=el('span','mk');
+          if(d.kinds.has('CONNECTION')) mk.appendChild(el('span','dot'));
+          if(d.kinds.has('CONFLICT')) mk.appendChild(el('span','sq'));
+          b.appendChild(mk);
+        } else {
+          b.style.opacity='.4';
+        }
+        if(d.disId) b.classList.add('disag');
+        const kindTxt=[...d.kinds].join(' + ')||'no engagement';
+        b.setAttribute('aria-label', from.name+' engages '+to.name+': '+d.count+' link'+(d.count===1?'':'s')+', '+kindTxt+(d.disId?', feeds unresolved disagreement '+d.disId:''));
+        b.addEventListener('mousemove',e=>{
+          if(d.count===0){ showTip('<div class="tt-h">'+from.short+' → '+to.short+'</div>No Round-2 engagement.',e.clientX,e.clientY); return; }
+          showTip('<div class="tt-h">'+from.short+' → '+to.short+'</div><ul>'+d.ls.map(l=>'<li><strong>'+l.kind+'</strong> — '+esc(l.note.slice(0,90))+'…</li>').join('')+'</ul>'+(d.disId?'<div style="margin-top:6px;color:var(--blocking);font-weight:700">Feeds disagreement '+d.disId+'</div>':''), e.clientX,e.clientY);
+        });
+        b.addEventListener('mouseleave',hideTip);
+        b.addEventListener('click',()=>{hideTip(); openMatrixDrawer(from,to,d);});
+      }
+      td.appendChild(b); tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb);
+}
+function openMatrixDrawer(from,to,d){
+  const dr=$('#matrix-drawer'); dr.innerHTML='';
+  dr.appendChild(el('h4', from.name+' → '+to.name+'  ·  '+d.count+' link'+(d.count===1?'':'s')));
+  if(d.count===0){ dr.appendChild(el('p','','This pair did not engage in Round 2.')); return; }
+  d.ls.forEach(l=>{
+    const it=el('div','link-item');
+    it.appendChild(el('div','kind', l.kind==='CONFLICT'?'Conflict':'Connection'));
+    it.appendChild(el('p','', esc(l.note)));
+    dr.appendChild(it);
+  });
+  if(d.disId){
+    const btn=el('button','linkbtn','See unresolved disagreement '+d.disId+' →');
+    btn.onclick=()=>{ const t=document.getElementById('disagreement-'+d.disId); if(t){t.scrollIntoView({block:'start'}); flashEl(t);} };
+    dr.appendChild(btn);
+  }
+}
+renderMatrix();
+
+// ---------- Viz 3: finding flow ----------
+function renderFlow(){
+  const wrap=$('#flow-svg-wrap');
+  const W=900,H=300, pad=40, colW=190;
+  const leftX=pad+colW, rightX=W-pad-colW;
+  const r1=sevCounts(FINDINGS,'r1'), fin=sevCounts(FINDINGS,'final');
+  const yFor={BLOCKING:70,MAJOR:150,MINOR:230};
+  // flows: r1sev -> finalsev counts
+  const flowMap={};
+  FINDINGS.forEach(f=>{ const k=f.round1Severity+'>'+f.severity; flowMap[k]=(flowMap[k]||0)+1; });
+  const totalMax=Math.max(...Object.values(fin),...Object.values(r1));
+  const maxRibbon=42;
+  let svg='<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="max-width:920px;display:block;margin:0 auto" role="presentation">';
+  // ribbons first
+  Object.entries(flowMap).forEach(([k,n])=>{
+    const [a,b]=k.split('>');
+    const y1=yFor[a], y2=yFor[b];
+    const thick=Math.max(2,(n/totalMax)*maxRibbon);
+    const cross=(a!==b);
+    const col=cross?'var(--major)':'var(--hairline)';
+    const op=cross?'0.9':'0.55';
+    svg+='<path d="M '+leftX+' '+y1+' C '+((leftX+rightX)/2)+' '+y1+', '+((leftX+rightX)/2)+' '+y2+', '+rightX+' '+y2+'" fill="none" stroke="'+col+'" stroke-width="'+thick+'" opacity="'+op+'" stroke-linecap="round"/>';
+    if(cross){
+      const mx=(leftX+rightX)/2, my=(y1+y2)/2;
+      svg+='<text x="'+mx+'" y="'+(my-14)+'" text-anchor="middle" fill="var(--major)" font-family="ui-monospace,monospace" font-size="12" font-weight="700">SYS F4 upgraded ('+n+')</text>';
+    }
+  });
+  // bucket labels
+  function bucket(x,sev,cnt,anchor){
+    const y=yFor[sev];
+    const col='var(--'+sev.toLowerCase()+')';
+    const tx = anchor==='start'? x+16 : x-16;
+    const ta = anchor==='start'?'start':'end';
+    svg+='<rect x="'+(anchor==='start'?x-4:x-4)+'" y="'+(y-3)+'" width="8" height="6" fill="'+col+'"/>';
+    svg+='<text x="'+tx+'" y="'+(y-8)+'" text-anchor="'+ta+'" fill="'+col+'" font-family="ui-monospace,monospace" font-size="13" font-weight="700">'+sev+'</text>';
+    svg+='<text x="'+tx+'" y="'+(y+14)+'" text-anchor="'+ta+'" fill="var(--muted)" font-family="ui-monospace,monospace" font-size="12">'+cnt+' finding'+(cnt===1?'':'s')+'</text>';
+  }
+  SEVS.forEach(s=>{ bucket(leftX,s,r1[s],'end'); bucket(rightX,s,fin[s],'start'); });
+  svg+='<text x="'+leftX+'" y="24" text-anchor="end" fill="var(--muted)" font-family="ui-monospace,monospace" font-size="12" letter-spacing="1">ROUND 1</text>';
+  svg+='<text x="'+rightX+'" y="24" text-anchor="start" fill="var(--muted)" font-family="ui-monospace,monospace" font-size="12" letter-spacing="1">AFTER CROSS-EXAM</text>';
+  svg+='</svg>';
+  wrap.innerHTML=svg;
+}
+renderFlow();
+// outcome tally
+function renderTally(){
+  const host=$('#tally'); host.innerHTML='';
+  const counts={STRENGTHENED:0,HELD:0,UPGRADED:0,WEAKENED:0,WITHDRAWN:0};
+  FINDINGS.forEach(f=>counts[f.outcome]++);
+  const order=['STRENGTHENED','HELD','UPGRADED','WEAKENED','WITHDRAWN'];
+  order.forEach(o=>{
+    const n=counts[o];
+    const b=el('button','tseg'+(n===0?' zero':''));
+    b.innerHTML='<span class="tn">'+n+'</span>'+o;
+    if(n>0){
+      b.setAttribute('aria-label','Filter table to '+n+' '+o+' findings');
+      b.onclick=()=> setFilter({outcome:o});
+    } else {
+      b.disabled=true; b.setAttribute('aria-label','No findings were '+o);
+    }
+    host.appendChild(b);
+  });
+}
+renderTally();
+
+// ---------- Viz 4: top 5 ----------
+const TOP5_SOURCES={
+  1:[['systems-designer','F1'],['adversarial-qa','F1']],
+  2:[['player-psychologist','F1']],
+  3:[['adversarial-qa','F2'],['systems-designer','F4'],['business-analyst','F4']],
+  4:[['feasibility-lead','F1'],['feasibility-lead','F2']],
+  5:[['business-analyst','F3'],['player-psychologist','F4']]
+};
+function renderTop5(){
+  const host=$('#top5'); host.innerHTML='';
+  DATA.synthesis_top5.forEach(t=>{
+    const card=el('div','card');
+    const head=el('button','card-head');
+    head.setAttribute('aria-expanded','false');
+    const trailId='trail-'+t.rank;
+    head.setAttribute('aria-controls',trailId);
+    const rank=el('div','rank', t.rank);
+    const main=el('div','card-main');
+    const row1=el('div','row1');
+    row1.innerHTML=stamp(t.severity,true)+' <span class="out">'+t.outcome+'</span>';
+    main.appendChild(row1);
+    main.appendChild(el('div','card-stmt', esc(t.problem_statement)));
+    const flags=el('div','flags');
+    flags.appendChild(el('span','fl-lab','Flagged by'));
+    t.flagged_by.forEach(rid=>{
+      const c=el('button','chip', RMAP[rid].name);
+      c.type='button';
+      c.addEventListener('click',ev=>{ev.stopPropagation(); setFilter({reviewer:rid});});
+      flags.appendChild(c);
+    });
+    main.appendChild(flags);
+    main.appendChild(el('div','expand-hint','▸ Show full trail — original · cross-examination · final status'));
+    head.appendChild(rank); head.appendChild(main);
+    card.appendChild(head);
+    // trail
+    const trail=el('div','trail'); trail.id=trailId;
+    const srcs=TOP5_SOURCES[t.rank]||[];
+    const primary=srcs[0]?findingRef(srcs[0][0],srcs[0][1]):null;
+    let origHtml='';
+    srcs.forEach(([rev,id])=>{ const f=findingRef(rev,id); if(f) origHtml+='<div class="trail-src">'+RMAP[rev].short+' '+id+' '+stamp(f.round1Severity)+' — '+esc(f.title)+'</div>'; });
+    if(primary) origHtml+='<p>'+esc(primary.description)+'</p>';
+    trail.appendChild(trailBlock('Original finding', origHtml));
+    trail.appendChild(trailBlock('Cross-examination', '<p>'+esc(t.outcome_detail)+'</p><div class="trail-src">Trail: '+esc(t.flagged_by_detail)+'</div>'));
+    trail.appendChild(trailBlock('Final status', '<p>'+stamp(t.severity)+' &nbsp; <span class="out">'+t.outcome+'</span>'+(t.severity_note?' &nbsp;— '+esc(t.severity_note):'')+'</p>'));
+    card.appendChild(trail);
+    const toggle=()=>{ const open=trail.classList.toggle('open'); head.setAttribute('aria-expanded',open?'true':'false'); head.querySelector('.expand-hint').textContent=(open?'▾ Hide trail':'▸ Show full trail — original · cross-examination · final status'); };
+    head.addEventListener('click',toggle);
+    host.appendChild(card);
+  });
+}
+function trailBlock(title,html){ const b=el('div','trail-block'); b.appendChild(el('h5',null,title)); const d=el('div',null,html); b.appendChild(d); return b; }
+renderTop5();
+
+// ---------- Viz 5: disagreements ----------
+function renderDisag(){
+  const host=$('#disagreements'); host.innerHTML='';
+  if(!DATA.unresolved_disagreements.length){
+    host.appendChild(el('p','empty-state','The board reached consensus — rerun Round 2 if that seems too easy.'));
+    return;
+  }
+  DATA.unresolved_disagreements.forEach(d=>{
+    const panel=el('div','disag'); panel.id='disagreement-'+d.id;
+    panel.appendChild(el('h3', d.id+'. '+esc(d.title)));
+    panel.appendChild(el('p','summ', esc(d.summary)));
+    const cols=el('div','positions '+(d.positions.length===3?'c3':'c2'));
+    d.positions.forEach(p=>{
+      const pos=el('div','pos');
+      pos.innerHTML='<div class="who"><span class="chip">'+RMAP[p.reviewer].name+'</span></div><p>'+esc(p.argument)+'</p>';
+      cols.appendChild(pos);
+    });
+    panel.appendChild(cols);
+    const esc_=el('div','escalate');
+    esc_.innerHTML='<span class="out">Escalated</span><p>'+esc(d.escalation)+'</p>';
+    panel.appendChild(esc_);
+    const fbtn=el('button','filter-clash','Filter table to this clash →');
+    fbtn.onclick=()=>{
+      // Filter to every side of the clash, not just the first participant.
+      const participants=d.positions.map(p=>p.reviewer);
+      setFilter({reviewers:participants, reviewer:null});
+    };
+    panel.appendChild(fbtn);
+    host.appendChild(panel);
+  });
+}
+renderDisag();
+
+// ---------- Viz 6: filterable table + shared state ----------
+const state={reviewer:null,reviewers:null,severity:null,round:null,outcome:null,search:''};
+let sort={col:null,dir:1};
+// populate reviewer select
+const selR=$('#f-reviewer');
+REVIEWERS.forEach(r=>{ const o=el('option'); o.value=r.id; o.textContent=r.name; selR.appendChild(o); });
+
+function setFilter(patch){
+  // single-reviewer and multi-reviewer selections are mutually exclusive
+  if(('reviewer' in patch) && !('reviewers' in patch)) patch.reviewers=null;
+  if(('reviewers' in patch) && !('reviewer' in patch)) patch.reviewer=null;
+  Object.assign(state,patch);
+  syncControls();
+  renderTable();
+  scrollToTable();
+}
+function scrollToTable(){
+  const sec=$('#findings');
+  sec.scrollIntoView({block:'start', behavior: RM?'auto':'smooth'});
+  flashEl($('#ftable'));
+}
+let flashTimer;
+function flashEl(node){
+  if(RM) return;
+  node.classList.remove('flash'); void node.offsetWidth; node.classList.add('flash');
+}
+function syncControls(){
+  selR.value=state.reviewer||'';
+  $('#f-round').value=state.round||'';
+  $('#f-outcome').value=state.outcome||'';
+  $('#f-search').value=state.search||'';
+  document.querySelectorAll('.sev-chips button').forEach(b=> b.setAttribute('aria-pressed', state.severity===b.dataset.sev?'true':'false'));
+}
+selR.addEventListener('change',()=>{state.reviewer=selR.value||null; state.reviewers=null; renderTable();});
+$('#f-round').addEventListener('change',e=>{state.round=e.target.value||null; renderTable();});
+$('#f-outcome').addEventListener('change',e=>{state.outcome=e.target.value||null; renderTable();});
+$('#f-search').addEventListener('input',e=>{state.search=e.target.value.trim().toLowerCase(); renderTable();});
+document.querySelectorAll('.sev-chips button').forEach(b=>{
+  b.addEventListener('click',()=>{ state.severity = state.severity===b.dataset.sev?null:b.dataset.sev; syncControls(); renderTable(); });
+});
+$('#clear-all').addEventListener('click',()=>{ state.reviewer=state.reviewers=state.severity=state.round=state.outcome=null; state.search=''; syncControls(); renderTable(); });
+
+// column sort
+document.querySelectorAll('#ftable thead th[data-col]').forEach(th=>{
+  if(th.dataset.col==='trace') return;
+  th.addEventListener('click',()=>{
+    const c=th.dataset.col;
+    if(sort.col===c) sort.dir*=-1; else {sort.col=c; sort.dir=1;}
+    document.querySelectorAll('#ftable thead th').forEach(h=>h.setAttribute('aria-sort','none'));
+    th.setAttribute('aria-sort', sort.dir===1?'ascending':'descending');
+    renderTable();
+  });
+});
+
+function filtered(){
+  return FINDINGS.filter(f=>{
+    if(state.reviewers && state.reviewers.length){ if(!state.reviewers.includes(f.reviewer)) return false; }
+    else if(state.reviewer && f.reviewer!==state.reviewer) return false;
+    if(state.severity && f.severity!==state.severity) return false;
+    if(state.round==='r2' && !f.revised) return false;
+    if(state.outcome && f.outcome!==state.outcome) return false;
+    if(state.search){
+      const hay=(f.title+' '+f.description).toLowerCase();
+      if(!hay.includes(state.search)) return false;
+    }
+    return true;
+  });
+}
+function sortRows(rows){
+  if(!sort.col) return rows;
+  const dir=sort.dir;
+  return rows.slice().sort((a,b)=>{
+    let av,bv;
+    switch(sort.col){
+      case 'reviewer': av=REVIEWERS.findIndex(r=>r.id===a.reviewer); bv=REVIEWERS.findIndex(r=>r.id===b.reviewer); break;
+      case 'number': av=a.id; bv=b.id; return dir*av.localeCompare(bv);
+      case 'severity': av=SEV_ORDER[a.severity]; bv=SEV_ORDER[b.severity]; break;
+      case 'title': return dir*a.title.localeCompare(b.title);
+      case 'outcome': av=a.outcome; bv=b.outcome; return dir*av.localeCompare(bv);
+      default: return 0;
+    }
+    return dir*(av-bv);
+  });
+}
+function renderTable(){
+  const tb=$('#ftbody'); tb.innerHTML='';
+  let rows=sortRows(filtered());
+  $('#count-live').textContent='Showing '+rows.length+' of '+FINDINGS.length+' findings';
+  $('#no-results').hidden = rows.length>0;
+  rows.forEach(f=>{
+    const tr=el('tr','frow');
+    tr.tabIndex=0; tr.setAttribute('role','button'); tr.setAttribute('aria-expanded','false');
+    tr.innerHTML='<td><span class="chip" style="cursor:default">'+f.reviewerShort+'</span></td>'+
+      '<td class="c-num">'+f.id+'</td>'+
+      '<td>'+stamp(f.severity)+'</td>'+
+      '<td class="c-title">'+esc(f.title)+'</td>'+
+      '<td class="c-rev">'+f.outcome+'</td>'+
+      '<td class="c-trace">'+esc(f.references)+'</td>';
+    const detail=el('tr','detail'); detail.hidden=true;
+    const td=el('td'); td.colSpan=6;
+    const note=f.severity_note?'<div class="d-refs" style="margin-bottom:8px">Round-2 note: '+esc(f.severity_note)+'</div>':'';
+    td.innerHTML='<div class="d-inner"><p>'+esc(f.description)+'</p>'+note+'<div class="d-refs">Traces: '+esc(f.references)+'</div></div>';
+    detail.appendChild(td);
+    const toggle=()=>{ const open=detail.hidden; detail.hidden=!open; tr.setAttribute('aria-expanded',open?'true':'false'); };
+    tr.addEventListener('click',toggle);
+    tr.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault(); toggle();} });
+    tb.appendChild(tr); tb.appendChild(detail);
+  });
+  renderActiveFilters();
+}
+function renderActiveFilters(){
+  const host=$('#active-filters'); host.innerHTML='';
+  const chips=[];
+  if(state.reviewers && state.reviewers.length) chips.push(['Reviewers: '+state.reviewers.map(r=>RMAP[r].short).join(', '), ()=>{state.reviewers=null;}]);
+  if(state.reviewer) chips.push(['Reviewer: '+RMAP[state.reviewer].name, ()=>{state.reviewer=null;}]);
+  if(state.severity) chips.push(['Severity: '+state.severity, ()=>{state.severity=null;}]);
+  if(state.round==='r2') chips.push(['Revised in R2', ()=>{state.round=null;}]);
+  if(state.outcome) chips.push(['Outcome: '+state.outcome, ()=>{state.outcome=null;}]);
+  if(state.search) chips.push(['Search: "'+state.search+'"', ()=>{state.search='';}]);
+  $('#no-filter').style.display = chips.length?'none':'inline';
+  chips.forEach(([label,clear])=>{
+    const c=el('span','active-filter'); c.innerHTML=esc(label)+' ';
+    const x=el('button',null,'✕'); x.setAttribute('aria-label','Remove filter '+label);
+    x.onclick=()=>{ clear(); syncControls(); renderTable(); };
+    c.appendChild(x); host.appendChild(c);
+  });
+}
+renderTable();
+
+// section fade-in on load
+if(!RM){
+  document.querySelectorAll('section').forEach((s,i)=>{ s.classList.add('fade'); s.style.animationDelay=(Math.min(i,4)*40)+'ms'; });
+}
+</script>
+</body>
+</html>

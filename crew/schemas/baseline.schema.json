@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Junkstronaut baseline physics",
+  "description": "The Researcher's output. Starting values only — every number here is a hypothesis the rest of the crew prices and audits.",
+  "type": "object",
+  "required": ["agent", "planet", "bands", "reentry", "derivation", "sources"],
+  "properties": {
+    "agent": { "const": "researcher" },
+    "planet": {
+      "type": "object",
+      "required": [
+        "radius_m",
+        "surface_gravity_ms2",
+        "atmosphere_top_m",
+        "scale_height_m",
+        "sea_level_density_kgm3"
+      ],
+      "properties": {
+        "radius_m": { "type": "number", "exclusiveMinimum": 0 },
+        "surface_gravity_ms2": { "type": "number", "exclusiveMinimum": 0 },
+        "atmosphere_top_m": { "type": "number", "exclusiveMinimum": 0 },
+        "scale_height_m": { "type": "number", "exclusiveMinimum": 0 },
+        "sea_level_density_kgm3": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "bands": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["name", "altitude_min_m", "altitude_max_m", "orbital_speed_ms", "period_s"],
+        "properties": {
+          "name": { "enum": ["suborbital", "low", "high"] },
+          "altitude_min_m": { "type": "number", "exclusiveMinimum": 0 },
+          "altitude_max_m": { "type": "number", "exclusiveMinimum": 0 },
+          "orbital_speed_ms": { "type": "number", "exclusiveMinimum": 0 },
+          "period_s": { "type": "number", "exclusiveMinimum": 0 }
+        }
+      }
+    },
+    "reentry": {
+      "type": "object",
+      "required": [
+        "heating_onset_speed_ms",
+        "plasma_onset_speed_ms",
+        "heating_velocity_exponent",
+        "drag_coefficient_hull",
+        "drag_coefficient_shield",
+        "reference_area_m2"
+      ],
+      "properties": {
+        "heating_onset_speed_ms": { "type": "number", "exclusiveMinimum": 0 },
+        "plasma_onset_speed_ms": { "type": "number", "exclusiveMinimum": 0 },
+        "heating_velocity_exponent": { "type": "number", "minimum": 1, "maximum": 5 },
+        "drag_coefficient_hull": { "type": "number", "exclusiveMinimum": 0 },
+        "drag_coefficient_shield": { "type": "number", "exclusiveMinimum": 0 },
+        "reference_area_m2": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "derivation": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "type": "string", "minLength": 20 }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["claim", "reference"],
+        "properties": {
+          "claim": { "type": "string", "minLength": 5 },
+          "reference": { "type": "string", "minLength": 3 }
+        }
+      }
+    },
+    "notes": { "type": "array", "items": { "type": "string" } }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Junkstronaut spec audit report",
+  "description": "The Spec Auditor's output. A fail routes back to the Economy Balancer as a bug report; the orchestrator, not the auditor, decides what happens next.",
+  "type": "object",
+  "required": ["agent", "verdict", "summary", "checks"],
+  "properties": {
+    "agent": { "const": "spec-auditor" },
+    "verdict": { "enum": ["pass", "fail", "error"] },
+    "summary": { "type": "string", "minLength": 10 },
+    "checks": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["rule_id", "gdd_ref", "statement", "result", "evidence", "owner"],
+        "properties": {
+          "rule_id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "gdd_ref": { "type": "string", "minLength": 1 },
+          "statement": { "type": "string", "minLength": 10 },
+          "result": { "enum": ["pass", "fail"] },
+          "evidence": { "type": "string", "minLength": 10 },
+          "fix_hint": { "type": "string" },
+          "owner": {
+            "description": "Which agent's artifact this rule is about, and therefore which agent a failure routes back to. The auditor labels; the orchestrator dispatches. Labelling is a judgement about the data; dispatching on the label is not, which is what keeps control flow deterministic.",
+            "enum": ["debris-designer", "economy-balancer"]
+          }
+        }
+      }
+    },
+    "observations": { "type": "array", "items": { "type": "string" } }
+  }
+}

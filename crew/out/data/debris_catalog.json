@@ -1,0 +1,312 @@
+{
+  "agent": "debris-designer",
+  "size_classes": {
+    "small": {
+      "slots_crushed": 1,
+      "slots_uncrushed": 2,
+      "hand_tetherable": true
+    },
+    "medium": {
+      "slots_crushed": 2,
+      "slots_uncrushed": 4,
+      "hand_tetherable": true
+    },
+    "oversized": {
+      "slots_crushed": 6,
+      "slots_uncrushed": 12,
+      "hand_tetherable": false
+    }
+  },
+  "debris": [
+    {
+      "id": "scorched_hull_panel",
+      "display_name": "Scorched Hull Panel",
+      "band": "suborbital",
+      "size_class": "small",
+      "fragile": false,
+      "mass_kg": 12,
+      "spawn_weight": 16,
+      "notes": "A curved sheet of blackened skin off a booster fairing, light enough to tether without thinking and common enough to be the first thing most players ever latch."
+    },
+    {
+      "id": "insulation_blanket_wad",
+      "display_name": "Insulation Blanket Wad",
+      "band": "suborbital",
+      "size_class": "small",
+      "fragile": false,
+      "mass_kg": 4,
+      "spawn_weight": 12,
+      "notes": "A crumpled ball of multi-layer foil that barely registers on the tether, the cheapest thing in the sky and the safest filler for a last slot."
+    },
+    {
+      "id": "spent_bolt_cluster",
+      "display_name": "Spent Bolt Cluster",
+      "band": "suborbital",
+      "size_class": "small",
+      "fragile": false,
+      "mass_kg": 6.5,
+      "spawn_weight": 10,
+      "notes": "Separation hardware fused into a knot of studs and collars, dense for its size and the closest thing the low sky has to honest metal."
+    },
+    {
+      "id": "bent_truss_section",
+      "display_name": "Bent Truss Section",
+      "band": "suborbital",
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 34,
+      "spawn_weight": 9,
+      "notes": "A folded length of lattice strut that swings wide on every turn, the piece that teaches a new player what a towed load actually feels like."
+    },
+    {
+      "id": "launch_clamp_arm",
+      "display_name": "Launch Clamp Arm",
+      "band": "suborbital",
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 41,
+      "spawn_weight": 6,
+      "notes": "Ground-support steel that rode up with something and never came down, the heaviest routine haul in the cheap band."
+    },
+    {
+      "id": "antenna_whip",
+      "display_name": "Antenna Whip",
+      "band": "suborbital",
+      "size_class": "small",
+      "fragile": true,
+      "mass_kg": 3,
+      "spawn_weight": 4,
+      "notes": "A springy monopole that glints as it tumbles, almost weightless on the line but never crushable, so it costs full uncrushed slots the whole way home."
+    },
+    {
+      "id": "cracked_viewport_pane",
+      "display_name": "Cracked Viewport Pane",
+      "band": "suborbital",
+      "size_class": "small",
+      "fragile": true,
+      "mass_kg": 9,
+      "spawn_weight": 2,
+      "notes": "Laminated capsule glass with a star fracture through it, the suborbital band's one real prize and the first lesson in landing gently."
+    },
+    {
+      "id": "upper_stage_shroud",
+      "display_name": "Upper Stage Shroud",
+      "band": "suborbital",
+      "size_class": "oversized",
+      "fragile": false,
+      "mass_kg": 180,
+      "spawn_weight": 1,
+      "notes": "Half a payload fairing the size of a garage door; rejects the hand magnet outright and waits for the crane cable, so it sits in the sky as a preview of a tool the shipping slice does not have."
+    },
+    {
+      "id": "reaction_wheel_housing",
+      "display_name": "Reaction Wheel Housing",
+      "band": "low",
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 62,
+      "spawn_weight": 9,
+      "notes": "A sealed drum of bearing steel and copper, the bread-and-butter satellite wreckage of the low band and heavy enough that the trip home has to be planned."
+    },
+    {
+      "id": "propellant_tank_stub",
+      "display_name": "Propellant Tank Stub",
+      "band": "low",
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 78,
+      "spawn_weight": 7,
+      "notes": "A ruptured titanium sphere still wearing its mounting collar, the heaviest hand-tetherable piece a mid-game player will routinely try to drag."
+    },
+    {
+      "id": "avionics_bay_module",
+      "display_name": "Avionics Bay Module",
+      "band": "low",
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 55,
+      "spawn_weight": 6,
+      "notes": "A boxed rack of flight computers, solid enough to shrug off a mediocre landing and worth more than anything the suborbital band offers."
+    },
+    {
+      "id": "gyro_cluster",
+      "display_name": "Gyro Cluster",
+      "band": "low",
+      "size_class": "small",
+      "fragile": false,
+      "mass_kg": 24,
+      "spawn_weight": 8,
+      "notes": "Three rate gyros still bolted to their machined mount, dense for one slot and the efficient pick when the hold is nearly full."
+    },
+    {
+      "id": "thruster_quad_pod",
+      "display_name": "Thruster Quad Pod",
+      "band": "low",
+      "size_class": "small",
+      "fragile": false,
+      "mass_kg": 19,
+      "spawn_weight": 7,
+      "notes": "Four attitude jets on a common manifold, compact and forgiving, the low band's answer to the hull panel."
+    },
+    {
+      "id": "cracked_solar_array",
+      "display_name": "Cracked Solar Array",
+      "band": "low",
+      "size_class": "medium",
+      "fragile": true,
+      "mass_kg": 28,
+      "spawn_weight": 4,
+      "notes": "A wing of cells with half its panes starred; light for its bulk but never crushable, so it eats four slots and doubles every point of heat and landing damage."
+    },
+    {
+      "id": "star_tracker_head",
+      "display_name": "Star Tracker Head",
+      "band": "low",
+      "size_class": "small",
+      "fragile": true,
+      "mass_kg": 14,
+      "spawn_weight": 2,
+      "notes": "A baffled optical head with the lens still clean, small and precious and the cheapest way for the player to learn what fragile costs on the way down."
+    },
+    {
+      "id": "dish_reflector",
+      "display_name": "Dish Reflector",
+      "band": "low",
+      "size_class": "medium",
+      "fragile": true,
+      "mass_kg": 31,
+      "spawn_weight": 2,
+      "notes": "A parabolic mesh reflector that catches the sun on a slow cycle from half a screen away, spawning off the clumps and above its band so reaching it is a real burn."
+    },
+    {
+      "id": "despun_bus_frame",
+      "display_name": "Despun Bus Frame",
+      "band": "low",
+      "size_class": "oversized",
+      "fragile": false,
+      "mass_kg": 340,
+      "spawn_weight": 1,
+      "notes": "The gutted spaceframe of a comsat, crane-cable only and heavy enough on its own to change the reentry profile; unreachable in the shipping slice by design."
+    },
+    {
+      "id": "iridium_bus_core",
+      "display_name": "Iridium Bus Core",
+      "band": "high",
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 165,
+      "spawn_weight": 7,
+      "notes": "The dense structural heart of a constellation satellite, the high band's staple and by itself a third of what a starting hold can carry."
+    },
+    {
+      "id": "reactor_core_slug",
+      "display_name": "Reactor Core Slug",
+      "band": "high",
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 180,
+      "spawn_weight": 6,
+      "notes": "A shielded block off a dead nuclear power unit, the single heaviest hand-tetherable piece in the game and a deliberate test of whether the player's chute can still hold five metres a second."
+    },
+    {
+      "id": "cryo_pump_assembly",
+      "display_name": "Cryo Pump Assembly",
+      "band": "high",
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 140,
+      "spawn_weight": 6,
+      "notes": "A turbopump and its cold plumbing welded into one lump, solid enough to survive a rough entry when the rest of the haul will not."
+    },
+    {
+      "id": "gold_foil_instrument_can",
+      "display_name": "Gold Foil Instrument Can",
+      "band": "high",
+      "size_class": "small",
+      "fragile": false,
+      "mass_kg": 48,
+      "spawn_weight": 6,
+      "notes": "A wrapped cylinder of science hardware, one slot crushed and dense with the good metals, the high band's efficiency pick."
+    },
+    {
+      "id": "rtg_capsule",
+      "display_name": "RTG Capsule",
+      "band": "high",
+      "size_class": "small",
+      "fragile": false,
+      "mass_kg": 88,
+      "spawn_weight": 4,
+      "notes": "A thermoelectric generator casing built to survive reentry on its own, absurdly heavy for one slot and the strongest argument for a Parachute upgrade."
+    },
+    {
+      "id": "optical_bench",
+      "display_name": "Optical Bench",
+      "band": "high",
+      "size_class": "medium",
+      "fragile": true,
+      "mass_kg": 95,
+      "spawn_weight": 4,
+      "notes": "A mirror and its invar frame, heavy and uncrushable at once, so a single one occupies four slots and doubles its own damage the whole way down."
+    },
+    {
+      "id": "sensor_gimbal_head",
+      "display_name": "Sensor Gimbal Head",
+      "band": "high",
+      "size_class": "small",
+      "fragile": true,
+      "mass_kg": 60,
+      "spawn_weight": 3,
+      "notes": "A pointing head with its optics intact, dense for a small piece and fragile with it, so latch jerk at high closing speed is the real risk rather than the tow."
+    },
+    {
+      "id": "deep_space_dish",
+      "display_name": "Deep Space Dish",
+      "band": "high",
+      "size_class": "medium",
+      "fragile": true,
+      "mass_kg": 110,
+      "spawn_weight": 3,
+      "notes": "A rigid high-gain antenna off something that was never meant to come back, glinting on its own fast orbit well off the clumps; the whole skill chain from crossing to touchdown pays out on this one piece."
+    },
+    {
+      "id": "comsat_main_body",
+      "display_name": "Comsat Main Body",
+      "band": "high",
+      "size_class": "oversized",
+      "fragile": false,
+      "mass_kg": 620,
+      "spawn_weight": 1,
+      "notes": "A whole geostationary bird minus its arrays, crane-cable only and heavier than the empty ship; it is the rehearsal object for Mr. Armstrong's satellite and is deferred with the class it belongs to."
+    }
+  ],
+  "band_summary": [
+    {
+      "band": "suborbital",
+      "piece_count": 8,
+      "fragile_fraction": 0.1,
+      "mean_mass_kg": 36.19
+    },
+    {
+      "band": "low",
+      "piece_count": 9,
+      "fragile_fraction": 0.174,
+      "mean_mass_kg": 72.33
+    },
+    {
+      "band": "high",
+      "piece_count": 9,
+      "fragile_fraction": 0.25,
+      "mean_mass_kg": 167.33
+    }
+  ],
+  "revision_notes": [],
+  "design_notes": [
+    "Mean mass rises 36.19 -> 72.33 -> 167.33 kg, roughly 2x per band and 4.6x from suborbital to high; excluding the crane-only oversized piece from each band the same climb is 15.6 -> 39.0 -> 114.5 kg, about 7.3x, so the mass gradient is carried by the ordinary hand-tetherable pieces and not by the one outlier per band.",
+    "The Researcher's finding that entry speed only spans 151-164 m/s across all three bands means altitude cannot produce the band difficulty curve. This catalog puts that load on mass instead, which is the lever GDD 4.5 risk 2 already names: a full high-band hold is several times the tonnage of a full suborbital one under the same chute and the same shield, so deceleration authority falls and integrated heat rises exactly as the haul gets good.",
+    "Fragile spawn weight is 6/60 = 0.100 in suborbital, 8/46 = 0.174 in low and 10/40 = 0.250 in high, computed as the weighted share rather than the piece-count share. By count the three bands are 2/8, 3/9 and 3/9, which would read as 0.25 everywhere - the weights are what hold the 1-in-10 to 1-in-4 gradient the GDD asks for.",
+    "Fragile pieces get low spawn weights within their band and are deliberately not the lightest things in it: cracked_viewport_pane, dish_reflector, optical_bench and deep_space_dish all cost full uncrushed slots forever and all take double heat and landing damage, so a fragile-heavy run is a genuinely worse ride home rather than free money.",
+    "Every size class and the fragile flag appear in both shipping-slice bands, so a player who never leaves suborbital and low still meets small, medium, oversized-that-rejects-the-hand-magnet, and fragile. The oversized pieces are one per band and exist to make the catalog complete; all three are unreachable without the crane magnet the semester scope cuts.",
+    "Medium is not hoarded in the top band - suborbital carries 2 mediums, low 5 and high 5 - so the skew toward medium is a shift in spawn weight and mass, not a class the player only meets after the slice ends. High-band smalls (rtg_capsule at 88 kg, sensor_gimbal_head at 60 kg) are heavier than most low-band mediums, which is how the band reads as dense rather than merely bulky.",
+    "Slot economics stay non-degenerate at every band: at 6 starting slots and roughly 500 kg of usable capacity, one crushed high-band medium is about a third of the hold, one crushed high-band small is about a sixth, and an uncrushed fragile medium is two thirds of it. No piece is strictly dominant because the best mass-per-slot pieces (gold_foil_instrument_can, gyro_cluster) are the ones the Economy Balancer can price below the fragile pieces that cost four slots to bring home."
+  ]
+}

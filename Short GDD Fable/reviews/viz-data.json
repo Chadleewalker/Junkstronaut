@@ -1,0 +1,691 @@
+{
+  "meta": {
+    "document_reviewed": "gdd.txt (Junkstronaut, First Draft)",
+    "review_date": "2026-07-20",
+    "reviewers": [
+      "systems-designer",
+      "narrative-critic",
+      "player-psychologist",
+      "feasibility-lead",
+      "adversarial-qa",
+      "business-analyst"
+    ],
+    "source_files": [
+      "reviews/systems-designer.md",
+      "reviews/narrative-critic.md",
+      "reviews/player-psychologist.md",
+      "reviews/feasibility-lead.md",
+      "reviews/adversarial-qa.md",
+      "reviews/business-analyst.md",
+      "reviews/SYNTHESIS.md"
+    ]
+  },
+
+  "findings": [
+    {
+      "reviewer": "systems-designer",
+      "finding_id": "F1",
+      "title": "Economic death spiral: bankruptcy is possible but undesigned",
+      "severity_round1": "MAJOR",
+      "severity_final": "BLOCKING",
+      "description": "The economy can strand a player financially and the document does not acknowledge it. A botched reentry destroys the cargo (income) AND damages the hull (a per-% repair bill); the next launch still costs 2-3 cheap pieces' worth of fuel. Two bad runs in a row and cash can go below the cost of the next launch. Economic stranding on the ground is neither a designed loss state nor prevented by any floor (no debt mechanic, no free minimal refuel, no scrap-the-ship option). Either declare bankruptcy a real loss condition and design toward it, or specify the safety net.",
+      "reference": "Sections 1, 2.5, 3 — 'Every launch costs money'; loss conditions are only 'stranded with no fuel, or 0 HP'; economy sweep never asks whether a failed run makes the next run unaffordable"
+    },
+    {
+      "reviewer": "systems-designer",
+      "finding_id": "F2",
+      "title": "No prices, no run count: playthrough pacing is entirely unspecified",
+      "severity_round1": "MAJOR",
+      "severity_final": "MAJOR",
+      "description": "Upgrade prices ARE the pacing of the entire game (win is 'reachable and landable only near full upgrades'), yet the document contains not one price, no junk values beyond 'launch cost ~= 2-3 cheap pieces', and no target run count for a playthrough. A sweep can only validate a curve against a target, and no target curve exists. With value-scaling-by-mass and bigger holds, income likely grows superlinearly, so late upgrades must cost dramatically more or the back half collapses. The document should state intended total run count, intended mid-game earnings per run, and a rough tier-1:tier-3 price ratio.",
+      "reference": "Sections 1, 2.5, 2.6, 3 — omission of any prices, run-count target, or target curve anywhere in the document"
+    },
+    {
+      "reviewer": "systems-designer",
+      "finding_id": "F3",
+      "title": "The 'land safer' purchase doesn't exist: difficulty ratchets one way",
+      "severity_round1": "MAJOR",
+      "severity_final": "MAJOR",
+      "description": "Section 2.1's shop row promises 'reach higher, land safer, or haul more', but 2.5's actual tracks are Fuel tank (reach), Thruster (reach), Storage (haul) — parachute, heat shield, and jetpack ship at fixed mid-tier values. There is no 'land safer' purchase. Every Storage purchase makes landings strictly harder with no systemic counter-investment, so difficulty scales with progression with no purchasable relief valve. Either restore a landing-mitigation track or delete the 'land safer' promise and state that landing difficulty only rises.",
+      "reference": "Section 2.1 shop row vs. Section 2.5 ('Parachute, heat shield, and jetpack ship at fixed mid-tier values'); Section 3 difficulty chain"
+    },
+    {
+      "reviewer": "systems-designer",
+      "finding_id": "F4",
+      "title": "The endgame object's rules are underspecified where they matter most",
+      "severity_round1": "MAJOR",
+      "severity_final": "BLOCKING",
+      "description": "Three unresolved questions in Section 2.6's satellite description: (a) does a damaged satellite still win, win with reduced payout, or force a retry? (b) heat damage is per-slot; the satellite is a single object that 'barely fits a maxed hold' — does one 3-second heat tick destroy the win object? (c) chute descent speed scales with sqrt(mass) and soft is under ~5 m/s; with mass doubled, is a soft landing achievable at fixed mid-tier chute values at all? (a) and (b) are design decisions no sweep can answer. Round 2 math: doubling mass raises descent speed ~41%, so a soft touchdown may be impossible by construction.",
+      "reference": "Sections 1, 2.2, 2.3, 2.6 — 'roughly doubles the ship's mass, barely fits a maxed hold, and arrives damaged unless the touchdown is soft'"
+    },
+    {
+      "reviewer": "systems-designer",
+      "finding_id": "F5",
+      "title": "Jetpack fuel is a stated cost with no defined economy",
+      "severity_round1": "MINOR",
+      "severity_final": "MINOR",
+      "description": "Jetpack fuel is the price of the core greed decision, but nothing defines the fuel loop: does EVA fuel draw from the ship tank or a separate suit tank, does it refill free at the ship, is it included in 'Armstrong fills the tank'? The loss condition 'stranded with no fuel' doesn't say which fuel — if a player burns the jetpack dry hauling a heavy piece away from the ship, is that a loss, a drift-back-forever, or an undefined softlock?",
+      "reference": "Sections 1, 2.4, 2.5 — 'every trip out costs jetpack fuel'; omission of capacity/refill/loss rules"
+    },
+    {
+      "reviewer": "narrative-critic",
+      "finding_id": "F1",
+      "title": "The climactic payoff is undefined: what happens when the satellite comes home damaged, or at all?",
+      "severity_round1": "MAJOR",
+      "severity_final": "BLOCKING",
+      "description": "The entire game funnels toward returning Armstrong's satellite, and the document never describes that moment or its success criteria. Nowhere does it state whether a damaged satellite still wins, wins with a lesser ending, or fails the run. There is no ending beat of any kind: no scene of Armstrong receiving the satellite, no epilogue, not even victory-screen intent. The document spends a full section choreographing reentry tension and zero sentences on what that tension pays off into. The climax is currently a rules ambiguity.",
+      "reference": "Section 2.6 'arrives damaged unless the touchdown is soft' — a consequence with no stated meaning; Section 1 'Win: retrieve Mr. Armstrong's satellite'; omission of any ending"
+    },
+    {
+      "reviewer": "narrative-critic",
+      "finding_id": "F2",
+      "title": "'Starting with his own lost satellite' promises a structure the design doesn't have",
+      "severity_round1": "MINOR",
+      "severity_final": "MINOR",
+      "description": "The Executive Summary frames the satellite as the first objective in a larger campaign ('starting with his own lost satellite'), but the win condition ends the game at exactly that satellite. Either the fiction promises a continuation the game never delivers, or the 'starting with' framing is wrong. The phrase shapes player expectation of scope in the first paragraph, and the design pays it off as a finale, not a beginning. One sentence of rewriting fixes it.",
+      "reference": "Section 1: 'starting with his own lost satellite, hanging at the very top of the sky' vs. 'Win: retrieve Mr. Armstrong's satellite'"
+    },
+    {
+      "reviewer": "narrative-critic",
+      "finding_id": "F3",
+      "title": "The premise contradicts the goal object",
+      "severity_round1": "MINOR",
+      "severity_final": "MINOR",
+      "description": "The inciting incident is a Kessler cascade that 'shattered every satellite in orbit into valuable junk', yet the win object is an intact satellite that survived the event that destroyed every satellite. No explanation for why Armstrong's satellite alone endured, why it is the heaviest object in the game, or why it sits at the very top of the flight envelope. As written the story's setup and its objective are mutually exclusive; the goal object's traits read as difficulty-curve reverse-engineering with no fictional cover. Fixable with a single clause.",
+      "reference": "Section 1: 'shattered every satellite in orbit into valuable junk' vs. Sections 1/2.6: the intact satellite 'at the very top'"
+    },
+    {
+      "reviewer": "narrative-critic",
+      "finding_id": "F4",
+      "title": "Armstrong is the game's only character and has no motivation, no voice, and no defined relationship to the player",
+      "severity_round1": "MAJOR",
+      "severity_final": "MAJOR",
+      "description": "Armstrong functions purely as an economy valve: fills the tank, repairs at a flat fee, buys the haul, sells upgrades. The document never says why he wants the satellite, who the player is to him, or what he sounds like. The design has accidentally built a potent theme it never acknowledges: the player's sole buyer is also their sole supplier — a company-store arrangement that IS the blue-collar thematic pillar, sitting unclaimed. No dialogue intent, no tone guidance, no character section. The 'stranded with no fuel' loss state implies Armstrong lets his scrapper die in orbit, neither leaned into nor softened. Round 2: held at MAJOR but strengthened — load-bearing for colleagues' onboarding-channel, off-pad-buyer, and company-store findings.",
+      "reference": "Section 1 (Armstrong introduced, never characterized); Section 2.5 (pure transaction); #Thematic pillar; omission of any character/dialogue/tone section"
+    },
+    {
+      "reviewer": "narrative-critic",
+      "finding_id": "F5",
+      "title": "The 'handmade scrapyard' aesthetic pillar is undercut by the document's own asset plan",
+      "severity_round1": "MINOR",
+      "severity_final": "MINOR",
+      "description": "The thematic pillar promises blue-collar handmade spacecraft, but the art strategy is off-the-shelf pixel packs plus a planet generator, with the Art Director agent explicitly cut. Stock pixel packs are generic sci-fi — the opposite of a junk-built visual identity — and the document provides no selection criteria, reference imagery, or note on bending stock assets toward the scrap fiction. No mechanism exists by which the central aesthetic promise gets expressed. A short art-direction paragraph would close the gap.",
+      "reference": "Section 1 '#Thematic — Scrapyard Spaceflight, blue-collar handmade spacecraft' vs. Section 4.1 (pixel packs) and Section 4.3 (Art Director cut)"
+    },
+    {
+      "reviewer": "player-psychologist",
+      "finding_id": "F1",
+      "title": "No onboarding path for a mechanic that punishes first attempts with permanent, irreversible loss",
+      "severity_round1": "BLOCKING",
+      "severity_final": "BLOCKING",
+      "description": "Reentry is the game's most complex and least forgiving system — stage (one-way, kills all thrust), wait through plasma (chute shreds if deployed early), read a visual cue, deploy chute, then gear — and the punishment for a mistake is losing the cargo from a whole run. No tutorial, no practice mode, no first-launch scaffolding, no low-stakes way to learn. A new player's first 2-3 reentries will almost certainly destroy their haul; losing a session's reward to an untaught rule is a classic rage-quit generator in the first 20 minutes. Anxiety only works as a positive emotion once the player understands the system; before that it is confusion followed by punishment.",
+      "reference": "Section 2.2 (reentry rules, cargo-damages-first), Section 1 pillars; omission of any onboarding, tutorial, or first-hour design"
+    },
+    {
+      "reviewer": "player-psychologist",
+      "finding_id": "F2",
+      "title": "The most punishing decision in the game hangs on a single subtle color cue",
+      "severity_round1": "MAJOR",
+      "severity_final": "MAJOR",
+      "description": "The only stated signal for chute safety is 'the hull glow fades from white toward orange' — a low-contrast, single-channel cue on a small pixel-art ship, gating a binary catastrophic outcome (chute shreds vs. works). Players under stress do not reliably read gradual color shifts, and colorblind players (~8% of male players) may not read this one at all. No audio cue, no HUD element, no speed readout — and the 'reentry sensor' that might have served this role is explicitly cut. Players will blame the game when the chute shreds: the input they acted on was ambiguous.",
+      "reference": "Section 2.2 ('When the plasma clears — the hull glow fades from white toward orange — deploy chute'); Section 4.3 ('reentry sensor' cut)"
+    },
+    {
+      "reviewer": "player-psychologist",
+      "finding_id": "F3",
+      "title": "Failure recovery is undefined; the economy can plausibly death-spiral into a quit",
+      "severity_round1": "MAJOR",
+      "severity_final": "BLOCKING",
+      "description": "Loss conditions are 'stranded with no fuel, or 0 HP' — but the document never says what happens next (restart? reload? is there a save system?). Worse, the economy has a visible spiral: every launch costs money, and a crash destroys the cargo that would have paid for it. A player who crashes twice pays full repair costs with nothing sold. Nothing addresses the broke-player state: can you afford a launch after a bad crash, or are you softlocked into a slow-motion game over? The floor under failure has to be defined and isn't.",
+      "reference": "Section 1 (loss conditions), Section 2.5 (launch costs, break-even claim); omission of any failure-recovery, save, or minimum-guarantee rule"
+    },
+    {
+      "reviewer": "player-psychologist",
+      "finding_id": "F4",
+      "title": "The win condition stacks the game's three cruelest constraints on its longest run, with an ambiguous 'damaged' outcome",
+      "severity_round1": "MAJOR",
+      "severity_final": "MAJOR",
+      "description": "The satellite roughly doubles ship mass, barely fits a maxed hold, and arrives damaged unless touchdown is soft (<~5 m/s). Chute descent speed grows with mass, and this is the heaviest haul from the highest altitude — hottest reentry, latest and lowest chute window. The finale demands the game's most precise landing under its worst landing conditions, at the end of its longest flight; every failed attempt costs the full round trip plus repairs, and 'arrives damaged' has no stated meaning for the win. If players must repeat the run until they thread a near-impossible landing, the endgame becomes a frustration cliff exactly where they should feel mastery. Machine-beatable by a sweep is not human-repeatable.",
+      "reference": "Sections 1, 2.3, 2.6, 3; omission of what a damaged satellite means for the win state"
+    },
+    {
+      "reviewer": "player-psychologist",
+      "finding_id": "F5",
+      "title": "Nine total purchases with break-even floors risks a flat motivation curve in the mid-game",
+      "severity_round1": "MINOR",
+      "severity_final": "MAJOR",
+      "description": "The entire progression is 3 parts x 3 tiers = 9 purchases with parachute/heat shield/jetpack fixed forever. No upgrade prices relative to haul values, so pacing between purchases is unknowable — and the structure is thin: between upgrades there is nothing to buy, no intermediate rewards, no cosmetic or narrative drip, and break-even runs produce literally zero progress. Repetitive hauls with no visible progress between tier purchases is where session-two retention dies. The moment-to-moment greed loop is genuinely good; the meta-loop above it is nine beats long with silence in between.",
+      "reference": "Section 2.5 (9 purchases, fixed mid-tier equipment, break-even lazy runs); omission of pacing targets, pricing, or secondary reward structure"
+    },
+    {
+      "reviewer": "feasibility-lead",
+      "finding_id": "F1",
+      "title": "The headless Playtester requires an unbudgeted autopilot",
+      "severity_round1": "BLOCKING",
+      "severity_final": "BLOCKING",
+      "description": "Section 3's Playtester questions require an automated pilot capable of executing the entire mission loop — launch, ascent guidance, EVA jetpack navigation, tether collection, staged reentry, chute timing, and a graded soft landing. That is a scripted/optimal-control problem in its own right and is nowhere in the document. The harness that iterates configs is trivial; the pilot that flies each config is the actual work, and the half-day timebox is not credible. The stated hand-tuning fallback rescues the game but silently deletes Section 3's entire measurement methodology. Round 2: without the autopilot, the win condition has no verification path of any kind — no human playtest is scheduled either.",
+      "reference": "Section 3 Playtester ('Runs headless Godot across a grid of config values...'), Section 4.4 ('The sweep harness... Timebox: half a day')"
+    },
+    {
+      "reviewer": "feasibility-lead",
+      "finding_id": "F2",
+      "title": "Tuning methodology contradicts its own fallback",
+      "severity_round1": "MAJOR",
+      "severity_final": "MAJOR",
+      "description": "Section 3 claims the difficulty loop is 'coupled and nonlinear, so its behavior is determined empirically by sampling the parameter space' — i.e., hand-reasoning won't work. Section 4.4's fallback for losing the sweep harness is hand-tuning. Both statements cannot be true. If empirical sampling is genuinely required, the half-day harness is a critical-path dependency and should be built Day 1; if hand-tuning is viable, the empirical framing is overstated and the sweeps should be marked cuttable. Round 2: confidence raised — the business-analyst independently found the identical contradiction.",
+      "reference": "Section 3 ('coupled and nonlinear... determined empirically') vs. Section 4.4 ('Fallback is hand-tuning for the rest of the build — the game ships either way')"
+    },
+    {
+      "reviewer": "feasibility-lead",
+      "finding_id": "F3",
+      "title": "No schedule, and the hardest system is a universal dependency",
+      "severity_round1": "MAJOR",
+      "severity_final": "MAJOR",
+      "description": "The custom fixed-timestep gravity integrator is named one of the two hardest problems and is the foundation for everything: rocket flight, EVA, tether coupling, heat/drag, and the determinism that enables the Playtester. Yet there is no build order or day-by-day plan; only a Day-3 towing gate and a half-day sweep timebox are scheduled. If the integrator slips or ships nondeterministic (accumulated float error is a classic failure), every downstream session and both sweeps are invalidated, with no stated gate or fallback. It needs to be proven by end of Day 1 with an explicit determinism test in the QA invariant list; neither appears.",
+      "reference": "Sections 4.1, 4.2, 3; omission of any schedule or integrator fallback in Section 4.4"
+    },
+    {
+      "reviewer": "feasibility-lead",
+      "finding_id": "F4",
+      "title": "Token budget has zero rework margin and untracked work items",
+      "severity_round1": "MAJOR",
+      "severity_final": "BLOCKING",
+      "description": "Section 4.2's arithmetic (~150-200k/day, ~1.2M/week) assumes every Coder session lands its mechanic in one pass, but Section 3's own process guarantees rework ('A red test returns to the Coder'). ~11-12 Coder sessions at 95-115k per cycle fully consume the week with no allowance for shop UI, HUD, menus, art integration, or the two Opus problems (Opus burns the Pro allowance several times faster, unmodeled). Any single bad day forces cuts, and the document does not say which mechanic gets cut first. Round 2 upgrade: nearly every fix the board proposes is additive, and the plan names no cut priority beyond towing — not schedulable as written.",
+      "reference": "Section 4.2 entire; Section 3 ('A red test returns to the Coder'); omission of UI/shop/HUD from the session cadence"
+    },
+    {
+      "reviewer": "feasibility-lead",
+      "finding_id": "F5",
+      "title": "QA 'reads the spec, not the implementation' has no API contract",
+      "severity_round1": "MINOR",
+      "severity_final": "MINOR",
+      "description": "QA is budgeted at ~25k tokens because the test suite reads the spec and invariant list rather than the implementation — but GUT tests must instantiate real classes, call real method names, and assert on real signals, none of which exist in the spec. Without a pre-agreed API contract (node names, method signatures, config keys), either QA reads the implementation anyway (blowing the budget) or every QA session produces tests that fail to compile. The single game_params.tres convention solves constants but not behavior-level APIs. One page of interface contract would fix this.",
+      "reference": "Section 4.2 ('QA sessions run ~25k, since the test suite reads the spec and the invariant list rather than the implementation')"
+    },
+    {
+      "reviewer": "adversarial-qa",
+      "finding_id": "F1",
+      "title": "Armstrong's satellite can be destroyed, making the game unwinnable",
+      "severity_round1": "BLOCKING",
+      "severity_final": "BLOCKING",
+      "description": "The win condition is 'retrieve Mr. Armstrong's satellite'; cargo takes heat damage during hot reentry and landing damage scales with vertical speed. Nothing states whether the satellite can be destroyed outright, whether a destroyed satellite respawns, or whether a damaged satellite still counts as a win. If the heaviest object in the game — which by design runs the hottest reentry and the latest, lowest chute window — burns up or is destroyed on a hard landing, the player may be locked into a permanently unwinnable save with no listed fail state covering it. The Playtester question tests that success is possible, not what happens on failure.",
+      "reference": "Sections 1 (win/loss), 2.2, 2.3, 2.6 — omission of satellite persistence/destruction rules"
+    },
+    {
+      "reviewer": "adversarial-qa",
+      "finding_id": "F2",
+      "title": "Staging is one-way, but every successful run ends staged; the ship's engine replacement is never specified",
+      "severity_round1": "MAJOR",
+      "severity_final": "MAJOR",
+      "description": "Staging jettisons tank and thruster — one-way, no thrust after — and is required for any shielded reentry, so every landing leaves a ship with no thruster and no tank. Armstrong 'fills the tank' — a tank that was jettisoned in the upper atmosphere. Stage replacement is never priced, never mentioned as free, never mentioned at all. Related edge case: pressing B (stage) on the launch pad leaves the player with fuel but no thrust — matching neither listed loss condition. That is an undefined soft-lock reachable with one keypress.",
+      "reference": "Sections 2.1 (stage on B), 2.2 ('one-way, no thrust after'), 2.5 (refuel/repair list omits stages); Section 1 loss conditions"
+    },
+    {
+      "reviewer": "adversarial-qa",
+      "finding_id": "F3",
+      "title": "EVA fail states are entirely unhandled: jetpack fuel exhaustion, exit during descent, ship/astronaut separation",
+      "severity_round1": "MAJOR",
+      "severity_final": "MAJOR",
+      "description": "Unhandled cases: (a) astronaut runs out of jetpack fuel while tethered to a heavy piece away from the ship — stranded, death, or drift-forever? Jetpack capacity, refill rules, and whether it counts toward the 'stranded with no fuel' loss are all unstated. (b) Can the player press F and exit during atmospheric descent? An astronaut in plasma has no defined outcome. (c) Both ship and astronaut are on ballistic arcs — no rule says the ship holds station while the player is out hauling junk.",
+      "reference": "Sections 2.1 (unconditional F verb), 2.4 (jetpack fuel cost with no capacity/refill/failure rules); Section 1 loss list"
+    },
+    {
+      "reviewer": "adversarial-qa",
+      "finding_id": "F4",
+      "title": "'Cargo damages before hull' turns cheap junk into ablative armor; burn order and mass-after-destruction are unspecified",
+      "severity_round1": "MAJOR",
+      "severity_final": "MAJOR",
+      "description": "Two omissions create an exploit: (1) which slot burns first — cheapest, random, last-stowed? If cheapest-first or player-orderable, the optimal strategy is padding the hold with worthless panels as sacrificial heat shielding for high-value pieces, inverting the intended greed penalty. (2) Does a destroyed slot's mass disappear? If yes, an overloaded ship sheds mass mid-reentry as it burns, cooling itself and pulling the chute window earlier — overloading becomes partially self-correcting and the punishment softens exactly when it should bite. The ambiguity will get baked into the QA agent's tests as written. Round 2 note: now clearly a decision, not an investigation — two sentences close it.",
+      "reference": "Section 2.2 (damage ordering), 2.3 (chute speed vs. mass), Section 3 (QA invariant list) — omission of burn order and destroyed-cargo mass rules"
+    },
+    {
+      "reviewer": "adversarial-qa",
+      "finding_id": "F5",
+      "title": "Bankruptcy soft-lock: intact ship, empty wallet, and no loss condition that covers it",
+      "severity_round1": "MAJOR",
+      "severity_final": "BLOCKING",
+      "description": "Sequence: player takes a hard-but-survivable landing, cargo destroyed by heat, hull heavily damaged, cash below (repair + fuel). The player is alive, landed, and cannot afford to launch. Neither loss condition ('stranded with no fuel, or 0 HP') triggers — you have a ship, you just can't pay Armstrong. The 'lazy run breaks even' claim assumes you can afford the launch and assumes zero repair bill. Nothing specifies a debt floor, free minimal refuel, or bankruptcy game-over, and the economy sweep never samples the post-crash recovery path. Round 2: the triggering sequence sits on the mandatory new-player path, in the first hour.",
+      "reference": "Section 2.5 (launch cost, per-% repair fee), Section 1 (loss conditions), Section 3 (economy sweep scope) — omission of a broke-but-alive state"
+    },
+    {
+      "reviewer": "business-analyst",
+      "finding_id": "F1",
+      "title": "No audience or positioning statement, and the document is visibly two documents at once",
+      "severity_round1": "MAJOR",
+      "severity_final": "MAJOR",
+      "description": "Nowhere does the document say who plays this game or what it sits next to: no target-player statement, no comparable titles (Dome Keeper, Motherload-likes, Hardspace: Shipbreaker, Lunar Lander go unmentioned), no session-length or platform framing beyond 'keyboard and mouse only'. Roughly half the page count is an AI-production methodology paper addressed to a grader, not a design document addressed to a team. Every design decision is justified by tuning cost or agent workflow, none by a stated player or market. Round 2 note: the missing audience statement is why the board cannot consistently rank its own findings.",
+      "reference": "Header line; Sections 3, 4.2; total absence of audience/comps/positioning language"
+    },
+    {
+      "reviewer": "business-analyst",
+      "finding_id": "F2",
+      "title": "The shop's advertised decision axis does not exist in the upgrade catalog",
+      "severity_round1": "MAJOR",
+      "severity_final": "MAJOR",
+      "description": "The controls table says the shop decision is 'reach higher, land safer, or haul more', but 2.5 defines only Fuel tank, Thruster, and Storage, with parachute/heat shield/jetpack fixed at mid-tier. There is no 'land safer' purchase. Worse: the satellite is 'reachable and landable only near full upgrades', so all 9 purchases are mandatory and the only real player choice is ordering. Storage is the only interesting purchase; Fuel tank and Thruster are pure gates. The shop is presented as a decision space but is functionally a linear progression track wearing one. Either add a real safety-side purchase or stop advertising a three-way choice.",
+      "reference": "Section 2.1 shop row vs. Section 2.5 ('fixed mid-tier values') vs. Section 1 win condition"
+    },
+    {
+      "reviewer": "business-analyst",
+      "finding_id": "F3",
+      "title": "The production plan's fallback contradicts the design's own central claim",
+      "severity_round1": "MAJOR",
+      "severity_final": "BLOCKING",
+      "description": "Section 3 stakes the design on empirical sampling ('coupled and nonlinear... determined empirically'); Section 4.4 timeboxes the sampling instrument at half a day and declares the fallback is hand-tuning — 'the game ships either way.' Both cannot be true. If the loop genuinely requires empirical sampling, hand-tuning ships an untuned game; 'ships either way' is a schedule promise, not a quality promise. Round 2 upgrade: the feasibility-lead's autopilot analysis shows the empirical path is unachievable as scheduled, so the fallback is the de facto plan — both the graded methodology and the tuned-game claim fail on the document's own terms.",
+      "reference": "Section 3 ('determined empirically by sampling the parameter space') vs. Section 4.4 ('Fallback is hand-tuning for the rest of the build — the game ships either way')"
+    },
+    {
+      "reviewer": "business-analyst",
+      "finding_id": "F4",
+      "title": "No pacing targets: the economy sweep has nothing to sweep toward",
+      "severity_round1": "MAJOR",
+      "severity_final": "MAJOR",
+      "description": "The Playtester's questions ('does a lazy run break even?', 'is the satellite run beatable?') are binary feasibility checks, not pacing targets. The document never states how long a run should take, how many runs the campaign should take, or total intended playtime. The sweep can confirm the game is completable but cannot tell whether it is a 25-minute game or a 6-hour grind, and the 9-purchase mandatory ladder makes campaign length a direct function of numbers no one has bounded. For a graded/demoed one-week deliverable, 'how long is this game' has no answer.",
+      "reference": "Section 3 Playtester description (binary questions only); omission of any run-length, run-count, or playtime target"
+    },
+    {
+      "reviewer": "business-analyst",
+      "finding_id": "F5",
+      "title": "'Sells anywhere you come down' quietly implies a world the document never scopes",
+      "severity_round1": "MINOR",
+      "severity_final": "MINOR",
+      "description": "'An intact landing sells the haul wherever you come down' implies landable terrain beyond the launch pad — a 2D surface of some extent, off-pad landing zones, and some answer to how the rocket returns to the pad. None of this appears in the mechanics, the art plan, or the cut list. Probably a one-line answer ('run auto-resets to the pad'), but right now it is an unpriced feature hiding inside a sentence about economy, and unpriced features are how disciplined scopes die in week-long builds. Round 2: should be read as part of the unpriced-cost-model pattern with QA's F2 and F5.",
+      "reference": "Sections 2.3 and 4.3 ('sells anywhere'); omission of any world/terrain/recovery description"
+    }
+  ],
+
+  "cross_examination": [
+    {
+      "reviewer": "systems-designer",
+      "engaged_with": ["adversarial-qa", "player-psychologist", "business-analyst", "narrative-critic", "feasibility-lead"],
+      "conflicts": [
+        {
+          "versus": "adversarial-qa",
+          "their_finding": "F4 (ablative cargo)",
+          "summary": "QA's mass-shedding reading challenges the systems-designer's 'no relief valve' claim (F3). Counter-argument: burning cargo is a punishment converter, not a relief valve — it trades the landing penalty for an income penalty, feeding the death spiral. F3 stands: there is still no PURCHASABLE mitigation, which is what the shop text promises. But the destroyed-mass rule must be specified before anyone can state what the difficulty curve does at 100% heat."
+        },
+        {
+          "versus": "player-psychologist",
+          "their_finding": "F1 (onboarding, BLOCKING)",
+          "summary": "Pushes back on severity: the physics imply a natural early-game ramp — a tier-1 ship flies slow, light, and low, so first reentries should be the coolest the game produces, and cargo-before-hull is graduated punishment. The scaffold is accidental and unverified, though; argues MAJOR-pending-verification, with 'add a starter-ship heat question to the reentry sweep' as the cheap settling fix."
+        },
+        {
+          "versus": "player-psychologist / business-analyst",
+          "their_finding": "psychologist F5 (flat mid-game, MINOR) / business-analyst F2",
+          "summary": "Defends rating the same territory MAJOR: break-even runs produce mathematically zero progress toward a win requiring near-full upgrades — a stable orbit of playing-without-progressing. Also tempers the business-analyst's 'ordering is the only choice' claim: ordering can be a real economic decision, but only if prices force trade-offs, and no prices exist."
+        }
+      ],
+      "connections": [
+        {
+          "with": ["adversarial-qa", "player-psychologist", "narrative-critic"],
+          "insight": "Bankruptcy is a three-lens convergence (systems F1, QA F5, psychologist F3) with a fictional fix next door: Armstrong extends credit. A debt mechanic closes the economy floor AND delivers the unclaimed company-store blue-collar theme (narrative F4) — an interlock the document gets almost for free."
+        },
+        {
+          "with": ["adversarial-qa", "narrative-critic", "player-psychologist"],
+          "insight": "The satellite endgame ambiguity is one hole seen from four lenses. New math: chute speed scales with sqrt(mass), so doubling mass raises descent speed ~41% — if a full-hold landing is tuned near the 5 m/s threshold, the satellite run lands near 7 m/s and a soft touchdown is impossible by construction. No sweep can rescue that."
+        },
+        {
+          "with": ["feasibility-lead", "business-analyst"],
+          "insight": "Both tuning paths fail for the same missing input: a sweep can only validate against a target curve, and hand-tuning needs targets even more. Writing down run count, mid-game earnings, and tier price ratios is upstream of the entire Section 3 methodology, whichever instrument survives."
+        }
+      ],
+      "revisions": [
+        { "finding_id": "F1", "action": "upgraded", "from": "MAJOR", "to": "BLOCKING", "reason": "QA's articulation: an undefined terminal state neither loss condition covers, reachable in the first hour; three reviewers hit it independently." },
+        { "finding_id": "F4", "action": "upgraded", "from": "MAJOR", "to": "BLOCKING", "reason": "Win object can plausibly be destroyed with no defined outcome, and sqrt(mass) arithmetic suggests the soft landing may be unreachable at fixed chute values." },
+        { "finding_id": "F2", "action": "held", "from": "MAJOR", "to": "MAJOR", "reason": "Unchanged." },
+        { "finding_id": "F3", "action": "held", "from": "MAJOR", "to": "MAJOR", "reason": "Survives QA's ablative-armor challenge; still no purchasable mitigation." },
+        { "finding_id": "F5", "action": "held", "from": "MINOR", "to": "MINOR", "reason": "QA's F3 is the stronger fail-state version of the same point and properly theirs." }
+      ]
+    },
+    {
+      "reviewer": "narrative-critic",
+      "engaged_with": ["adversarial-qa", "business-analyst", "player-psychologist", "systems-designer"],
+      "conflicts": [
+        {
+          "versus": "adversarial-qa",
+          "their_finding": "F1 (satellite destruction, BLOCKING)",
+          "summary": "Same sentence, wrong-sized fix: a purely mechanical patch (destruction rules, respawn) repairs the bug while leaving the climax an empty boolean. The narrative question — what does bringing it home MEAN, and what does damaged vs. pristine mean — is not answered by persistence rules. The correct resolution defines both."
+        },
+        {
+          "versus": "business-analyst",
+          "their_finding": "praise of the cut list (Round 1 overview)",
+          "summary": "Contests 'nothing in the shipped feature list reads as decorative': the #Thematic pillar has no delivery mechanism anywhere (stock packs, Art Director cut, no criteria), making it a decorative feature written in prose — exactly the unpriced, unaccountable item the analyst's own F5 warns about. The cut list is disciplined about features, silent about promises."
+        },
+        {
+          "versus": "player-psychologist",
+          "their_finding": "F4 (endgame frustration cliff)",
+          "summary": "Argues the opposite instinct: the terrifying finale is the correct dramatic apex of the #Feeling pillar; sanding it down would flatten the climax. The psychologist's complaint is only fully true because the ending doesn't exist — a graded ending (pristine vs. damaged producing different closing beats) preserves difficulty and resolves both findings. Fix the payoff before touching the difficulty."
+        }
+      ],
+      "connections": [
+        {
+          "with": ["systems-designer", "business-analyst"],
+          "insight": "The company store is already built: 'land safer' doesn't exist, all 9 purchases are mandatory, and Armstrong is sole buyer/supplier/repairman charging per-% fees on damage his own missions cause. What colleagues flag as a broken decision space is the blue-collar theme fully assembled and unclaimed — one paragraph of tone intent lets the linear ladder read as indenture."
+        },
+        {
+          "with": ["business-analyst"],
+          "insight": "'Sells anywhere you come down' breaks the one-character world: who is buying? Either the world is implicitly populated with other buyers — contradicting the lone-scrapper frame — or Armstrong is omnipresent, which is unwritten. The analyst's one-line answer needs to be a fictional line as much as a systems line."
+        },
+        {
+          "with": ["player-psychologist"],
+          "insight": "The missing character voice is also the missing tutorial channel: Armstrong's dialogue is the document's cheapest possible onboarding vehicle and the only tutorial channel the cut list hasn't already forbidden — but Armstrong has no voice, tone, or dialogue intent. Writing the character partially solves the onboarding hole diegetically at near-zero scope cost."
+        }
+      ],
+      "revisions": [
+        { "finding_id": "F1", "action": "upgraded", "from": "MAJOR", "to": "BLOCKING", "reason": "Three lenses independently landed on the same unresolved sentence in 2.6; when the single win condition is ambiguous from three directions, it blocks." },
+        { "finding_id": "F4", "action": "held", "from": "MAJOR", "to": "MAJOR", "reason": "Strengthened: load-bearing for two colleagues' findings (onboarding channel, off-pad buyer, company-store economy); highest-leverage cheap fix." },
+        { "finding_id": "F5", "action": "held", "from": "MINOR", "to": "MINOR", "reason": "Scope clarified: only asks for a one-paragraph art-direction rule, not reversing the Art Director cut." },
+        { "finding_id": "F2", "action": "held", "from": "MINOR", "to": "MINOR", "reason": "Unchallenged; remains a one-sentence fix." },
+        { "finding_id": "F3", "action": "held", "from": "MINOR", "to": "MINOR", "reason": "Unchallenged; remains a one-sentence fix." }
+      ]
+    },
+    {
+      "reviewer": "player-psychologist",
+      "engaged_with": ["adversarial-qa", "systems-designer", "feasibility-lead", "narrative-critic"],
+      "conflicts": [
+        {
+          "versus": "adversarial-qa",
+          "their_finding": "F4 (cargo as ablative armor — 'exploit')",
+          "summary": "Argues the opposite of closing the loophole: sacrificial cargo is one of the only self-directed mitigation tools the design accidentally offers — planned loss is motivating, unforeseen loss is a quit. Recommendation: specify burn order deliberately (player-orderable or last-stowed-first), surface it in UI, make sacrificial padding intentional. QA is right the ambiguity is a defect, wrong that the behavior itself is one."
+        },
+        {
+          "versus": "systems-designer",
+          "their_finding": "F3 ('land safer' doesn't exist)",
+          "summary": "Rejects the 'delete the promise' branch as an equal option: if difficulty ratchets monotonically with zero purchasable relief, the player facing the satellite run has no lever but raw retry, which costs a full round trip plus repairs. Deleting the promise fixes the document's honesty but leaves the frustration cliff intact; only the mitigation-track branch produces a shippable player experience."
+        },
+        {
+          "versus": "feasibility-lead",
+          "their_finding": "F1 (hand-tuning fallback 'rescues the game')",
+          "summary": "Disputes 'survives': the two most quit-prone moments live inside narrow numeric windows; a hand-tuned chute window 15% too tight turns the finale into one most players never clear, and no human will hand-feel that threshold across nine mass/upgrade combinations. 'The game ships either way' is a schedule truth and a player-experience falsehood — the harness is the only thing standing between MAJOR findings and BLOCKING ones."
+        }
+      ],
+      "connections": [
+        {
+          "with": ["adversarial-qa"],
+          "insight": "QA's undefined states (stage on the pad, EVA mid-descent, jetpack-dry while tethered) combined with zero onboarding become MAINLINE first-session events — untutored players press every key. Undefined-state softlock + no tutorial + no stated failure recovery = a silent uninstall in session one."
+        },
+        {
+          "with": ["narrative-critic"],
+          "insight": "The design asks for maximum retry tolerance at the exact moment it offers zero anticipated reward: the finale is the most expensive, most failure-prone loop, and it pays off into a rules ambiguity. Retry motivation is an anticipation mechanism, and there is nothing to anticipate."
+        },
+        {
+          "with": ["feasibility-lead"],
+          "insight": "The cheapest fixes for the ambiguous chute cue (heat gauge, audio sting, speed readout) are HUD-side — precisely the work the token budget omits entirely. The fix for a MAJOR readability problem sits in the work most likely to be cut on a bad day."
+        }
+      ],
+      "revisions": [
+        { "finding_id": "F3", "action": "upgraded", "from": "MAJOR", "to": "BLOCKING", "reason": "Three lenses converged on the broke-player spiral; QA showed it is a literal undefined terminal state reachable in two bad runs during the learning phase." },
+        { "finding_id": "F5", "action": "upgraded", "from": "MINOR", "to": "MAJOR", "reason": "No pacing target, run count, or price curve exists anywhere, and all 9 purchases are mandatory — thin rewards with unbounded spacing is a session-two retention risk, not a polish note." },
+        { "finding_id": "F1", "action": "held", "from": "BLOCKING", "to": "BLOCKING", "reason": "Strengthened by QA's undefined first-session states." },
+        { "finding_id": "F2", "action": "held", "from": "MAJOR", "to": "MAJOR", "reason": "Stands, with the feasibility-side HUD-budget concern added." },
+        { "finding_id": "F4", "action": "held", "from": "MAJOR", "to": "MAJOR", "reason": "Pending the systems-designer's question — if one 3-second heat tick destroys the satellite, it becomes blocking." }
+      ]
+    },
+    {
+      "reviewer": "feasibility-lead",
+      "engaged_with": ["systems-designer", "business-analyst", "player-psychologist", "narrative-critic", "adversarial-qa"],
+      "conflicts": [
+        {
+          "versus": "systems-designer / business-analyst",
+          "their_finding": "systems F3 / business F2 (restore the landing-mitigation track)",
+          "summary": "Only the other fix is affordable: a mitigation track is not one feature — it adds a Coder session, new QA invariants, shop UI rows, and a new dimension to both already-under-budgeted sweeps. In a one-week build with zero rework margin, the only shippable resolution is deleting the 'land safer' promise from 2.1 and stating that landing difficulty ratchets."
+        },
+        {
+          "versus": "player-psychologist",
+          "their_finding": "F1 (no onboarding, BLOCKING)",
+          "summary": "Diagnosis sound, implied remedy unaffordable: a tutorial or practice mode is a new feature with its own Coder/QA cycle in a fully consumed budget. If BLOCKING is endorsed, the board must name the mechanic cut to pay for it. The affordable version is a constants-level rules change (first N launches waive repair fees, or a free no-cargo practice reentry). Would hold severity to MAJOR for this scope unless the cheap fix is rejected on psychological grounds."
+        },
+        {
+          "versus": "narrative-critic",
+          "their_finding": "summary claim 'none of these are expensive to fix'",
+          "summary": "Partly contested: findings 2 and 3 are free text edits, but an ending beat and character voice/dialogue/shop tone are CONTENT, meaning art/UI sessions the token cadence never scheduled. 'Cheap to write into the document' and 'cheap to build' are different claims; only the first is true."
+        }
+      ],
+      "connections": [
+        {
+          "with": ["adversarial-qa", "player-psychologist"],
+          "insight": "The satellite-run composite: QA notes the Playtester question doesn't test failure handling, the psychologist notes machine-beatable is not human-repeatable, and the autopilot that would answer even the machine-beatable version doesn't exist. As planned, NOBODY — human or bot — verifies the game's win condition before ship."
+        },
+        {
+          "with": ["systems-designer", "business-analyst"],
+          "insight": "The tuning story fails twice: the instrument is under-budgeted (harness/autopilot) and the objective function is undefined (no run-count target, price curve, or intended playtime). Fixing the harness without adding targets would still ship an unpaced game."
+        },
+        {
+          "with": ["adversarial-qa"],
+          "insight": "Spec ambiguity baked into tests: because QA 'reads the spec, not the implementation', every ambiguity (burn order, stage-on-pad, EVA fuel) becomes an underspecified invariant certified by green tests — and each is a future red-test/rework loop compounding the zero-margin token math."
+        }
+      ],
+      "revisions": [
+        { "finding_id": "F4", "action": "upgraded", "from": "MAJOR", "to": "BLOCKING", "reason": "Nearly every fix the board proposes is additive; a plan with no slack, an inbound list of mandatory additions, and no stated cut order is not schedulable as written." },
+        { "finding_id": "F1", "action": "held", "from": "BLOCKING", "to": "BLOCKING", "reason": "Strengthened: without the autopilot, the win condition has no verification path of any kind." },
+        { "finding_id": "F2", "action": "held", "from": "MAJOR", "to": "MAJOR", "reason": "Confidence raised: business-analyst independently identified the identical contradiction; two lenses on the same sentence pair moves it to board-consensus." },
+        { "finding_id": "F3", "action": "held", "from": "MAJOR", "to": "MAJOR", "reason": "No colleague evidence moved it." },
+        { "finding_id": "F5", "action": "held", "from": "MINOR", "to": "MINOR", "reason": "No colleague evidence moved it." }
+      ]
+    },
+    {
+      "reviewer": "adversarial-qa",
+      "engaged_with": ["systems-designer", "business-analyst", "player-psychologist", "feasibility-lead", "narrative-critic"],
+      "conflicts": [
+        {
+          "versus": "systems-designer",
+          "their_finding": "F5 (jetpack fuel, MINOR)",
+          "summary": "Same hole, different grade: this is not a missing tuning paragraph but a reachable undefined terminal state in the middle third of every run — burn the jetpack dry while tethered and the game has no answer. Missing rules that produce soft-locks are fail-state bugs, not documentation gaps. MAJOR stands."
+        },
+        {
+          "versus": "business-analyst",
+          "their_finding": "F5 ('sells anywhere', MINOR — 'probably a one-line answer')",
+          "summary": "Not a one-liner: 'land anywhere' composes with the economy into new undefined states. Land intact 20 km from the pad with an empty tank — is that 'stranded with no fuel' (a loss despite a perfect landing)? Remote refuel? Teleport? Each answer creates or destroys a fail state, and one would contradict 'crashing is the only penalty'. Would rate MAJOR, not MINOR."
+        },
+        {
+          "versus": "systems-designer / business-analyst",
+          "their_finding": "systems F3 / business F2 ('land safer doesn't exist')",
+          "summary": "Partial conflict: under one resolution of the burn-order ambiguity, players CAN build their own 'land safer' out of sacrificial cheap junk. The design space isn't 'no relief valve' — it's 'no DESIGNED relief valve, and a degenerate one waiting in an unspecified rule'. That makes both findings worse: the absence of legitimate mitigation is exactly the pressure that will push players to the exploit."
+        }
+      ],
+      "connections": [
+        {
+          "with": ["player-psychologist", "systems-designer"],
+          "insight": "Bankruptcy x onboarding: the new player's first 2-3 haul-destroying reentries are exactly the sequence that drives cash below repair + fuel. The undefined broke-but-alive state sits directly on the mandatory new-player path in the first hour — the onboarding evidence moves it from possible to expected."
+        },
+        {
+          "with": ["feasibility-lead"],
+          "insight": "Spec ambiguity x spec-driven QA: 'cargo damages before hull' is silent on burn order and mass-after-destruction, so the QA agent will canonize an arbitrary interpretation in green tests — the pipeline then actively defends the ambiguity, and the exploit ships with a passing test suite."
+        },
+        {
+          "with": ["feasibility-lead"],
+          "insight": "Happy-path autopilot x off-path fail states: even if the unbudgeted autopilot gets built, every flagged fail state (stage on pad, EVA in plasma, jetpack-dry drift, broke-but-alive) is off the mission path by construction. 'Beatable' gets validated; 'un-soft-lockable' is validated by no one."
+        },
+        {
+          "with": ["player-psychologist", "narrative-critic"],
+          "insight": "Satellite fragility is the floor under both colleagues' findings: if the satellite can burn or be destroyed with no respawn rule, there is no retry and no ending — a dead save. Their findings are about the quality of the climax; this one is about whether the climax remains reachable. Resolve together, but not the same fix."
+        }
+      ],
+      "revisions": [
+        { "finding_id": "F5", "action": "upgraded", "from": "MAJOR", "to": "BLOCKING", "reason": "Independently discovered by two colleagues; the triggering sequence lies on the mandatory first-hour path. A soft-lock most new players can plausibly reach, with no covering loss condition, is a shipping blocker." },
+        { "finding_id": "F1", "action": "held", "from": "BLOCKING", "to": "BLOCKING", "reason": "Confidence raised: three colleagues flagged the same ambiguity, none contradicted the harder destruction case, and the autopilot finding explains why sweeps would never surface it." },
+        { "finding_id": "F4", "action": "held", "from": "MAJOR", "to": "MAJOR", "reason": "Cross-examination cuts both ways; now clearly a decision, not an investigation — two sentences close the exploit if the designers choose punishing rules." },
+        { "finding_id": "F2", "action": "held", "from": "MAJOR", "to": "MAJOR", "reason": "No findings withdrawn or downgraded." },
+        { "finding_id": "F3", "action": "held", "from": "MAJOR", "to": "MAJOR", "reason": "No findings withdrawn or downgraded." }
+      ]
+    },
+    {
+      "reviewer": "business-analyst",
+      "engaged_with": ["player-psychologist", "feasibility-lead", "narrative-critic", "systems-designer", "adversarial-qa"],
+      "conflicts": [
+        {
+          "versus": "player-psychologist",
+          "their_finding": "F1 (BLOCKING: no onboarding)",
+          "summary": "Severity is unadjudicable until the audience is stated: for a retail player base, first-session rage-quit is plausibly blocking; for a grader playing a 20-minute demo, it is a MAJOR polish gap. Grants that the grader IS a first-20-minutes player. If endorsed, the board must endorse a zero-cost version (first launch free and cargo-less) — a tutorial system would be the first genuine feature creep in the document."
+        },
+        {
+          "versus": "player-psychologist",
+          "their_finding": "F5 (flat mid-game motivation curve)",
+          "summary": "Diagnosis sound, prescription is scope creep in a costume: cosmetic/narrative reward tracks are exactly what the 4.3 cut list exists to keep out. The cheap fix is pricing the nine beats correctly — if purchase cadence lands every 2-3 runs, the flat spot largely disappears without a single new feature. Adopt the diagnosis, strike the prescription."
+        },
+        {
+          "versus": "feasibility-lead",
+          "their_finding": "F1 (framing: hand-tuning 'rescues the game')",
+          "summary": "Contests one clause: by the document's own Section 3 claim the loop cannot be hand-reasoned, so hand-tuning ships a BUILD, not a tuned game. The fallback fails both deliverables at once. 'The game ships either way' is the most expensive sentence in the document and should not stand as a rescue."
+        },
+        {
+          "versus": "narrative-critic",
+          "their_finding": "F5 (art plan undercuts the scrapyard pillar)",
+          "summary": "Half agreement, half alarm: asset selection criteria are cheap and supported, but a 'mismatched-parts rule for choosing/EDITING pack assets' reopens the scope the Art Director cut closed — per-asset editing labor is an open-ended cost. Correct resolution: selection criteria yes, editing pass no — or deliver the pillar via writing and mechanics (the company-store framing) instead of art."
+        }
+      ],
+      "connections": [
+        {
+          "with": ["feasibility-lead"],
+          "insight": "The fallback isn't a fallback, it's the plan: the sweep requires an unbudgeted autopilot that can't be built in the half-day timebox, so hand-tuning is the de facto plan of record and the centerpiece methodology is, on its own schedule, already dead."
+        },
+        {
+          "with": ["adversarial-qa"],
+          "insight": "A pattern of unpriced recurring costs: jettisoned stages never priced (QA F2), break-even claim ignoring post-crash repair bills (QA F5), an unscoped world in 'sells anywhere' (own F5). The break-even claim the whole risk posture leans on is unverifiable until stages, repairs, and recovery are priced."
+        },
+        {
+          "with": ["systems-designer", "adversarial-qa"],
+          "insight": "Section 3's four Playtester questions are the project's de facto acceptance criteria, and they're wrong: they cannot detect a 6-hour grind, a bankruptcy spiral, or a miserable-but-technically-beatable finale. Fixing the question list is cheaper than fixing any single system and improves all of them."
+        },
+        {
+          "with": ["systems-designer", "player-psychologist", "adversarial-qa"],
+          "insight": "The board's severity spread itself proves F1: the bankruptcy spiral got three MAJORs while onboarding got one BLOCKING, and every call silently assumes an audience the document never states. The absence of a positioning statement is why the board cannot consistently rank its own findings."
+        }
+      ],
+      "revisions": [
+        { "finding_id": "F3", "action": "upgraded", "from": "MAJOR", "to": "BLOCKING", "reason": "The feasibility-lead's autopilot analysis converts a papered-over risk into an unachievable plan: the fallback is the plan, so both the graded methodology and the tuned-game claim fail on the document's own terms." },
+        { "finding_id": "F2", "action": "held", "from": "MAJOR", "to": "MAJOR", "reason": "Strengthened: systems-designer independently found the missing track and added that its absence makes the difficulty curve monotonic." },
+        { "finding_id": "F4", "action": "held", "from": "MAJOR", "to": "MAJOR", "reason": "Strengthened by three-way convergence with systems F2 and QA F5." },
+        { "finding_id": "F5", "action": "held", "from": "MINOR", "to": "MINOR", "reason": "Stands individually but should fold into the unpriced-cost-model pattern if the board consolidates." },
+        { "finding_id": "F1", "action": "held", "from": "MAJOR", "to": "MAJOR", "reason": "Reinforced by the board's own inconsistent severity calls." }
+      ]
+    }
+  ],
+
+  "synthesis": {
+    "post_cross_examination_tally_stated": "30 findings — 10 BLOCKING, 14 MAJOR, 6 MINOR (Round 1 opened with 3 BLOCKING; cross-examination upgraded 7 more)",
+    "top_issues": [
+      {
+        "rank": 1,
+        "title": "The satellite endgame is undefined where it matters most — and may be unwinnable by construction",
+        "severity": "BLOCKING",
+        "flagged_by": ["adversarial-qa F1 (BLOCKING)", "systems-designer F4 (MAJOR→BLOCKING)", "narrative-critic F1 (MAJOR→BLOCKING)", "player-psychologist F4 (MAJOR)"],
+        "cross_examination_outcome": "STRENGTHENED",
+        "summary": "One sentence in 2.6 ('arrives damaged unless the touchdown is soft') leaves unanswered: whether a damaged satellite wins, whether it can be destroyed outright (permanently unwinnable save, no covering fail state), how per-slot heat damage applies to a single hold-filling object, and whether a soft (<5 m/s) landing at doubled mass is even achievable at fixed mid-tier chute values. Four lenses converged independently; three upgraded to BLOCKING. Even a mechanical patch leaves the climax an unwritten ending."
+      },
+      {
+        "rank": 2,
+        "title": "Bankruptcy soft-lock: a broke-but-alive state that neither loss condition covers, sitting on the new-player path",
+        "severity": "BLOCKING",
+        "flagged_by": ["systems-designer F1 (MAJOR→BLOCKING)", "adversarial-qa F5 (MAJOR→BLOCKING)", "player-psychologist F3 (MAJOR→BLOCKING)"],
+        "cross_examination_outcome": "STRENGTHENED",
+        "summary": "Three reviewers independently found the same sequence: crash destroys cargo (income) while adding a per-% repair bill; two bad runs put cash below the next launch cost. The player is alive, landed, and cannot pay Armstrong — triggering neither loss condition. The psychologist's onboarding analysis moved it from tail-risk to expected. All three upgraded to BLOCKING in Round 2."
+      },
+      {
+        "rank": 3,
+        "title": "The tuning methodology is dead on its own schedule: the sweep needs an unbudgeted autopilot, and the fallback contradicts the design's central claim",
+        "severity": "BLOCKING",
+        "flagged_by": ["feasibility-lead F1 (BLOCKING)", "feasibility-lead F2 (MAJOR)", "business-analyst F3 (MAJOR→BLOCKING)"],
+        "cross_examination_outcome": "STRENGTHENED",
+        "summary": "Section 3 claims the loop is too coupled and nonlinear for anything but empirical sampling; 4.4 timeboxes the sweep at half a day and falls back to hand-tuning. The harness's real cost is an autopilot that can fly the full loop — nowhere in the plan — so hand-tuning is the de facto plan of record, which by the document's own claim cannot produce a tuned game. Composite: as planned, nobody — human or bot — verifies the win condition before ship."
+      },
+      {
+        "rank": 4,
+        "title": "No prices, no run-count, no pacing targets: the sweep has no objective function and campaign length is unbounded",
+        "severity": "MAJOR",
+        "flagged_by": ["systems-designer F2 (MAJOR)", "business-analyst F4 (MAJOR)", "player-psychologist F5 (MINOR→MAJOR)", "feasibility-lead (connection)"],
+        "cross_examination_outcome": "STRENGTHENED",
+        "summary": "Zero prices, no junk values beyond one ratio, no target run count. Since the win requires near-full upgrades, upgrade prices ARE the game's pacing — and both tuning paths fail without target numbers. Section 3's four Playtester questions are the de facto acceptance criteria and can confirm completability but cannot detect a 6-hour grind, a bankruptcy spiral, or a miserable-but-beatable finale."
+      },
+      {
+        "rank": 5,
+        "title": "No onboarding for a one-way sequence that punishes first attempts with permanent loss",
+        "severity": "BLOCKING (contested; survives as at-least-MAJOR)",
+        "flagged_by": ["player-psychologist F1 (BLOCKING)", "adversarial-qa (connection: undefined first-session softlocks)"],
+        "cross_examination_outcome": "WEAKENED",
+        "summary": "The reentry sequence has no tutorial, practice mode, or scaffolding, and mistakes destroy the session's haul in the first 20 minutes; untutored key-mashing lands in undefined softlock states. Three reviewers contested the BLOCKING grade: tier-1 physics may already scaffold the first hour (unverified); severity is unadjudicable without an audience statement; a tutorial is unaffordable and only a zero-cost rules change fits the budget. Diagnosis accepted; severity and remedy in dispute."
+      }
+    ],
+    "unresolved_disagreements": [
+      {
+        "id": "A",
+        "question": "Onboarding: how severe, and what fix is affordable?",
+        "position_1_holders": "player-psychologist",
+        "position_1": "BLOCKING — first-session confusion-then-punishment is a rage-quit generator; the two quit-prone moments live in narrow numeric windows only a sweep can tune, so hand-tuning cannot rescue them.",
+        "position_2_holders": "business-analyst / feasibility-lead / systems-designer",
+        "position_2": "Severity unadjudicable without an audience statement (a grader playing 20 minutes is not a retail player); a tutorial is the first real feature creep in a disciplined document; the affordable fix is a constants-level rules change (free practice reentry / waived early repair fees), and the physics may already provide a natural ramp.",
+        "escalated_decision": "State the audience, then choose tutorial-as-feature vs. zero-cost rules scaffolding."
+      },
+      {
+        "id": "B",
+        "question": "'Land safer': restore the missing mitigation track, or delete the promise?",
+        "position_1_holders": "player-psychologist",
+        "position_1": "Deleting the promise is unshippable — the endgame stacks the worst landing conditions on the longest run, and monotonic difficulty with zero purchasable relief leaves raw retry as the only lever.",
+        "position_2_holders": "feasibility-lead",
+        "position_2": "The mitigation track is the one fix this schedule cannot buy — it adds a Coder session, QA invariants, shop UI, and a new dimension to both under-budgeted sweeps; delete the promise from 2.1 and state that difficulty ratchets.",
+        "escalated_decision": "Honesty-and-cheap vs. shippable-experience-and-expensive. (systems-designer and business-analyst flagged the axis as missing; both fixes remain on the table.)"
+      },
+      {
+        "id": "C",
+        "question": "Sacrificial cargo: exploit to close, or mechanic to formalize?",
+        "position_1_holders": "adversarial-qa",
+        "position_1": "Cheap-junk-as-ablative-armor inverts the greed penalty; close it with deliberately punishing rules (highest-value slot burns first, destroyed mass does not shed) — two sentences.",
+        "position_2_holders": "player-psychologist",
+        "position_2": "It is the design's only accidental player-agency mitigation; planned loss is motivating, so specify burn order deliberately, surface it in the UI, and make sacrificial padding intentional.",
+        "middle_position_holders": "systems-designer",
+        "middle_position": "Burning cargo converts the landing penalty into an income penalty and feeds the death spiral either way; the burn-order rule is a prerequisite for tuning regardless of which side wins.",
+        "escalated_decision": "Both sides agree the ambiguity must be resolved; the direction is a design-intent call the board cannot make."
+      },
+      {
+        "id": "D",
+        "question": "The finale's cruelty: soften it, or cash it?",
+        "position_1_holders": "player-psychologist",
+        "position_1": "The satellite run risks a frustration cliff exactly where the player should feel mastery; repeatability needs relief.",
+        "position_2_holders": "narrative-critic",
+        "position_2": "The terrifying finale is the correct dramatic apex of the #Feeling pillar — the fix is a graded ending (pristine vs. damaged producing different closing beats), not a softer landing; fix the payoff before touching the difficulty.",
+        "escalated_decision": "Contingent on Issue #1's resolution — both positions assume 'damaged' gets a defined meaning first."
+      }
+    ],
+    "quick_wins": [
+      {
+        "title": "Armstrong extends credit",
+        "detail": "A debt mechanic closes the bankruptcy floor (Issue #2) and delivers the unclaimed company-store/blue-collar theme (narrative-critic F4) in one stroke — the systems-designer calls it an interlock the document gets almost for free."
+      },
+      {
+        "title": "Write three numbers into the document",
+        "detail": "Intended total run count, intended mid-game earnings per run, and a rough tier-1:tier-3 price ratio. Restores an objective function to both tuning paths (Issue #4) at the cost of one paragraph."
+      },
+      {
+        "title": "Two sentences on cargo burn order and destroyed-cargo mass",
+        "detail": "Per adversarial-qa's Round 2 revision, this is now 'a decision, not an investigation' — whichever direction Disagreement C resolves, the sentences cost nothing and unblock QA's invariant list."
+      }
+    ],
+    "verdict": "This document is not ready to drive production. Its moment-to-moment core — the mass → heat → chute-window → touchdown interlock — survived six-lens review essentially intact, repeatedly cited as the strongest system work; but the game around that core has two undefined terminal states reachable through normal play (a destroyable win object and a bankruptcy dead-end), a shop whose advertised third axis does not exist, an economy with no numbers, and a tuning methodology whose own schedule guarantees its fallback — a fallback the document's central claim says cannot work. The single change that matters most is rewriting §2.6 into real rules: state whether a damaged satellite wins, whether it can be destroyed and what happens if it is, how heat damage applies to it, and whether a soft landing at doubled mass is achievable at fixed chute values — because until the game's one win condition is defined, nothing downstream (tuning, testing, pacing, the ending) can be built or verified.",
+    "verdict_one_line": "Not ready to drive production — the single most important change is rewriting §2.6 into real rules so the game's one win condition is actually defined."
+  },
+
+  "aggregates": {
+    "total_findings": 30,
+    "findings_per_reviewer": {
+      "systems-designer": 5,
+      "narrative-critic": 5,
+      "player-psychologist": 5,
+      "feasibility-lead": 5,
+      "adversarial-qa": 5,
+      "business-analyst": 5
+    },
+    "findings_per_severity_round1": { "BLOCKING": 3, "MAJOR": 21, "MINOR": 6 },
+    "findings_per_severity_final_computed": { "BLOCKING": 10, "MAJOR": 15, "MINOR": 5 },
+    "findings_per_severity_final_synthesis_stated": { "BLOCKING": 10, "MAJOR": 14, "MINOR": 6 },
+    "tally_note": "SYNTHESIS.md states 10/14/6 post-cross-examination; recomputing from the six review files gives 10/15/5 because player-psychologist F5 was upgraded MINOR→MAJOR in Round 2, which the synthesis tally appears not to count (though its Top 5 Issue #4 cites the upgrade).",
+    "blocking_issues_final": 10,
+    "round2_upgrades_to_blocking": 7,
+    "round2_total_revisions_changed": 8,
+    "round2_findings_downgraded_or_withdrawn": 0,
+    "unresolved_disagreements": 4,
+    "cross_examination_connections_found": 20,
+    "cross_examination_conflicts_raised": 19,
+    "top_issues_count": 5,
+    "quick_wins_count": 3
+  }
+}

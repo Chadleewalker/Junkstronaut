@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Junkstronaut — tuning crew report</title>
+<style>
+  :root{color-scheme:light dark}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--plane);color:var(--text-primary);
+    font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+  .viz-root{
+    --plane:#f9f9f7; --surface-1:#fcfcfb;
+    --text-primary:#0b0b0b; --text-secondary:#52514e; --muted:#898781;
+    --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
+    --band-suborbital:#2a78d6; --band-low:#eb6834; --band-high:#1baf7a;
+    --good:#0ca30c; --bad:#d03b3b; --target:rgba(42,120,214,.07);
+  }
+  @media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])) .viz-root{
+    --plane:#0d0d0d; --surface-1:#1a1a19;
+    --text-primary:#fff; --text-secondary:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+    --band-suborbital:#3987e5; --band-low:#d95926; --band-high:#199e70;
+    --target:rgba(57,135,229,.10);
+  }}
+  :root[data-theme="dark"] .viz-root{
+    --plane:#0d0d0d; --surface-1:#1a1a19;
+    --text-primary:#fff; --text-secondary:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+    --band-suborbital:#3987e5; --band-low:#d95926; --band-high:#199e70;
+    --target:rgba(57,135,229,.10);
+  }
+  .viz-root{background:var(--plane);min-height:100vh;padding:32px 20px 64px}
+  .wrap{max-width:840px;margin:0 auto}
+  h1{font-size:26px;margin:0 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--text-secondary);margin:0 0 6px}
+  .meta{color:var(--muted);font-size:13px;margin:0 0 28px}
+  h2{font-size:17px;margin:0 0 4px;letter-spacing:-.005em}
+  .lede{color:var(--text-secondary);font-size:14px;margin:0 0 16px}
+  .card{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;
+    padding:20px;margin:0 0 20px;overflow-x:auto}
+  .chart{width:100%;height:auto;display:block;min-width:520px}
+  .grid{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1}
+  .tick{fill:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+  .axis-label{fill:var(--text-secondary);font-size:12px}
+  .series-label{fill:var(--text-secondary);font-size:12px;font-weight:600}
+  .target{fill:var(--target)}
+  .target-label{fill:var(--muted);font-size:11px}
+  .mark{cursor:pointer}
+  .mark:hover,.ring:hover{filter:brightness(1.12)}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:0 0 28px}
+  .tile{background:var(--surface-1);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+  .tile-label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+  .tile-value{font-size:28px;font-weight:600;line-height:1.15;margin:4px 0 2px}
+  .tile-sub{color:var(--text-secondary);font-size:13px}
+  .tile-sub.good{color:var(--good);font-weight:600}
+  .tile-sub.bad{color:var(--bad);font-weight:600}
+  .legend{display:flex;flex-wrap:wrap;gap:16px;margin:14px 0 0;font-size:13px;color:var(--text-secondary)}
+  .key{display:inline-flex;align-items:center;gap:7px}
+  .swatch{width:11px;height:11px;border-radius:3px;display:inline-block;flex:none}
+  .swatch.ring{border:2.5px solid var(--muted);background:none;border-radius:50%}
+  .findings{list-style:none;padding:0;margin:16px 0 0;font-size:14px;color:var(--text-secondary)}
+  .findings li{display:flex;align-items:center;gap:8px;padding:5px 0}
+  .verdict{font-weight:600}
+  .verdict.good{color:var(--good)} .verdict.bad{color:var(--bad)}
+  .caption{color:var(--text-secondary);font-size:13.5px;margin:14px 0 0}
+  table.data{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.data th{text-align:left;color:var(--muted);font-weight:600;font-size:12px;
+    text-transform:uppercase;letter-spacing:.03em;padding:0 10px 8px;border-bottom:1px solid var(--border)}
+  table.data td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text-secondary)}
+  table.data td:first-child{color:var(--text-primary);font-weight:500}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  details{margin:0 0 20px}
+  summary{cursor:pointer;color:var(--text-secondary);font-size:14px;padding:6px 0}
+  .fail{border-left:3px solid var(--bad);padding-left:14px;margin:12px 0}
+  .fail b{color:var(--text-primary)}
+  #tip{position:fixed;pointer-events:none;opacity:0;transition:opacity .1s;
+    background:var(--text-primary);color:var(--surface-1);padding:6px 10px;border-radius:7px;
+    font-size:12.5px;max-width:300px;z-index:9;line-height:1.4}
+</style></head>
+<body><div class="viz-root"><div class="wrap">
+
+  <h1>Junkstronaut — tuning crew report</h1>
+  <p class="sub">What the crew's proposed numbers imply, before anyone flies them.</p>
+  <p class="meta">stub run · 0s · claude-opus-5 · 2026-07-26T22:32:41.970Z</p>
+
+  <div class="tiles">
+    <div class="tile">
+      <div class="tile-label">Debris types</div>
+      <div class="tile-value">26</div>
+      <div class="tile-sub ">8 fragile</div>
+    </div>
+    <div class="tile">
+      <div class="tile-label">Upgrades priced</div>
+      <div class="tile-value">12</div>
+      <div class="tile-sub ">6 parts × 2 tiers</div>
+    </div>
+    <div class="tile">
+      <div class="tile-label">Spec checks passed</div>
+      <div class="tile-value">16/16</div>
+      <div class="tile-sub good">PASS</div>
+    </div>
+    <div class="tile">
+      <div class="tile-label">Balancer revisions</div>
+      <div class="tile-value">0</div>
+      <div class="tile-sub ">audit feedback loop</div>
+    </div></div>
+
+  <div class="card">
+    <h2>Value costs mass</h2>
+    <p class="lede">The design's central bet (§2.3.7): the better the haul, the harder the ride
+      home. If this cloud trends up and to the right, the bet holds — the valuable pieces are
+      the heavy ones. A flat cloud means upgrades will outrun difficulty.</p>
+    
+<svg viewBox="0 0 720 420" class="chart" role="img" aria-label="Debris mass against value, by altitude band">
+  <line class="grid" x1="64" x2="700" y1="307.3" y2="307.3"/><text class="tick" x="54" y="311.3" text-anchor="end">100</text><line class="grid" x1="64" x2="700" y1="249.9" y2="249.9"/><text class="tick" x="54" y="253.9" text-anchor="end">200</text><line class="grid" x1="64" x2="700" y1="174.0" y2="174.0"/><text class="tick" x="54" y="178.0" text-anchor="end">500</text><line class="grid" x1="64" x2="700" y1="116.7" y2="116.7"/><text class="tick" x="54" y="120.7" text-anchor="end">1,000</text><line class="grid" x1="64" x2="700" y1="59.3" y2="59.3"/><text class="tick" x="54" y="63.3" text-anchor="end">2,000</text><text class="tick" x="144.8" y="388" text-anchor="middle">5</text><text class="tick" x="221.1" y="388" text-anchor="middle">10</text><text class="tick" x="297.4" y="388" text-anchor="middle">20</text><text class="tick" x="398.3" y="388" text-anchor="middle">50</text><text class="tick" x="474.6" y="388" text-anchor="middle">100</text><text class="tick" x="550.9" y="388" text-anchor="middle">200</text><text class="tick" x="651.8" y="388" text-anchor="middle">500</text>
+  <line class="axis" x1="64" x2="700" y1="368" y2="368"/>
+  <line class="axis" x1="64" x2="64" y1="16" y2="368"/>
+  <circle class="mark" cx="241.2" cy="349.5" r="5" fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2" data-tip="Scorched Hull Panel · Suborbital · small · 12.0 kg · 60 credits"/><circle class="mark" cx="120.2" cy="349.5" r="5" fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2" data-tip="Insulation Blanket Wad · Suborbital · small · 4.0 kg · 60 credits"/><circle class="mark" cx="173.7" cy="349.5" r="5" fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2" data-tip="Spent Bolt Cluster · Suborbital · small · 6.5 kg · 60 credits"/><circle class="mark" cx="355.8" cy="285.5" r="5" fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2" data-tip="Bent Truss Section · Suborbital · medium · 34.0 kg · 130 credits"/><circle class="mark" cx="376.4" cy="285.5" r="5" fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2" data-tip="Launch Clamp Arm · Suborbital · medium · 41.0 kg · 130 credits"/><circle class="mark ring" cx="88.6" cy="258.6" r="6.5" fill="none" stroke="var(--band-suborbital)" stroke-width="2.5" data-tip="Antenna Whip · Suborbital · small · fragile · 3.0 kg · 180 credits"/><circle class="mark ring" cx="209.5" cy="258.6" r="6.5" fill="none" stroke="var(--band-suborbital)" stroke-width="2.5" data-tip="Cracked Viewport Pane · Suborbital · small · fragile · 9.0 kg · 180 credits"/><circle class="mark" cx="539.3" cy="182.8" r="5" fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2" data-tip="Upper Stage Shroud · Suborbital · oversized · 180.0 kg · 450 credits"/><circle class="mark" cx="422.0" cy="206.5" r="5" fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2" data-tip="Reaction Wheel Housing · Low orbit · medium · 62.0 kg · 338 credits"/><circle class="mark" cx="447.2" cy="206.5" r="5" fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2" data-tip="Propellant Tank Stub · Low orbit · medium · 78.0 kg · 338 credits"/><circle class="mark" cx="408.8" cy="206.5" r="5" fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2" data-tip="Avionics Bay Module · Low orbit · medium · 55.0 kg · 338 credits"/><circle class="mark" cx="317.5" cy="270.4" r="5" fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2" data-tip="Gyro Cluster · Low orbit · small · 24.0 kg · 156 credits"/><circle class="mark" cx="291.8" cy="270.4" r="5" fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2" data-tip="Thruster Quad Pod · Low orbit · small · 19.0 kg · 156 credits"/><circle class="mark ring" cx="334.4" cy="115.5" r="6.5" fill="none" stroke="var(--band-low)" stroke-width="2.5" data-tip="Cracked Solar Array · Low orbit · medium · fragile · 28.0 kg · 1,014 credits"/><circle class="mark ring" cx="258.1" cy="179.5" r="6.5" fill="none" stroke="var(--band-low)" stroke-width="2.5" data-tip="Star Tracker Head · Low orbit · small · fragile · 14.0 kg · 468 credits"/><circle class="mark ring" cx="345.7" cy="115.5" r="6.5" fill="none" stroke="var(--band-low)" stroke-width="2.5" data-tip="Dish Reflector · Low orbit · medium · fragile · 31.0 kg · 1,014 credits"/><circle class="mark" cx="609.3" cy="103.7" r="5" fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2" data-tip="Despun Bus Frame · Low orbit · oversized · 340.0 kg · 1,170 credits"/><circle class="mark" cx="529.7" cy="137.2" r="5" fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2" data-tip="Iridium Bus Core · High orbit · medium · 165.0 kg · 780 credits"/><circle class="mark" cx="539.3" cy="137.2" r="5" fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2" data-tip="Reactor Core Slug · High orbit · medium · 180.0 kg · 780 credits"/><circle class="mark" cx="511.6" cy="137.2" r="5" fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2" data-tip="Cryo Pump Assembly · High orbit · medium · 140.0 kg · 780 credits"/><circle class="mark" cx="393.8" cy="201.2" r="5" fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2" data-tip="Gold Foil Instrument Can · High orbit · small · 48.0 kg · 360 credits"/><circle class="mark" cx="460.5" cy="201.2" r="5" fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2" data-tip="RTG Capsule · High orbit · small · 88.0 kg · 360 credits"/><circle class="mark ring" cx="468.9" cy="46.3" r="6.5" fill="none" stroke="var(--band-high)" stroke-width="2.5" data-tip="Optical Bench · High orbit · medium · fragile · 95.0 kg · 2,340 credits"/><circle class="mark ring" cx="418.3" cy="110.3" r="6.5" fill="none" stroke="var(--band-high)" stroke-width="2.5" data-tip="Sensor Gimbal Head · High orbit · small · fragile · 60.0 kg · 1,080 credits"/><circle class="mark ring" cx="485.1" cy="46.3" r="6.5" fill="none" stroke="var(--band-high)" stroke-width="2.5" data-tip="Deep Space Dish · High orbit · medium · fragile · 110.0 kg · 2,340 credits"/><circle class="mark" cx="675.4" cy="34.5" r="5" fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2" data-tip="Comsat Main Body · High orbit · oversized · 620.0 kg · 2,700 credits"/>
+  <text class="axis-label" x="382" y="410" text-anchor="middle">piece mass (kg, log scale)</text>
+  <text class="axis-label" transform="translate(16,192) rotate(-90)" text-anchor="middle">value in credits (log scale)</text>
+</svg>
+    <div class="legend">
+    <span class="key"><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</span><span class="key"><span class="swatch" style="background:var(--band-low)"></span>Low orbit</span><span class="key"><span class="swatch" style="background:var(--band-high)"></span>High orbit</span>
+    <span class="key"><span class="swatch ring"></span>fragile (hollow)</span>
+  </div>
+  </div>
+
+  <div class="card">
+    <h2>The ablation curve</h2>
+    <p class="lede">The hardest constraint in the document (§2.3.1). One screaming plunge is
+      expensive; a dozen feather-light passes are expensive; the cheapest descent should be a
+      planned 2–4 committed passes. Each ring marks where that band's curve bottoms out.</p>
+    
+<svg viewBox="0 0 720 420" class="chart" role="img" aria-label="Heat shield plate burned against number of aerobraking passes, per band">
+  <rect class="target" x="148" y="20" width="160" height="348"/>
+    <text class="target-label" x="228" y="34" text-anchor="middle">GDD target: 2–4 passes</text><line class="grid" x1="68" x2="628" y1="368.0" y2="368.0"/><text class="tick" x="58" y="372.0" text-anchor="end">0</text><line class="grid" x1="68" x2="628" y1="287.8" y2="287.8"/><text class="tick" x="58" y="291.8" text-anchor="end">20</text><line class="grid" x1="68" x2="628" y1="207.6" y2="207.6"/><text class="tick" x="58" y="211.6" text-anchor="end">40</text><line class="grid" x1="68" x2="628" y1="127.3" y2="127.3"/><text class="tick" x="58" y="131.3" text-anchor="end">60</text><line class="grid" x1="68" x2="628" y1="47.1" y2="47.1"/><text class="tick" x="58" y="51.1" text-anchor="end">80</text>
+  <line class="axis" x1="68" x2="628" y1="368" y2="368"/>
+  <line class="axis" x1="68" x2="68" y1="20" y2="368"/>
+  <path d="M68.0,283.6L148.0,310.0L228.0,305.2L308.0,294.0L388.0,280.6L468.0,266.2L548.0,251.2L628.0,235.9" fill="none" stroke="var(--band-suborbital)" stroke-width="2" stroke-linejoin="round"/><circle class="mark" cx="68.0" cy="283.6" r="4.5"
+        fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Suborbital · 1 pass · 21.0% plate burned"/><circle class="mark" cx="148.0" cy="310.0" r="4.5"
+        fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Suborbital · 2 passes · 14.5% plate burned"/><circle class="mark" cx="228.0" cy="305.2" r="4.5"
+        fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Suborbital · 3 passes · 15.7% plate burned"/><circle class="mark" cx="308.0" cy="294.0" r="4.5"
+        fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Suborbital · 4 passes · 18.4% plate burned"/><circle class="mark" cx="388.0" cy="280.6" r="4.5"
+        fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Suborbital · 5 passes · 21.8% plate burned"/><circle class="mark" cx="468.0" cy="266.2" r="4.5"
+        fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Suborbital · 6 passes · 25.4% plate burned"/><circle class="mark" cx="548.0" cy="251.2" r="4.5"
+        fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Suborbital · 7 passes · 29.1% plate burned"/><circle class="mark" cx="628.0" cy="235.9" r="4.5"
+        fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Suborbital · 8 passes · 32.9% plate burned"/><circle cx="148.0" cy="310.0" r="9"
+        fill="none" stroke="var(--band-suborbital)" stroke-width="2.5"/><text class="series-label" x="636" y="239.9">Suborbital</text><path d="M68.0,225.2L148.0,286.6L228.0,290.4L308.0,282.5L388.0,270.5L468.0,256.7L548.0,241.8L628.0,226.4" fill="none" stroke="var(--band-low)" stroke-width="2" stroke-linejoin="round"/><circle class="mark" cx="68.0" cy="225.2" r="4.5"
+        fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Low orbit · 1 pass · 35.6% plate burned"/><circle class="mark" cx="148.0" cy="286.6" r="4.5"
+        fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Low orbit · 2 passes · 20.3% plate burned"/><circle class="mark" cx="228.0" cy="290.4" r="4.5"
+        fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Low orbit · 3 passes · 19.3% plate burned"/><circle class="mark" cx="308.0" cy="282.5" r="4.5"
+        fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Low orbit · 4 passes · 21.3% plate burned"/><circle class="mark" cx="388.0" cy="270.5" r="4.5"
+        fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Low orbit · 5 passes · 24.3% plate burned"/><circle class="mark" cx="468.0" cy="256.7" r="4.5"
+        fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Low orbit · 6 passes · 27.8% plate burned"/><circle class="mark" cx="548.0" cy="241.8" r="4.5"
+        fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Low orbit · 7 passes · 31.5% plate burned"/><circle class="mark" cx="628.0" cy="226.4" r="4.5"
+        fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Low orbit · 8 passes · 35.3% plate burned"/><circle cx="228.0" cy="290.4" r="9"
+        fill="none" stroke="var(--band-low)" stroke-width="2.5"/><line x1="628.0" y1="226.4" x2="633.0" y2="220.9"
+          stroke="var(--band-low)" stroke-width="1"/><text class="series-label" x="636" y="224.9">Low orbit</text><path d="M68.0,16.0L148.0,180.8L228.0,228.9L308.0,239.8L388.0,237.6L468.0,229.5L548.0,218.2L628.0,205.0" fill="none" stroke="var(--band-high)" stroke-width="2" stroke-linejoin="round"/><circle class="mark" cx="68.0" cy="16.0" r="4.5"
+        fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="High orbit · 1 pass · 104.3% plate burned"/><circle class="mark" cx="148.0" cy="180.8" r="4.5"
+        fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="High orbit · 2 passes · 46.7% plate burned"/><circle class="mark" cx="228.0" cy="228.9" r="4.5"
+        fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="High orbit · 3 passes · 34.7% plate burned"/><circle class="mark" cx="308.0" cy="239.8" r="4.5"
+        fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="High orbit · 4 passes · 31.9% plate burned"/><circle class="mark" cx="388.0" cy="237.6" r="4.5"
+        fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="High orbit · 5 passes · 32.5% plate burned"/><circle class="mark" cx="468.0" cy="229.5" r="4.5"
+        fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="High orbit · 6 passes · 34.5% plate burned"/><circle class="mark" cx="548.0" cy="218.2" r="4.5"
+        fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="High orbit · 7 passes · 37.4% plate burned"/><circle class="mark" cx="628.0" cy="205.0" r="4.5"
+        fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="High orbit · 8 passes · 40.6% plate burned"/><circle cx="308.0" cy="239.8" r="9"
+        fill="none" stroke="var(--band-high)" stroke-width="2.5"/><text class="series-label" x="636" y="209.0">High orbit</text><text class="tick" x="68.0" y="388" text-anchor="middle">1</text><text class="tick" x="148.0" y="388" text-anchor="middle">2</text><text class="tick" x="228.0" y="388" text-anchor="middle">3</text><text class="tick" x="308.0" y="388" text-anchor="middle">4</text><text class="tick" x="388.0" y="388" text-anchor="middle">5</text><text class="tick" x="468.0" y="388" text-anchor="middle">6</text><text class="tick" x="548.0" y="388" text-anchor="middle">7</text><text class="tick" x="628.0" y="388" text-anchor="middle">8</text>
+  <text class="axis-label" x="348" y="410" text-anchor="middle">aerobraking passes</text>
+  <text class="axis-label" transform="translate(16,194) rotate(-90)" text-anchor="middle">heat shield plate burned (%)</text>
+</svg>
+<ul class="findings"><li><span class="swatch" style="background:var(--band-suborbital)"></span>
+      <b>Suborbital</b> — cheapest at <b>2 passes</b> <span class="verdict good">in the 2–4 window</span></li><li><span class="swatch" style="background:var(--band-low)"></span>
+      <b>Low orbit</b> — cheapest at <b>3 passes</b> <span class="verdict good">in the 2–4 window</span></li><li><span class="swatch" style="background:var(--band-high)"></span>
+      <b>High orbit</b> — cheapest at <b>4 passes</b> <span class="verdict good">in the 2–4 window</span></li></ul>
+  </div>
+
+  <div class="card">
+    <h2>Is any size class strictly best?</h2>
+    <p class="lede">Value per cargo slot. If one class towers over the others at every band,
+      the greed decision collapses — the player just learns the rule and stops choosing.</p>
+    
+<svg viewBox="0 0 720 380" class="chart" role="img" aria-label="Average value per cargo slot, by size class and band">
+  <line class="grid" x1="68" x2="700" y1="316.0" y2="316.0"/><text class="tick" x="58" y="320.0" text-anchor="end">0</text><line class="grid" x1="68" x2="700" y1="240.7" y2="240.7"/><text class="tick" x="58" y="244.7" text-anchor="end">200</text><line class="grid" x1="68" x2="700" y1="165.4" y2="165.4"/><text class="tick" x="58" y="169.4" text-anchor="end">400</text><line class="grid" x1="68" x2="700" y1="90.1" y2="90.1"/><text class="tick" x="58" y="94.1" text-anchor="end">600</text>
+  <line class="axis" x1="68" x2="700" y1="316" y2="316"/>
+  <path class="mark" d="M101.3,316.0 L101.3,279.3
+        Q101.3,275.3 105.3,275.3
+        L143.3,275.3 Q147.3,275.3 147.3,279.3
+        L147.3,316.0 Z"
+        fill="var(--band-suborbital)" data-tip="Suborbital · small · 108 credits per cargo slot · 5 pieces"/><path class="mark" d="M149.3,316.0 L149.3,222.1
+        Q149.3,218.1 153.3,218.1
+        L191.3,218.1 Q195.3,218.1 195.3,222.1
+        L195.3,316.0 Z"
+        fill="var(--band-low)" data-tip="Low orbit · small · 260 credits per cargo slot · 3 pieces"/><path class="mark" d="M197.3,316.0 L197.3,94.1
+        Q197.3,90.1 201.3,90.1
+        L239.3,90.1 Q243.3,90.1 243.3,94.1
+        L243.3,316.0 Z"
+        fill="var(--band-high)" data-tip="High orbit · small · 600 credits per cargo slot · 3 pieces"/><text class="tick" x="173.3" y="338" text-anchor="middle">small</text><path class="mark" d="M312.0,316.0 L312.0,295.5
+        Q312.0,291.5 316.0,291.5
+        L354.0,291.5 Q358.0,291.5 358.0,295.5
+        L358.0,316.0 Z"
+        fill="var(--band-suborbital)" data-tip="Suborbital · medium · 65 credits per cargo slot · 2 pieces"/><path class="mark" d="M360.0,316.0 L360.0,205.5
+        Q360.0,201.5 364.0,201.5
+        L402.0,201.5 Q406.0,201.5 406.0,205.5
+        L406.0,316.0 Z"
+        fill="var(--band-low)" data-tip="Low orbit · medium · 304 credits per cargo slot · 5 pieces"/><path class="mark" d="M408.0,316.0 L408.0,55.7
+        Q408.0,51.7 412.0,51.7
+        L450.0,51.7 Q454.0,51.7 454.0,55.7
+        L454.0,316.0 Z"
+        fill="var(--band-high)" data-tip="High orbit · medium · 702 credits per cargo slot · 5 pieces"/><text class="tick" x="384.0" y="338" text-anchor="middle">medium</text><path class="mark" d="M522.7,316.0 L522.7,291.8
+        Q522.7,287.8 526.7,287.8
+        L564.7,287.8 Q568.7,287.8 568.7,291.8
+        L568.7,316.0 Z"
+        fill="var(--band-suborbital)" data-tip="Suborbital · oversized · 75 credits per cargo slot · 1 piece"/><path class="mark" d="M570.7,316.0 L570.7,246.6
+        Q570.7,242.6 574.7,242.6
+        L612.7,242.6 Q616.7,242.6 616.7,246.6
+        L616.7,316.0 Z"
+        fill="var(--band-low)" data-tip="Low orbit · oversized · 195 credits per cargo slot · 1 piece"/><path class="mark" d="M618.7,316.0 L618.7,150.6
+        Q618.7,146.6 622.7,146.6
+        L660.7,146.6 Q664.7,146.6 664.7,150.6
+        L664.7,316.0 Z"
+        fill="var(--band-high)" data-tip="High orbit · oversized · 450 credits per cargo slot · 1 piece"/><text class="tick" x="594.7" y="338" text-anchor="middle">oversized</text>
+  <text class="axis-label" x="384" y="368" text-anchor="middle">size class</text>
+  <text class="axis-label" transform="translate(16,168) rotate(-90)" text-anchor="middle">credits per cargo slot</text>
+</svg>
+    <div class="legend">
+    <span class="key"><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</span><span class="key"><span class="swatch" style="background:var(--band-low)"></span>Low orbit</span><span class="key"><span class="swatch" style="background:var(--band-high)"></span>High orbit</span>
+    <span class="key"><span class="swatch ring"></span>fragile (hollow)</span>
+  </div>
+  </div>
+
+  <div class="card">
+    <h2>The ablation surface</h2>
+    <p class="lede">Plate burned as a function of both inputs at once — how fast you are coming
+      in, and how many passes you split it into. Two independent variables and one output, so
+      this is the one place a surface beats a line chart.</p>
+    
+<svg viewBox="0 0 760 460" class="chart" role="img" aria-label="Three-dimensional surface of plate burned over entry speed and pass count">
+  <path d="M300.0,303.0 L322.0,289.9 L292.3,329.3 L270.3,333.6 Z" fill="#b7d3f6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M270.3,333.6 L292.3,329.3 L262.6,332.2 L240.6,332.0 Z" fill="#b7d3f6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M322.0,289.9 L344.0,277.7 L314.3,324.2 L292.3,329.3 Z" fill="#9ec5f4" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M240.6,332.0 L262.6,332.2 L232.9,329.1 L210.9,326.9 Z" fill="#b7d3f6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M292.3,329.3 L314.3,324.2 L284.6,331.3 L262.6,332.2 Z" fill="#b7d3f6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M344.0,277.7 L366.0,266.3 L336.3,318.7 L314.3,324.2 Z" fill="#9ec5f4" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M210.9,326.9 L232.9,329.1 L203.2,326.3 L181.2,323.2 Z" fill="#9ec5f4" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M262.6,332.2 L284.6,331.3 L254.9,330.3 L232.9,329.1 Z" fill="#9ec5f4" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M314.3,324.2 L336.3,318.7 L306.6,329.7 L284.6,331.3 Z" fill="#b7d3f6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M366.0,266.3 L388.0,255.9 L358.3,313.2 L336.3,318.7 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M181.2,323.2 L203.2,326.3 L173.5,324.8 L151.5,321.2 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M232.9,329.1 L254.9,330.3 L225.2,328.5 L203.2,326.3 Z" fill="#9ec5f4" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M284.6,331.3 L306.6,329.7 L276.9,330.6 L254.9,330.3 Z" fill="#9ec5f4" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M336.3,318.7 L358.3,313.2 L328.6,327.9 L306.6,329.7 Z" fill="#9ec5f4" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M388.0,255.9 L410.0,246.4 L380.3,308.1 L358.3,313.2 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M151.5,321.2 L173.5,324.8 L143.8,324.8 L121.8,320.9 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M203.2,326.3 L225.2,328.5 L195.5,327.6 L173.5,324.8 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M254.9,330.3 L276.9,330.6 L247.2,329.9 L225.2,328.5 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M306.6,329.7 L328.6,327.9 L298.9,330.9 L276.9,330.6 Z" fill="#9ec5f4" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M358.3,313.2 L380.3,308.1 L350.6,326.4 L328.6,327.9 Z" fill="#9ec5f4" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M410.0,246.4 L432.0,237.8 L402.3,303.2 L380.3,308.1 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M121.8,320.9 L143.8,324.8 L114.1,326.0 L92.1,321.9 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M173.5,324.8 L195.5,327.6 L165.8,327.8 L143.8,324.8 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M225.2,328.5 L247.2,329.9 L217.5,329.5 L195.5,327.6 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M276.9,330.6 L298.9,330.9 L269.2,331.2 L247.2,329.9 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M328.6,327.9 L350.6,326.4 L320.9,331.4 L298.9,330.9 Z" fill="#9ec5f4" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M380.3,308.1 L402.3,303.2 L372.6,324.8 L350.6,326.4 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M432.0,237.8 L454.0,229.9 L424.3,298.5 L402.3,303.2 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M143.8,324.8 L165.8,327.8 L136.1,329.2 L114.1,326.0 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M195.5,327.6 L217.5,329.5 L187.8,330.2 L165.8,327.8 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M247.2,329.9 L269.2,331.2 L239.5,331.5 L217.5,329.5 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M298.9,330.9 L320.9,331.4 L291.2,332.9 L269.2,331.2 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M350.6,326.4 L372.6,324.8 L342.9,332.0 L320.9,331.4 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M402.3,303.2 L424.3,298.5 L394.6,323.2 L372.6,324.8 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M454.0,229.9 L476.0,222.6 L446.3,293.9 L424.3,298.5 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M165.8,327.8 L187.8,330.2 L158.1,331.8 L136.1,329.2 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M217.5,329.5 L239.5,331.5 L209.8,332.5 L187.8,330.2 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M269.2,331.2 L291.2,332.9 L261.5,333.9 L239.5,331.5 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M320.9,331.4 L342.9,332.0 L313.2,334.7 L291.2,332.9 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M372.6,324.8 L394.6,323.2 L364.9,332.4 L342.9,332.0 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M424.3,298.5 L446.3,293.9 L416.6,321.4 L394.6,323.2 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M476.0,222.6 L498.0,216.0 L468.3,289.6 L446.3,293.9 Z" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M187.8,330.2 L209.8,332.5 L180.1,334.3 L158.1,331.8 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M239.5,331.5 L261.5,333.9 L231.8,335.3 L209.8,332.5 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M291.2,332.9 L313.2,334.7 L283.5,336.4 L261.5,333.9 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M342.9,332.0 L364.9,332.4 L335.2,336.4 L313.2,334.7 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M394.6,323.2 L416.6,321.4 L386.9,332.7 L364.9,332.4 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M446.3,293.9 L468.3,289.6 L438.6,319.6 L416.6,321.4 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M498.0,216.0 L520.0,209.9 L490.3,285.4 L468.3,289.6 Z" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M209.8,332.5 L231.8,335.3 L202.1,337.4 L180.1,334.3 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M261.5,333.9 L283.5,336.4 L253.8,338.3 L231.8,335.3 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M313.2,334.7 L335.2,336.4 L305.5,338.8 L283.5,336.4 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M364.9,332.4 L386.9,332.7 L357.2,337.9 L335.2,336.4 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M416.6,321.4 L438.6,319.6 L408.9,332.8 L386.9,332.7 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M468.3,289.6 L490.3,285.4 L460.6,317.9 L438.6,319.6 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M520.0,209.9 L542.0,204.3 L512.3,281.6 L490.3,285.4 Z" fill="#256abf" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M231.8,335.3 L253.8,338.3 L224.1,340.7 L202.1,337.4 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M283.5,336.4 L305.5,338.8 L275.8,341.2 L253.8,338.3 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M335.2,336.4 L357.2,337.9 L327.5,341.1 L305.5,338.8 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M386.9,332.7 L408.9,332.8 L379.2,339.3 L357.2,337.9 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M438.6,319.6 L460.6,317.9 L430.9,332.9 L408.9,332.8 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M490.3,285.4 L512.3,281.6 L482.6,316.1 L460.6,317.9 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M542.0,204.3 L564.0,199.2 L534.3,277.9 L512.3,281.6 Z" fill="#256abf" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M253.8,338.3 L275.8,341.2 L246.1,343.9 L224.1,340.7 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M305.5,338.8 L327.5,341.1 L297.8,344.0 L275.8,341.2 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M357.2,337.9 L379.2,339.3 L349.5,343.3 L327.5,341.1 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M408.9,332.8 L430.9,332.9 L401.2,340.6 L379.2,339.3 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M460.6,317.9 L482.6,316.1 L452.9,332.8 L430.9,332.9 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M512.3,281.6 L534.3,277.9 L504.6,314.4 L482.6,316.1 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M564.0,199.2 L586.0,194.5 L556.3,274.6 L534.3,277.9 Z" fill="#1c5cab" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M275.8,341.2 L297.8,344.0 L268.1,347.0 L246.1,343.9 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M327.5,341.1 L349.5,343.3 L319.8,346.7 L297.8,344.0 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M379.2,339.3 L401.2,340.6 L371.5,345.4 L349.5,343.3 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M430.9,332.9 L452.9,332.8 L423.2,341.8 L401.2,340.6 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M482.6,316.1 L504.6,314.4 L474.9,332.8 L452.9,332.8 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M534.3,277.9 L556.3,274.6 L526.6,312.8 L504.6,314.4 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M586.0,194.5 L608.0,190.2 L578.3,271.5 L556.3,274.6 Z" fill="#1c5cab" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M297.8,344.0 L319.8,346.7 L290.1,350.1 L268.1,347.0 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M349.5,343.3 L371.5,345.4 L341.8,349.3 L319.8,346.7 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M401.2,340.6 L423.2,341.8 L393.5,347.5 L371.5,345.4 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M452.9,332.8 L474.9,332.8 L445.2,342.9 L423.2,341.8 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M504.6,314.4 L526.6,312.8 L496.9,332.9 L474.9,332.8 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M556.3,274.6 L578.3,271.5 L548.6,311.4 L526.6,312.8 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M608.0,190.2 L630.0,186.3 L600.3,268.6 L578.3,271.5 Z" fill="#184f95" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M319.8,346.7 L341.8,349.3 L312.1,353.1 L290.1,350.1 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M371.5,345.4 L393.5,347.5 L363.8,351.9 L341.8,349.3 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M423.2,341.8 L445.2,342.9 L415.5,349.4 L393.5,347.5 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M474.9,332.8 L496.9,332.9 L467.2,344.3 L445.2,342.9 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M526.6,312.8 L548.6,311.4 L518.9,333.0 L496.9,332.9 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M578.3,271.5 L600.3,268.6 L570.6,310.0 L548.6,311.4 Z" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M341.8,349.3 L363.8,351.9 L334.1,356.1 L312.1,353.1 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M393.5,347.5 L415.5,349.4 L385.8,354.4 L363.8,351.9 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M445.2,342.9 L467.2,344.3 L437.5,351.7 L415.5,349.4 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M496.9,332.9 L518.9,333.0 L489.2,345.6 L467.2,344.3 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M548.6,311.4 L570.6,310.0 L540.9,333.0 L518.9,333.0 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M363.8,351.9 L385.8,354.4 L356.1,359.0 L334.1,356.1 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M415.5,349.4 L437.5,351.7 L407.8,357.3 L385.8,354.4 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M467.2,344.3 L489.2,345.6 L459.5,353.8 L437.5,351.7 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M518.9,333.0 L540.9,333.0 L511.2,346.8 L489.2,345.6 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M385.8,354.4 L407.8,357.3 L378.1,362.2 L356.1,359.0 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M437.5,351.7 L459.5,353.8 L429.8,360.0 L407.8,357.3 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M489.2,345.6 L511.2,346.8 L481.5,355.9 L459.5,353.8 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M407.8,357.3 L429.8,360.0 L400.1,365.4 L378.1,362.2 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M459.5,353.8 L481.5,355.9 L451.8,362.7 L429.8,360.0 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M429.8,360.0 L451.8,362.7 L422.1,368.5 L400.1,365.4 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/>
+  <path d="M270.3,330.6L292.3,326.3L314.3,321.2L336.3,315.7L328.6,324.9L350.6,323.4L372.6,321.8L394.6,320.2L416.6,318.4L408.9,329.8L430.9,329.9L452.9,329.8L474.9,329.8L496.9,329.9L489.2,342.6L511.2,343.8" fill="none" stroke="var(--text-primary)" stroke-width="2.5" stroke-linejoin="round" stroke-dasharray="1 0"/>
+  <circle class="mark" cx="270.3" cy="330.6" r="4.5"
+      fill="var(--text-primary)" stroke="var(--surface-1)" stroke-width="2"
+      data-tip="heat index 85 → cheapest at 2 passes (12.4% plate)"/><circle class="mark" cx="336.3" cy="315.7" r="4.5"
+      fill="var(--text-primary)" stroke="var(--surface-1)" stroke-width="2"
+      data-tip="heat index 116 → cheapest at 2 passes (17.5% plate)"/><circle class="mark" cx="372.6" cy="321.8" r="4.5"
+      fill="var(--text-primary)" stroke="var(--surface-1)" stroke-width="2"
+      data-tip="heat index 147 → cheapest at 3 passes (22.0% plate)"/><circle class="mark" cx="408.9" cy="329.8" r="4.5"
+      fill="var(--text-primary)" stroke="var(--surface-1)" stroke-width="2"
+      data-tip="heat index 178 → cheapest at 4 passes (27.1% plate)"/><circle class="mark" cx="474.9" cy="329.8" r="4.5"
+      fill="var(--text-primary)" stroke="var(--surface-1)" stroke-width="2"
+      data-tip="heat index 209 → cheapest at 4 passes (32.0% plate)"/><circle class="mark" cx="511.2" cy="343.8" r="4.5"
+      fill="var(--text-primary)" stroke="var(--surface-1)" stroke-width="2"
+      data-tip="heat index 240 → cheapest at 5 passes (36.7% plate)"/><g><line x1="292.3" y1="323.3"
+        x2="292.3" y2="299.3" stroke="var(--band-suborbital)" stroke-width="2"/>
+      <circle cx="292.3" cy="329.3" r="4" fill="var(--band-suborbital)"
+        stroke="var(--surface-1)" stroke-width="1.5"/>
+      <text class="series-label" x="292.3" y="293.3" text-anchor="middle">Suborbital</text></g><g><line x1="328.6" y1="321.9"
+        x2="328.6" y2="277.9" stroke="var(--band-low)" stroke-width="2"/>
+      <circle cx="328.6" cy="327.9" r="4" fill="var(--band-low)"
+        stroke="var(--surface-1)" stroke-width="1.5"/>
+      <text class="series-label" x="328.6" y="271.9" text-anchor="middle">Low orbit</text></g><g><line x1="474.9" y1="326.8"
+        x2="474.9" y2="262.8" stroke="var(--band-high)" stroke-width="2"/>
+      <circle cx="474.9" cy="332.8" r="4" fill="var(--band-high)"
+        stroke="var(--surface-1)" stroke-width="1.5"/>
+      <text class="series-label" x="474.9" y="256.8" text-anchor="middle">High orbit</text></g>
+  <rect x="610" y="26" width="10" height="12" fill="#cde2fb"/><rect x="620" y="26" width="10" height="12" fill="#b7d3f6"/><rect x="630" y="26" width="10" height="12" fill="#9ec5f4"/><rect x="640" y="26" width="10" height="12" fill="#86b6ef"/><rect x="650" y="26" width="10" height="12" fill="#6da7ec"/><rect x="660" y="26" width="10" height="12" fill="#5598e7"/><rect x="670" y="26" width="10" height="12" fill="#3987e5"/><rect x="680" y="26" width="10" height="12" fill="#2a78d6"/><rect x="690" y="26" width="10" height="12" fill="#256abf"/><rect x="700" y="26" width="10" height="12" fill="#1c5cab"/><rect x="710" y="26" width="10" height="12" fill="#184f95"/><rect x="720" y="26" width="10" height="12" fill="#104281"/><rect x="730" y="26" width="10" height="12" fill="#0d366b"/>
+  <text class="tick" x="608" y="22" text-anchor="start">less plate burned</text>
+  <text class="tick" x="740" y="52" text-anchor="end">more</text>
+  <text class="axis-label" x="150" y="426" text-anchor="middle">single-pass heat index →</text>
+  <text class="axis-label" x="510" y="448" text-anchor="middle">← aerobraking passes</text>
+</svg>
+<p class="caption">The dark line is the valley floor — the cheapest pass count at every entry
+speed. It is the answer to the hardest question in §2.3.1, and it should stay inside 2–4
+across the whole span. Where it climbs toward the back, higher bands are demanding more
+passes; where it runs flat, a single strategy covers every altitude.</p>
+  </div>
+
+  <div class="card">
+    <h2>Spec audit — PASS</h2>
+    <p class="lede">All sixteen checks pass: the catalog&#39;s summaries and gradients reconcile exactly, the ablation curves reproduce from their own coefficients with minima at 2/3/4 passes, and every GDD-stated fixed number (6 slots, 2 tethers, 5 m/s, 50% cap, 1/8-screen range) was held while only the free variables moved — but several values sit on their margins and three catalog masses create degenerate picks, so read the observations before flying it.</p>
+    <p class="caption">Every rule the auditor checked holds at these numbers.</p>
+    <details open><summary>Observations — pass the spec, worth a human's eye</summary>
+      <ul class="findings"><li>antenna_whip is strictly dominant in the suborbital band and nothing in the pricing can fix it. At 3 kg, fragile, small, it is worth 60*1.0*3 = 180 for 2 uncrushed slots = 90 value per slot and 1.5 kg per slot, against scorched_hull_panel&#39;s 60 per slot at 12 kg per slot. It is simultaneously the most valuable and the lightest thing in the band, and its only drawback — double damage — is fully avoidable by landing softly. GDD 2.3.4 wants fragile to read as &#39;bulk plus risk&#39;; at 3 kg there is no bulk cost in the term that actually matters, which is mass. Raising its mass into the 10-14 kg range or charging it 4 uncrushed slots restores the trade without touching the premium.</li><li>rtg_capsule defines a maximum-density strategy no parachute tier can land. 88 kg in one crushed slot is 2.3x the next-densest thing in its band (gold_foil_instrument_can, 48 kg per slot). Six of them is 528 kg of cargo on a 60 kg ship: 588 kg total, touching down at sqrt(2*588*30/(3*102.4)) = 10.7 m/s at base chute and still 7.7 m/s at parachute tier 2 — a guaranteed hard landing on the highest-value haul in the game, with no upgrade path out. Its own catalog note calls it &#39;absurdly heavy for one slot&#39;, which is the finding.</li><li>The high band&#39;s ablation optimum is nearly flat and may not read as a decision. Costs at 3, 4 and 5 passes are 34.67 / 31.95 / 32.50 — the winner beats its neighbour by 1.7%, well inside the noise of how accurately a human can fly a periapsis. Suborbital is clearer (14.46 vs 15.66, 8.3%) and low is middling (19.34 vs 20.29, 4.9%). If the intent is that pass count feels like a choice with a right answer, the high band currently reads as &#39;anything from 3 to 5 is fine&#39;.</li><li>The descent-speed number cannot be reproduced from the params alone. landing.descent_speed_full_hold_ms = 4.6 is only true if the canopy is 68.3 m^2 at parachute_drag_coefficient 1.5, and there is no canopy-area field anywhere in the params. The Coder will pick an area, and any other choice silently moves every landing grade in the game. Either add the area field or state that drag_coefficient is really a lumped Cd*A.</li><li>Soft-landing margin is 8% and the physics behind it is thinner than that. 4.6 against 5.0 leaves almost nothing, and at g = 30 a free fall of only 0.42 m reaches 5 m/s — so the chute must hold the ship all the way to contact, and any bounce, late release, or last-second gust of drag variation is an automatic hard landing. This is the baseline&#39;s own flag; it was correctly not resolved by moving the 5 m/s line, which leaves it live for Checkpoint 2.</li><li>reentry.off_retrograde_penalty = 1 has no defined units and reads ambiguously. GDD 2.3.1 specifies a cosine-of-angle falloff on shield protection; a bare coefficient of 1 could be implemented as full-strength cosine or as a multiplier that does nothing. Whichever is intended, it is currently the only heat parameter whose meaning is not recoverable from the file, which is exactly the quiet-drift failure GDD 4.4 warns about.</li><li>hand_magnet tier 2 buys 750 N of hold force against a steady-tow requirement of 83-144 N, so it does nothing for towing and only softens jerk shear. The base 450 N already carries a 5.4x margin at the heaviest legal two-piece load. Tier 2&#39;s real effect is raising the latch-shear threshold on a 180 kg piece from 2.5 m/s to 4.2 m/s of closing speed — it is an upgrade that removes a skill test rather than opening a capability, which may make the game&#39;s most interesting failure mode purchasable away.</li><li>Full-hold mass doubling holds for suborbital (1.81x) and for the slice as a whole (2.18x), but the low band alone sits exactly on the 2.50x boundary and the high band is 4.83x. That is the intended difficulty lever and the only one available given the baseline&#39;s finding that entry speed spans just 151-164 m/s across all bands — but it means the GDD 2.3.5 sentence &#39;a full hold roughly doubles the rocket&#39;s mass&#39; is a suborbital-only statement, and will read as wrong to a player the moment they fly low-band cargo. Worth deciding whether the prose changes or the loot density does.</li><li>Storage is a trap purchase without the chute, by design, but check that the shop conveys it: storage tier 2 at base parachute lands a full suborbital hold at 5.53 m/s — over the hard-landing line on every single full run — and a full low-band hold at 5.41 m/s. GDD 2.3.6 calls these &#39;natural paired purchases&#39;; the numbers make the pairing mandatory rather than natural, and a player who buys storage first will conclude the upgrade is broken rather than that it needs a partner.</li></ul></details>
+    <details open><summary>Catalog concerns raised by the Economy Balancer</summary>
+      <p class="caption">Not audit findings. These are problems the Balancer hit while pricing the
+      catalog and could not fix, because it does not own that data. On a failing run they are
+      routed to the Debris Designer; on a passing run they land here.</p>
+      <ul class="findings"><li>antenna_whip - mass_kg 3 (with fragile true). At 3 kg it is the lightest piece in the game and costs 2 uncrushed slots, so at any fragile premium that satisfies &#39;worth several solid pieces&#39; it becomes the strictly dominant suborbital pick: 180 value per 2 slots and 3 kg, against 120 per 2 slots and 24 kg for two hull panels - better value AND lighter, with the double-damage risk fully avoidable by landing softly. GDD 2.3.4 wants fragile to read as &#39;bulk plus risk&#39;; at 3 kg there is no bulk penalty in mass terms and the risk is optional. I cannot fix this by pricing without dropping the premium below the level 2.3.7 requires. A mass in the 10-14 kg range, or a 4-slot uncrushed cost, would restore the trade.</li><li>rtg_capsule - size_class small (at 88 kg, non-fragile, 1 slot crushed). Six of these fill a base hold with 528 kg, which is 8.8x the densest possible suborbital hold and 5.9x the spawn-weighted high-band hold of 230 kg that every mass-derived number in this file uses. It is the only piece in the catalog whose mass-per-slot (88) is more than double the next best in its band (gold_foil_instrument_can at 48), so it defines a degenerate maximum-density strategy that no parachute tier can land softly. Either the mass or the size class should move; its own notes already call it &#39;absurdly heavy for one slot&#39;.</li><li>insulation_blanket_wad - mass_kg 4 (with slots_crushed 1). Combined with scorched_hull_panel at 12 kg, the suborbital band&#39;s spawn-weighted density is 8.06 kg per slot, which is what forces dry_mass_kg down to 60 to keep GDD 2.3.5&#39;s doubling claim arithmetically true. A 60 kg rocket at the baseline&#39;s 3.5 m^2 reference area is a thin-walled scrap tube and sits awkwardly against eva.suit_mass_kg = 45. Raising the suborbital band&#39;s per-slot density by roughly 2-3x - most cheaply by lifting the two lightest smalls - would let dry mass land somewhere physically comfortable without touching the slot count the GDD puts on screen.</li></ul></details>
+  </div>
+
+  <div class="card">
+    <h2>The catalog</h2>
+    <p class="lede">Every piece the crew authored and priced. Sorted by band, then by value.</p>
+    <table class="data">
+    <thead><tr><th>Piece</th><th>Band</th><th>Class</th><th>Flag</th>
+      <th class="num">Mass (kg)</th><th class="num">Value</th><th class="num">Value/kg</th></tr></thead>
+    <tbody><tr>
+      <td>Upper Stage Shroud</td>
+      <td><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</td>
+      <td>oversized</td>
+      <td>—</td>
+      <td class="num">180.0</td>
+      <td class="num">450</td>
+      <td class="num">2.5</td>
+    </tr><tr>
+      <td>Antenna Whip</td>
+      <td><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</td>
+      <td>small</td>
+      <td>fragile</td>
+      <td class="num">3.0</td>
+      <td class="num">180</td>
+      <td class="num">60.0</td>
+    </tr><tr>
+      <td>Cracked Viewport Pane</td>
+      <td><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</td>
+      <td>small</td>
+      <td>fragile</td>
+      <td class="num">9.0</td>
+      <td class="num">180</td>
+      <td class="num">20.0</td>
+    </tr><tr>
+      <td>Bent Truss Section</td>
+      <td><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</td>
+      <td>medium</td>
+      <td>—</td>
+      <td class="num">34.0</td>
+      <td class="num">130</td>
+      <td class="num">3.8</td>
+    </tr><tr>
+      <td>Launch Clamp Arm</td>
+      <td><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</td>
+      <td>medium</td>
+      <td>—</td>
+      <td class="num">41.0</td>
+      <td class="num">130</td>
+      <td class="num">3.2</td>
+    </tr><tr>
+      <td>Scorched Hull Panel</td>
+      <td><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</td>
+      <td>small</td>
+      <td>—</td>
+      <td class="num">12.0</td>
+      <td class="num">60</td>
+      <td class="num">5.0</td>
+    </tr><tr>
+      <td>Insulation Blanket Wad</td>
+      <td><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</td>
+      <td>small</td>
+      <td>—</td>
+      <td class="num">4.0</td>
+      <td class="num">60</td>
+      <td class="num">15.0</td>
+    </tr><tr>
+      <td>Spent Bolt Cluster</td>
+      <td><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</td>
+      <td>small</td>
+      <td>—</td>
+      <td class="num">6.5</td>
+      <td class="num">60</td>
+      <td class="num">9.2</td>
+    </tr><tr>
+      <td>Despun Bus Frame</td>
+      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
+      <td>oversized</td>
+      <td>—</td>
+      <td class="num">340.0</td>
+      <td class="num">1,170</td>
+      <td class="num">3.4</td>
+    </tr><tr>
+      <td>Cracked Solar Array</td>
+      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
+      <td>medium</td>
+      <td>fragile</td>
+      <td class="num">28.0</td>
+      <td class="num">1,014</td>
+      <td class="num">36.2</td>
+    </tr><tr>
+      <td>Dish Reflector</td>
+      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
+      <td>medium</td>
+      <td>fragile</td>
+      <td class="num">31.0</td>
+      <td class="num">1,014</td>
+      <td class="num">32.7</td>
+    </tr><tr>
+      <td>Star Tracker Head</td>
+      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
+      <td>small</td>
+      <td>fragile</td>
+      <td class="num">14.0</td>
+      <td class="num">468</td>
+      <td class="num">33.4</td>
+    </tr><tr>
+      <td>Reaction Wheel Housing</td>
+      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
+      <td>medium</td>
+      <td>—</td>
+      <td class="num">62.0</td>
+      <td class="num">338</td>
+      <td class="num">5.5</td>
+    </tr><tr>
+      <td>Propellant Tank Stub</td>
+      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
+      <td>medium</td>
+      <td>—</td>
+      <td class="num">78.0</td>
+      <td class="num">338</td>
+      <td class="num">4.3</td>
+    </tr><tr>
+      <td>Avionics Bay Module</td>
+      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
+      <td>medium</td>
+      <td>—</td>
+      <td class="num">55.0</td>
+      <td class="num">338</td>
+      <td class="num">6.1</td>
+    </tr><tr>
+      <td>Gyro Cluster</td>
+      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
+      <td>small</td>
+      <td>—</td>
+      <td class="num">24.0</td>
+      <td class="num">156</td>
+      <td class="num">6.5</td>
+    </tr><tr>
+      <td>Thruster Quad Pod</td>
+      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
+      <td>small</td>
+      <td>—</td>
+      <td class="num">19.0</td>
+      <td class="num">156</td>
+      <td class="num">8.2</td>
+    </tr><tr>
+      <td>Comsat Main Body</td>
+      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
+      <td>oversized</td>
+      <td>—</td>
+      <td class="num">620.0</td>
+      <td class="num">2,700</td>
+      <td class="num">4.4</td>
+    </tr><tr>
+      <td>Optical Bench</td>
+      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
+      <td>medium</td>
+      <td>fragile</td>
+      <td class="num">95.0</td>
+      <td class="num">2,340</td>
+      <td class="num">24.6</td>
+    </tr><tr>
+      <td>Deep Space Dish</td>
+      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
+      <td>medium</td>
+      <td>fragile</td>
+      <td class="num">110.0</td>
+      <td class="num">2,340</td>
+      <td class="num">21.3</td>
+    </tr><tr>
+      <td>Sensor Gimbal Head</td>
+      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
+      <td>small</td>
+      <td>fragile</td>
+      <td class="num">60.0</td>
+      <td class="num">1,080</td>
+      <td class="num">18.0</td>
+    </tr><tr>
+      <td>Iridium Bus Core</td>
+      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
+      <td>medium</td>
+      <td>—</td>
+      <td class="num">165.0</td>
+      <td class="num">780</td>
+      <td class="num">4.7</td>
+    </tr><tr>
+      <td>Reactor Core Slug</td>
+      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
+      <td>medium</td>
+      <td>—</td>
+      <td class="num">180.0</td>
+      <td class="num">780</td>
+      <td class="num">4.3</td>
+    </tr><tr>
+      <td>Cryo Pump Assembly</td>
+      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
+      <td>medium</td>
+      <td>—</td>
+      <td class="num">140.0</td>
+      <td class="num">780</td>
+      <td class="num">5.6</td>
+    </tr><tr>
+      <td>Gold Foil Instrument Can</td>
+      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
+      <td>small</td>
+      <td>—</td>
+      <td class="num">48.0</td>
+      <td class="num">360</td>
+      <td class="num">7.5</td>
+    </tr><tr>
+      <td>RTG Capsule</td>
+      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
+      <td>small</td>
+      <td>—</td>
+      <td class="num">88.0</td>
+      <td class="num">360</td>
+      <td class="num">4.1</td>
+    </tr></tbody></table>
+  </div>
+
+</div></div>
+<div id="tip"></div>
+<script>
+  var tip = document.getElementById('tip');
+  document.addEventListener('mouseover', function (e) {
+    var t = e.target.closest('[data-tip]');
+    if (!t) return;
+    tip.textContent = t.getAttribute('data-tip');
+    tip.style.opacity = '1';
+  });
+  document.addEventListener('mousemove', function (e) {
+    if (tip.style.opacity !== '1') return;
+    var w = tip.offsetWidth, h = tip.offsetHeight;
+    tip.style.left = Math.min(e.clientX + 14, window.innerWidth - w - 10) + 'px';
+    tip.style.top = Math.max(e.clientY - h - 12, 8) + 'px';
+  });
+  document.addEventListener('mouseout', function (e) {
+    if (e.target.closest('[data-tip]')) tip.style.opacity = '0';
+  });
+</script>
+</body></html>

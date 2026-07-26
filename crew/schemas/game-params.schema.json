@@ -1,0 +1,205 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Junkstronaut game parameters",
+  "description": "The Economy Balancer's output, and the crew's headline artifact. This is the object that becomes config/game_params.tres — the one file the game loads and the only place a tunable value may live.",
+  "type": "object",
+  "required": [
+    "agent",
+    "flight",
+    "cargo",
+    "reentry",
+    "ablation",
+    "landing",
+    "tow_fee",
+    "eva",
+    "economy",
+    "upgrades",
+    "balance_notes"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "agent": { "const": "economy-balancer" },
+    "flight": {
+      "type": "object",
+      "required": ["dry_mass_kg", "fuel_capacity_kg", "thrust_n", "fuel_burn_kgs"],
+      "properties": {
+        "dry_mass_kg": { "type": "number", "exclusiveMinimum": 0 },
+        "fuel_capacity_kg": { "type": "number", "exclusiveMinimum": 0 },
+        "thrust_n": { "type": "number", "exclusiveMinimum": 0 },
+        "fuel_burn_kgs": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "cargo": {
+      "type": "object",
+      "required": ["base_slots", "compactor_tier"],
+      "properties": {
+        "base_slots": { "type": "integer", "minimum": 1 },
+        "compactor_tier": { "type": "integer", "minimum": 1, "maximum": 3 }
+      }
+    },
+    "reentry": {
+      "type": "object",
+      "required": ["heat_capacity", "heat_dissipation_s", "cargo_damage_interval_s"],
+      "properties": {
+        "heat_capacity": { "type": "number", "exclusiveMinimum": 0 },
+        "heat_dissipation_s": { "type": "number", "exclusiveMinimum": 0 },
+        "cargo_damage_interval_s": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "ablation": {
+      "description": "The model is stated in the Economy Balancer's charter and is the single definition both the game and the report use: cost(band, n) = n * fixed_toll_per_pass_pct_by_band[band] + heat_cost_coefficient * n * (heat_index[band] / n)^heat_cost_exponent. cost_curve is the Balancer's own evaluation of it, so nothing downstream ever has to reconstruct the model from prose.",
+      "type": "object",
+      "required": [
+        "fixed_toll_per_pass_pct_by_band",
+        "heat_cost_coefficient",
+        "heat_cost_exponent",
+        "heat_index",
+        "cost_curve",
+        "plate_capacity_pct",
+        "optimal_pass_count"
+      ],
+      "properties": {
+        "fixed_toll_per_pass_pct": { "type": "number", "exclusiveMinimum": 0 },
+        "fixed_toll_per_pass_pct_by_band": {
+          "type": "object",
+          "required": ["suborbital", "low", "high"],
+          "patternProperties": {
+            "^(suborbital|low|high)$": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        "heat_cost_coefficient": { "type": "number", "exclusiveMinimum": 0 },
+        "heat_cost_exponent": { "type": "number", "minimum": 1 },
+        "heat_index": {
+          "description": "Peak heat of a single-pass descent from each band, on the 0-100 heat bar.",
+          "type": "object",
+          "required": ["suborbital", "low", "high"],
+          "patternProperties": {
+            "^(suborbital|low|high)$": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        "cost_curve": {
+          "description": "Plate burned for 1..8 passes, per band. Exactly eight numbers each, in pass order.",
+          "type": "object",
+          "required": ["suborbital", "low", "high"],
+          "patternProperties": {
+            "^(suborbital|low|high)$": {
+              "type": "array",
+              "minItems": 8,
+              "maxItems": 8,
+              "items": { "type": "number", "minimum": 0 }
+            }
+          }
+        },
+        "plate_capacity_pct": { "type": "number", "exclusiveMinimum": 0 },
+        "optimal_pass_count": {
+          "type": "object",
+          "required": ["suborbital", "low", "high"],
+          "patternProperties": {
+            "^(suborbital|low|high)$": { "type": "integer", "minimum": 2, "maximum": 4 }
+          }
+        }
+      }
+    },
+    "landing": {
+      "type": "object",
+      "required": [
+        "soft_landing_ms",
+        "damage_per_ms_over",
+        "no_gear_multiplier",
+        "fragile_multiplier",
+        "descent_speed_full_hold_ms"
+      ],
+      "properties": {
+        "soft_landing_ms": { "type": "number", "exclusiveMinimum": 0 },
+        "damage_per_ms_over": { "type": "number", "exclusiveMinimum": 0 },
+        "no_gear_multiplier": { "type": "number", "minimum": 1 },
+        "fragile_multiplier": { "type": "number", "minimum": 1 },
+        "descent_speed_full_hold_ms": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "tow_fee": {
+      "type": "object",
+      "required": ["free_radius_m", "max_fee_fraction"],
+      "properties": {
+        "free_radius_m": { "type": "number", "minimum": 0 },
+        "max_fee_fraction": { "type": "number", "minimum": 0, "maximum": 0.5 },
+        "curve": { "type": "string" }
+      }
+    },
+    "eva": {
+      "type": "object",
+      "required": [
+        "suit_mass_kg",
+        "jetpack_thrust_n",
+        "jetpack_fuel_kg",
+        "base_tether_slots",
+        "magnet_hold_force_n"
+      ],
+      "properties": {
+        "suit_mass_kg": { "type": "number", "exclusiveMinimum": 0 },
+        "jetpack_thrust_n": { "type": "number", "exclusiveMinimum": 0 },
+        "jetpack_fuel_kg": { "type": "number", "exclusiveMinimum": 0 },
+        "base_tether_slots": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "magnet_hold_force_n": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "economy": {
+      "type": "object",
+      "required": [
+        "launch_cost",
+        "band_value_multiplier",
+        "size_class_base_value",
+        "fragile_value_premium"
+      ],
+      "properties": {
+        "launch_cost": { "type": "number", "exclusiveMinimum": 0 },
+        "replate_cost_per_pct": { "type": "number", "minimum": 0 },
+        "repair_cost_per_pct": { "type": "number", "minimum": 0 },
+        "band_value_multiplier": {
+          "type": "object",
+          "required": ["suborbital", "low", "high"],
+          "patternProperties": {
+            "^(suborbital|low|high)$": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        "size_class_base_value": {
+          "type": "object",
+          "required": ["small", "medium", "oversized"],
+          "patternProperties": {
+            "^(small|medium|oversized)$": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        "fragile_value_premium": { "type": "number", "minimum": 1 }
+      }
+    },
+    "upgrades": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["part", "tier", "cost", "effect", "value"],
+        "properties": {
+          "part": {
+            "enum": ["fuel_tank", "thruster", "storage", "heat_shield", "parachute", "hand_magnet"]
+          },
+          "tier": { "type": "integer", "minimum": 1, "maximum": 2 },
+          "cost": { "type": "number", "exclusiveMinimum": 0 },
+          "effect": { "type": "string", "minLength": 3 },
+          "value": { "type": "number" }
+        }
+      }
+    },
+    "balance_notes": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "type": "string", "minLength": 20 }
+    },
+    "catalog_concerns": {
+      "description": "The Balancer's channel for reporting a problem in the debris catalog it was given. It may never re-author the catalog itself — a second copy of the loot table is two sources of truth, and the fix silently reverts the moment anyone reads the original. Raising a concern here routes the finding to the Debris Designer, which is the agent that owns that data.",
+      "type": "array",
+      "maxItems": 8,
+      "items": { "type": "string", "minLength": 20 }
+    }
+  }
+}
