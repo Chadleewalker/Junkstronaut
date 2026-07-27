@@ -123,12 +123,29 @@ function step(world, s, dt, cfg) {
   if (s.heat < 0) s.heat = 0;
   if (s.heat > s.peakHeat) s.peakHeat = s.heat;
 
+  // Total energy absorbed, with no drain term. Tracked alongside the bar because the two
+  // rank descents in OPPOSITE orders, and which one ablation keys off is a design decision
+  // rather than a physical fact:
+  //   * the BAR rewards brevity — a plunge ends before it fills, a long shallow pass lets
+  //     it reach equilibrium, so gentle flying reads as hotter;
+  //   * the LOAD rewards gentleness — thin air for a long time absorbs less total energy
+  //     than thick air at orbital speed, which is the intuition aerobraking runs on.
+  // §2.3.1 as written keys ablation off peak heat, i.e. the bar.
+  s.heatLoad += qdot * dt;
+
+  // Peak instantaneous heating RATE — the third candidate, and the one real spacecraft are
+  // designed against. It is not the same as the peak of the bar: the bar has a 5 s drain
+  // constant, so a plunge's enormous but brief spike never fills it, while a long shallow
+  // pass lets it equilibrate. Keying ablation off the rate is what makes a plunge the
+  // dangerous option and multi-pass braking the cheap one — which is the design's intent.
+  if (qdot > (s.peakRate || 0)) s.peakRate = qdot;
+
   s.t += dt;
   return { r, h, speed };
 }
 
-const DT_ATM = 0.002;
-const DT_VAC = 0.05;
+const DT_ATM_REF = 0.002;   // tuned against an 800 m world
+const DT_VAC_REF = 0.05;
 
 // ---------------------------------------------------------------- ascent
 
@@ -139,15 +156,15 @@ function simulateAscent(world, cfg, targetAlt) {
   const s = {
     x: 0, y: world.R, vx: 0, vy: 0,
     mass: cfg.dryMass + cfg.fuel, fuel: cfg.fuel,
-    heat: 0, peakHeat: 0, t: 0, chuteOpen: false,
+    heat: 0, peakHeat: 0, heatLoad: 0, peakRate: 0, t: 0, chuteOpen: false,
   };
   const targetR = world.R + targetAlt;
   let burning = true;
 
-  while (s.t < 400) {
+  while (s.t < cfg.maxAscentTime) {
     const r = Math.hypot(s.x, s.y);
     const h = r - world.R;
-    const dt = h < world.atmTop ? DT_ATM : DT_VAC;
+    const dt = h < world.atmTop ? cfg.dtAtm : cfg.dtVac;
 
     if (burning && s.fuel > 0) {
       const o = orbit(world, s.x, s.y, s.vx, s.vy);
@@ -221,21 +238,23 @@ function simulateDescent(world, cfg, startAlt, periapsisAlt, stageAfter = 0) {
   const s = {
     x: 0, y: ra, vx: v, vy: 0,
     mass: cfg.dryMass + cfg.cargoMass, fuel: 0,
-    heat: 0, peakHeat: 0, t: 0, chuteOpen: false,
+    heat: 0, peakHeat: 0, heatLoad: 0, peakRate: 0, t: 0, chuteOpen: false,
     staged: stageAfter === 0,
   };
 
   const passes = [];
   let inAtm = false;
   let passPeak = 0;
+  let passLoadStart = 0;
+  let passRate = 0;
   let maxSpeed = 0;
   let prevVr = 0;
   let chuteShredded = false;
 
-  while (s.t < 3000) {
+  while (s.t < cfg.maxDescentTime) {
     const r0 = Math.hypot(s.x, s.y);
     const h0 = r0 - world.R;
-    const dt = h0 < world.atmTop ? DT_ATM : DT_VAC;
+    const dt = h0 < world.atmTop ? cfg.dtAtm : cfg.dtVac;
 
     // Chute logic, per GDD §2.3.1: safe once plasma has cleared. Plasma is a speed cue, so
     // the model deploys below the Researcher's plasma-onset speed and inside the air.
@@ -248,8 +267,8 @@ function simulateDescent(world, cfg, startAlt, periapsisAlt, stageAfter = 0) {
     if (speed > maxSpeed) maxSpeed = speed;
 
     const inside = h < world.atmTop;
-    if (inside && !inAtm) { inAtm = true; passPeak = 0; }
-    if (inside) passPeak = Math.max(passPeak, s.heat);
+    if (inside && !inAtm) { inAtm = true; passPeak = 0; passLoadStart = s.heatLoad; passRate = 0; s.peakRate = 0; }
+    if (inside) { passPeak = Math.max(passPeak, s.heat); passRate = Math.max(passRate, s.peakRate); }
     // Cargo and hull start taking damage once the bar is pegged (§2.3.1). Tracked so the
     // sweep can distinguish "survived the plate budget" from "arrived with the hold wrecked".
     if (s.heat >= 100) s.overheatTime = (s.overheatTime || 0) + dt;
@@ -259,13 +278,14 @@ function simulateDescent(world, cfg, startAlt, periapsisAlt, stageAfter = 0) {
 
     if (r <= world.R) {
       // Touchdown. Vertical speed is what the landing grade is scored on.
-      if (inAtm) passes.push({ peakHeat: passPeak, staged: s.staged });
+      if (inAtm) passes.push({ peakHeat: passPeak, heatLoad: s.heatLoad - passLoadStart, peakRate: passRate, staged: s.staged });
       return {
         landed: true,
         passes,
         touchdownSpeed: Math.abs(vr),
         touchdownTotalSpeed: Math.hypot(s.vx, s.vy),
         overheatTime: s.overheatTime || 0,
+        heatLoad: s.heatLoad,
         chuteOpen: s.chuteOpen,
         chuteShredded,
         maxSpeed,
@@ -276,10 +296,10 @@ function simulateDescent(world, cfg, startAlt, periapsisAlt, stageAfter = 0) {
     if (!inside && inAtm) {
       // Left the atmosphere — the pass is over.
       inAtm = false;
-      passes.push({ peakHeat: passPeak, staged: s.staged });
+      passes.push({ peakHeat: passPeak, heatLoad: s.heatLoad - passLoadStart, peakRate: passRate, staged: s.staged });
       // Stage at the apoapsis after the last braking pass. One-way, per §2.3.1.
       if (!s.staged && passes.length >= stageAfter) s.staged = true;
-      if (passes.length > 25) return { landed: false, why: 'did not converge', passes };
+      if (passes.length > (cfg.maxPasses || 25)) return { landed: false, why: 'did not converge', passes };
     }
 
     // Apoapsis crossing outside the air: if the new apoapsis is inside the atmosphere the
@@ -342,10 +362,23 @@ function buildConfig(baseline, params, overrides = {}) {
     );
   }
 
+  // One reference orbit sets every time constant below, so the same code is honest on an
+  // 800 m rock and on a 300 km moon.
+  const refAlt = baseline.bands && baseline.bands.length
+    ? (baseline.bands[0].altitude_min_m + baseline.bands[0].altitude_max_m) / 2 : world.atmTop * 2;
+  const refR = world.R + refAlt;
+  const refPeriod = 2 * Math.PI * refR / Math.sqrt(world.mu / refR);
+
   return {
     world,
     inferred,
     cfg: {
+      // ~2000 steps per orbit in vacuum, and an atmospheric step fine enough to resolve
+      // the pass; both floor at the original constants so small worlds are unchanged.
+      dtVac: Math.max(DT_VAC_REF, refPeriod / 2000),
+      dtAtm: Math.max(DT_ATM_REF, refPeriod / 40000),
+      maxDescentTime: Math.max(3000, refPeriod * 60),
+      maxAscentTime: Math.max(400, refPeriod * 3),
       dryMass,
       fuel,
       cargoMass: overrides.cargoMass ?? 0,
