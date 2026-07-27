@@ -216,12 +216,29 @@ of the worlds.
 
 With both swept, two of the eight design targets turn out to be the scarce ones:
 
-| target | satisfied by |
-|---|---|
-| `unstaged_pass_survivable` | 15.4% |
-| `fuel_margin_sane` | 16.2% |
-| `difficulty_rises_with_band` | 31.8% |
-| `bands_reachable` | 33.8% |
+| target | satisfied by | stable across rounds? |
+|---|---|---|
+| `unstaged_pass_survivable` | 15.4% | yes — 15.4 / 13.9 / 15.4 |
+| `fuel_margin_sane` | 16.2% | roughly — 15.3 / 17.9 / 18.5 |
+| `difficulty_rises_with_band` | 31.8% | yes — 32.1 / 31.8 / 31.8 |
+| `bands_reachable` | 33.8% | **no** — 79.9 / 67.5 / 59.3 |
+
+That last column is a correction. These rates were first written down as though they were
+properties of the design. They are not all the same kind of number. Re-flying the whole grid
+against each revision round's own params and catalog — the same three rounds of the same run —
+moves **73% of cells' scores**, and the twenty best cells have **zero overlap** between round 0
+and round 1. Every round still reports "best 7/8"; they are different sevens.
+
+The split is legible once seen. Targets that read only the world (`unstaged`, `skimming_cools`,
+`difficulty_rises`) barely move. Targets that read the ship or the hold swing hard, because the
+Designer's catalog revisions move the full-hold mass and the Balancer's revisions move the
+flight params — `full_hold_lands_soft` goes 93.5% → 54.0%, `greed_costs_something` 44.8% → 84.0%.
+
+**What follows:** a sweep result is a statement about *a world grid crossed with one particular
+catalog and params*, not about the design. Quote the world-only rates freely; quote the others
+only alongside which round produced them. And a "best world" from the exploration is not a
+finding until it survives being re-scored against something the crew did not author on the
+same night.
 
 `fuel_margin_sane` is bounded **above as well as below** (spare fuel between 8% and 60%),
 which is the design correctly refusing a ship with nothing to decide. It is also why more

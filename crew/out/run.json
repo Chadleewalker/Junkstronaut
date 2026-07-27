@@ -1,8 +1,8 @@
 {
   "crew": "junkstronaut-tuning-crew",
   "mode": "stub",
-  "finished_at": "2026-07-27T21:54:41.771Z",
-  "duration_s": 0.2,
+  "finished_at": "2026-07-27T22:22:59.011Z",
+  "duration_s": 0.1,
   "design_document": "Junkstronaut GDD.txt",
   "models": [
     "claude-opus-5"

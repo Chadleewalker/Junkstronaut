@@ -9,6 +9,13 @@
 //      question a single config can never answer: not "is this config good" but "where in
 //      parameter space is there a good config at all".
 //
+// The exploration is recomputed every revision round, and it has to be. Re-flying the grid
+// against each round's own params and catalog moves 73% of cells' scores, and the top twenty
+// share not one cell between round 0 and round 1 — every round reports "best 7/8" and they
+// are different sevens. The grid overrides the planet and the ship but inherits the ablation
+// curve, the landing rules and the catalog's full-hold mass, so a Designer revision moves
+// every target that reads a hold. Caching this across rounds was measured and abandoned.
+//
 // Both are deterministic. No model runs here; the Playtester agent reads the results.
 
 const sim = require('./sim');
