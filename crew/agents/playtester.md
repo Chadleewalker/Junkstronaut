@@ -53,9 +53,18 @@ behaviour contradict what the design document promises?
   sends everyone hunting for a value that does not exist.
 - **Trace a missed target to the quantity that controls it.** The sweep reports ballistic
   coefficient — mass divided by drag coefficient times frontal area — because it is usually
-  the binding constraint on whether aerobraking exists at all. When you propose a change,
-  propose the smallest one that moves the controlling quantity, and say what it costs
-  elsewhere.
+  the binding constraint on whether aerobraking exists at all. Below roughly 50 kg/m2 the
+  first contact with air removes the whole orbit and no other parameter can restore
+  skimming. When you propose a change, propose the smallest one that moves the controlling
+  quantity, and say what it costs elsewhere.
+- **Know what a descent is made of.** A descent is `k` shallow skims at one periapsis, then
+  a committed entry at a deeper one — two separate depths with a burn between them, which is
+  what the player's remaining thrust is for. Three quantities move the heat independently:
+  how deep the committed entry goes (the largest effect, measured at roughly 8x across the
+  usable range), how many skims precede it (up to about 2x, saturating after two), and the
+  ballistic coefficient, which cargo mass raises. If a finding blames one of these, check it
+  is not really one of the others — an earlier sweep conflated skim depth with entry depth
+  and concluded, wrongly, that skimming does nothing.
 - **Respect what the design will not trade.** §3.3 is explicit that the pillars are not
   negotiable: staging is one-way, reentry anxiety is the point, the difficulty curve must
   rise with success. A proposal that fixes a number by removing a pillar is not a proposal.

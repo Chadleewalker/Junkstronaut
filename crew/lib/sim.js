@@ -251,7 +251,12 @@ function simulateDescent(world, cfg, startAlt, periapsisAlt, stageAfter = 0, opt
   const entryRp = world.R + (opts.entryPeriapsis === undefined ? periapsisAlt : opts.entryPeriapsis);
 
   const ra = world.R + startAlt;
-  const rp = world.R + periapsisAlt;
+  // A zero-skim descent commits straight away, so it starts on the entry trajectory rather
+  // than the braking one. Without this the ship — which begins AT apoapsis with no radial
+  // velocity — cannot trigger its own apoapsis detector until a full orbit has passed, so
+  // the commit burn fired one orbit late and "1 skim" measured identically to "0 skims".
+  const rp = world.R + (maxSkims === 0 ? (opts.entryPeriapsis === undefined
+    ? periapsisAlt : opts.entryPeriapsis) : periapsisAlt);
   const v = velocityForPeriapsis(world, ra, rp);
 
   const s = {
@@ -269,7 +274,8 @@ function simulateDescent(world, cfg, startAlt, periapsisAlt, stageAfter = 0, opt
   let maxSpeed = 0;
   let prevVr = 0;
   let chuteShredded = false;
-  let committed = maxSkims === Infinity;   // unlimited skims = never commit, the old behaviour
+  // Infinity = never commit (the old single-depth behaviour); 0 = already committed above.
+  let committed = maxSkims === Infinity || maxSkims === 0;
   let commitDv = 0;
 
   while (s.t < cfg.maxDescentTime) {
@@ -483,7 +489,14 @@ function ablationByPassCount(scan) {
 // peak heat of that pass. The peak heats are measured; the rule converting them is theirs.
 function ablationFor(passes, params, band) {
   const a = params.ablation;
-  const toll = a.fixed_toll_per_pass_pct_by_band[band];
+  // The toll is per heat cycle and escalates (cycle_toll_base_pct * cycle_toll_growth^i).
+  // This helper charges every pass at the FIRST cycle's rate, which is a floor rather than
+  // the real cost — it exists for the pass-count scan, which predates the skim model and is
+  // kept only so the older descent tables still render. The skim study is the measurement
+  // that matters. The fallback covers params written against the earlier contract.
+  const toll = a.cycle_toll_base_pct
+    ?? (a.fixed_toll_per_pass_pct_by_band ? a.fixed_toll_per_pass_pct_by_band[band] : 0)
+    ?? 0;
   let total = 0;
   const perPass = passes.map((p) => {
     const cost = toll + a.heat_cost_coefficient * Math.pow(p.peakHeat, a.heat_cost_exponent);

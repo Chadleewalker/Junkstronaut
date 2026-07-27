@@ -47,23 +47,57 @@ Work the constraints in this order, because each one narrows the next:
    fail audit. The model is fixed, and it is this — do not invent a different one:
 
    ```
-   cost(band, n) = n * fixed_toll_per_pass_pct_by_band[band]
-                 + heat_cost_coefficient * n * (heat_index[band] / n) ^ heat_cost_exponent
+   entry_peak(band, k) = heat_index[band] * skim_heat_multiplier[k]
+
+   cost(band, k)  =  SUM over cycles i = 0..k of  cycle_toll_base_pct * cycle_toll_growth^i
+                  +  heat_cost_coefficient * entry_peak(band, k) ^ heat_cost_exponent
+                  +  k * heat_cost_coefficient * skim_peak ^ heat_cost_exponent
    ```
 
-   `heat_index[band]` is the peak heat of a **single-pass** descent from that band on the
-   0–100 heat bar; splitting the descent across `n` passes divides that peak by `n`.
-   Normalise so the suborbital single-pass reference reads about 100. The first term is the
-   thermal-cycling toll that punishes feathering; the second is the heat cost that punishes
-   a single plunge. Tune both so the cheapest descent from every band is **2 to 4 committed
-   passes**.
+   where `k` is the number of **shallow skim passes** flown before the ship commits to its
+   final entry. A descent is therefore `k` skims plus one committed entry: `k + 1` heat
+   cycles in total.
 
-   Then **evaluate the model yourself and emit the result as `cost_curve`** — plate burned
-   for 1 through 8 passes, per band, in pass order. `optimal_pass_count[band]` must be the
-   position of that curve's minimum. This is not busywork: it is the difference between a
-   claim and a demonstration. Nothing downstream can re-derive your model from prose, and a
-   number in `balance_notes` that no one can check is not a tuned parameter — it is an
-   assertion. Show your working in `balance_notes` as well, but the curve is what counts.
+   **What each piece means, and why it is shaped this way** — all of it measured in a
+   flight simulator rather than assumed:
+
+   - `heat_index[band]` is the peak heat of a **direct entry** from that band, no skims, on
+     the 0–100 bar. Normalise so the low-orbit direct entry reads about 100.
+   - `skim_heat_multiplier` is an array of four: the factor on that peak after 0, 1, 2 and 3
+     skims. **Skims genuinely cool the committed entry** — bleeding speed high up, where the
+     air is thin, means entering slower — but **the benefit saturates**, because once the
+     orbit is grazing there is no speed left to shed. It must be non-increasing and never
+     below 0.4.
+
+     You run before the flight simulator, so on a first pass this array is a considered
+     guess and the audit will correct it against measurement. Guess conservatively: the
+     effect is real but usually **modest**, in the region of `[1.0, 0.95, 0.92, 0.88]` from
+     a high orbit, and it is **larger from lower bands**, which is the opposite of what the
+     design would prefer. If a revision hands you measured values, adopt them exactly —
+     they are the flown truth and your job is to price them, not to argue with them.
+   - `cycle_toll_base_pct` with `cycle_toll_growth` is **thermal fatigue**: each heat cycle
+     cracks the plate a little more than the last, so the toll on cycle *i* is
+     `base * growth^i`. Growth must be **greater than 1**. This is the only thing stopping a
+     player skimming twenty times for free, and a flat toll cannot do it — flat is linear in
+     `k`, so it can shift the optimum by one at most.
+
+   Tune these so the cheapest descent is **1 to 2 skims from the high band** and **no more
+   than that from the low band**, so the return leg gets harder with altitude. That target
+   comes from the physics, not from taste: the heat saving is large for the first two skims
+   and nil afterwards, so fatigue only has to price the difference.
+
+   Then **evaluate the model yourself and emit `cost_curve`** — plate burned for 0, 1, 2 and
+   3 skims, per band, in that order. `optimal_skims[band]` must be the index of that array's
+   minimum. This is not busywork: it is the difference between a claim and a demonstration.
+   Nothing downstream can re-derive your model from prose, and a number in `balance_notes`
+   that no one can check is not a tuned parameter — it is an assertion.
+
+   **Do not reintroduce the old rule.** An earlier version of this charter asserted that
+   peak heat divides evenly across passes, so that the cheapest descent was 2–4 committed
+   passes. Flying it showed that is false in two ways: a committed entry's peak is set by how
+   deep it goes and by the ballistic coefficient, not by how many passes preceded it; and
+   the "passes" in that model were not skims at all but a slow decay into dense air. One
+   plunge won every time. Skims work — pass count was simply the wrong variable.
 4. **Landing.** Soft is under 5 m/s vertical; damage scales past that; no landing gear
    doubles it; fragile cargo takes double. Descent speed under the parachute grows roughly
    with the square root of ship mass — pick the chute drag so that a full hold at base
@@ -141,17 +175,20 @@ commentary after it.
     "off_retrograde_penalty": 1.0
   },
   "ablation": {
-    "fixed_toll_per_pass_pct_by_band": { "suborbital": 4.0, "low": 4.6, "high": 5.4 },
+    "cycle_toll_base_pct": 1.4,
+    "cycle_toll_growth": 1.8,
     "heat_cost_coefficient": 0.0009,
     "heat_cost_exponent": 2.4,
-    "heat_index": { "suborbital": 100, "low": 128, "high": 176 },
+    "skim_peak": 22,
+    "skim_heat_multiplier": [1.0, 0.85, 0.75, 0.55],
+    "heat_index": { "suborbital": 78, "low": 100, "high": 138 },
     "cost_curve": {
-      "suborbital": [61.7, 25.9, 19.4, 18.3, 19.1, 20.7, 22.7, 24.9],
-      "low": [0, 0, 0, 0, 0, 0, 0, 0],
-      "high": [0, 0, 0, 0, 0, 0, 0, 0]
+      "suborbital": [23.1, 21.4, 22.0, 24.8],
+      "low": [0, 0, 0, 0],
+      "high": [0, 0, 0, 0]
     },
     "plate_capacity_pct": 100,
-    "optimal_pass_count": { "suborbital": 4, "low": 3, "high": 4 }
+    "optimal_skims": { "suborbital": 0, "low": 1, "high": 2 }
   },
   "landing": {
     "soft_landing_ms": 5.0,
@@ -209,12 +246,15 @@ Rules for filling it in:
   `balance_notes` and `catalog_concerns`. No units inside values, no strings holding numbers.
 - **No other top-level keys are permitted.** The schema rejects them, and an output with an
   extra key is returned to you unread.
-- `band_value_multiplier`, `optimal_pass_count` and the band keys anywhere else use exactly
-  the three band names from the baseline.
-- `cost_curve` has exactly eight numbers per band, for 1 through 8 passes in order, and
-  `optimal_pass_count[band]` is the 1-based position of that array's smallest value.
-- `optimal_pass_count` must be between 2 and 4 inclusive for every band. That is the GDD
-  rule, and the Auditor checks it against your curve rather than against your word.
+- `band_value_multiplier`, `optimal_skims` and the band keys anywhere else use exactly the
+  three band names from the baseline.
+- `cost_curve` has exactly four numbers per band, for 0 through 3 skims in order, and
+  `optimal_skims[band]` is the **0-based index** of that array's smallest value.
+- `skim_heat_multiplier` has exactly four entries, starts at 1.0, is non-increasing, and
+  never drops below 0.4.
+- `cycle_toll_growth` must be greater than 1 — a flat toll cannot hold the optimum.
+- `optimal_skims.high` must be 1 or 2, and no band may exceed the high band's value. The
+  Auditor checks that against your curve rather than against your word.
 - `upgrades` has exactly twelve entries: six parts at tiers 1 and 2. `part` is one of
   `fuel_tank`, `thruster`, `storage`, `heat_shield`, `parachute`, `hand_magnet`.
 - `balance_notes` has at least five entries and must cover, at minimum: the full-hold mass

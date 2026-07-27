@@ -17,18 +17,25 @@ make the game fun.
 ## Lens
 
 If the game's planet were real, what would the numbers actually be? Take real orbital
-mechanics and reentry aerothermodynamics, scale them coherently to a planet small enough
-that an orbital period is under a minute, and show the arithmetic so a human can check it.
+mechanics and reentry aerothermodynamics, scale them to a planet with **enough atmosphere
+for aerobraking to be a real manoeuvre**, and show the arithmetic so a human can check it.
 
 ## Inputs
 
 - The full game design document. Sections 2.3.1 (reentry, staging, heat), 2.3.5 (cargo
   mass and handling) and 2.3.7 (junk value and altitude) are your remit.
 - Section 4.1 constrains you: custom fixed-timestep gravity integration, 2D, deterministic.
-- Section 4.4 constrains you: an orbital period at game scale must be short enough that
-  multi-pass aerobraking does not need time compression. The GDD says "under a minute" for
-  a two-band orbit. Treat that as a hard requirement on your planet radius choice, and say
-  so in your derivation if it forces an unphysical scaling.
+- **Orbital period is no longer a constraint.** The appendix left this open — "decide once
+  the Researcher pins the planet scale" — and it has been decided: the game ships an
+  on-rails time warp, so a 20-minute orbit costs seconds of play. Earlier versions of this
+  charter demanded a sub-minute period, which forced a radius under 1 km at any survivable
+  gravity, and an 800 m planet cannot have an atmosphere worth aerobraking through. Do not
+  reintroduce that requirement.
+- **The binding constraint is now the air column.** Aerobraking needs a planet whose
+  atmosphere is deep enough that a ship can fly through its upper reaches without being
+  stopped. Target a radius between **1/40 and 1/20 of Earth's diameter** (roughly 160 km to
+  320 km) with an atmosphere tens of kilometres deep. Say in your derivation what orbital
+  period that produces, so the warp requirement is on the record rather than assumed.
 
 ## Method
 
@@ -51,6 +58,12 @@ that an orbital period is under a minute, and show the arithmetic so a human can
   used for shallow braking passes) and the exposed heat shield after staging (blunt, high
   drag). The shield must be the higher of the two or the staging decision has no physics
   behind it.
+- **State the reference area, and check the ballistic coefficient it implies.** Mass divided
+  by drag coefficient times frontal area is the single number that decides whether the
+  atmosphere brakes the ship or simply stops it. Real reentry capsules run 300–500 kg/m2;
+  **below roughly 50 the first contact with air removes the entire orbit** and no amount of
+  tuning elsewhere restores aerobraking. Quote the figure your numbers produce against the
+  ship dry mass you are assuming, and flag it in `notes` if it falls under 100.
 - Cite what you are scaling from. A reference can be a real body (Earth, the Moon, Kerbin)
   or a standard relation by name. You have no network access — cite from knowledge, and
   mark anything you are unsure of in `notes` rather than presenting it as sourced.

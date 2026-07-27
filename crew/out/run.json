@@ -1,7 +1,7 @@
 {
   "crew": "junkstronaut-tuning-crew",
   "mode": "stub",
-  "finished_at": "2026-07-27T02:09:47.981Z",
+  "finished_at": "2026-07-27T05:46:08.536Z",
   "duration_s": 0,
   "design_document": "Junkstronaut GDD.txt",
   "models": [
@@ -24,7 +24,7 @@
     {
       "name": "playtester",
       "verdict": "targets_missed",
-      "findings": 7
+      "findings": 8
     },
     {
       "name": "spec-auditor",
@@ -34,14 +34,12 @@
   ],
   "audit": {
     "verdict": "fail",
-    "checks_total": 16,
-    "checks_failed": 2,
+    "checks_total": 18,
+    "checks_failed": 1,
     "observations": 8
   },
   "catalog_concerns": [
-    "The catalog's revision_notes size the rescale against 82.5 kg per slot, but that figure counts each piece once. Weighted by spawn_weight - which is how a player actually meets the population, and how the sweep computes a hold - the shipping slice is 101.13 kg per slot (suborbital 67.9, low 126.3). A 6-slot hold is therefore 606.8 kg, not the ~495 kg the notes predict, which is why full hold comes out at 2.21x dry mass instead of the 1.99x the Designer was aiming for. Nothing here is wrong enough to block the audit, but the doubling rule is being satisfied at the top of its tolerance rather than in the middle of it, and the arithmetic the catalog reasons with should probably be the spawn-weighted one.",
-    "satellite_bus_frame is the single largest driver of that gap: 403 kg at 2 crushed slots is 202 kg per slot carried at spawn_weight 9, the heaviest per-slot piece in either shipping band and roughly 2.5x the 82.5 kg/slot the rescale targeted. reaction_wheel_housing (312 kg, weight 11) and thruster_quad_cluster (357.5 kg, weight 8) compound it. If the Designer wants full hold nearer 2.0x without touching the ship, trimming the low band's three heavy non-fragile mediums is a smaller and more legible change than another uniform factor - and unlike a uniform factor it would not force the whole catalog to be re-priced again.",
-    "Not a defect, recorded because it constrains me and the Coder rather than the Designer: at these masses one tethered low-band medium (403 kg) against a 45 kg suit makes the astronaut effectively immovable, so suit mass and jetpack thrust have to rise together with the rescale. The Designer already declared this consequence; I am confirming from the pricing side that it is real and that it is on my side of the fence to fix, not theirs."
+    "dense_avionics_core, iridium_battery_stack and gold_foil_bus_module, property mass_kg: the high band's hand-tetherable mediums plateau at 980-1000 kg, so a legal two-tether high-band load is 2000 kg and base-tier EVA acceleration falls to 280/2110 = 0.13 m/s^2 — below the 'noticeably heavier but still controllable' target the charter sets, and half the 0.25 m/s^2 the low band gives. The Debris Designer already routed this to the Jetpack upgrade as the counterweight, and I agree that is the right lever, but Jetpack is not among the shipping slice's six upgrade parts, so no tier of it exists for me to price. This does not bind the slice (the high band is deferred with it) and I have balanced against the catalog as it stands; flagging it so the finding is on record before the high band comes online."
   ],
   "artifacts": [
     "params/baseline.json",

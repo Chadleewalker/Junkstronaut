@@ -11,7 +11,7 @@
 // therefore carry a decimal point even when it is a whole number. Only genuine counts stay
 // integers, identified by their key.
 const COUNT_KEY = /(slots|tier|count|weight|passes)/;
-const COUNT_PARENT = new Set(['optimal_pass_count']);
+const COUNT_PARENT = new Set(['optimal_pass_count', 'optimal_skims']);
 
 function isCount(key, parentKey) {
   if (parentKey && COUNT_PARENT.has(parentKey)) return true;

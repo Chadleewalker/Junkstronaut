@@ -40,15 +40,30 @@ Rules from section 2.3 that the params must satisfy:
 - **Full hold roughly doubles ship mass** at base storage. Compute it: base slots times a
   representative suborbital-and-low piece mass, against `dry_mass_kg`. "Roughly" means
   within about 25% of doubling; outside that, fail and say which way.
-- **Ablation optimum is 2 to 4 passes** from every band. You are given the Balancer's own
-  `cost_curve` — plate burned for 1 through 8 passes — so check the curve, not the claim.
-  Three things must all hold: the position of each curve's minimum is between 2 and 4; it
-  equals the matching `optimal_pass_count` entry; and the curve is what the stated model
-  actually produces. Recompute at least two points per band from
-  `n * fixed_toll_per_pass_pct_by_band[band] + heat_cost_coefficient * n *
-  (heat_index[band] / n) ^ heat_cost_exponent` and confirm they match the array to within
-  a percent. A curve that disagrees with its own coefficients fails this check even if its
-  minimum is in range — the game will run the model, not the array.
+- **The cheapest descent is 1 to 2 skims from the high band.** You are given the Balancer's
+  own `cost_curve` — plate burned for 0, 1, 2 and 3 skims — so check the curve, not the
+  claim. Four things must all hold: the index of the high band's minimum is 1 or 2; no
+  band's optimum exceeds the high band's, so the return leg gets harder with altitude; each
+  minimum equals the matching `optimal_skims` entry; and the curve is what the stated model
+  actually produces. Recompute at least two points per band from the model in the schema's
+  `ablation` description and confirm they match the array to within a percent. A curve that
+  disagrees with its own coefficients fails this check even if its minimum is in range —
+  the game will run the model, not the array.
+- **The claimed skim multiplier matches what was flown.** The Balancer runs before the
+  simulator, so `skim_heat_multiplier` is necessarily a guess on the first pass; the
+  measured results give you `skims.<band>.skim_heat_multiplier_measured` for the same
+  quantity, taken with the entry depth held fixed so only the skim count varies. Compare
+  them entry by entry for the high band. More than 0.10 apart at any index fails this
+  check, and the fix belongs to the Balancer: it should adopt the measured values. This is
+  the single most important check in the audit, because the entire skim economy is priced
+  off that array — if it is wrong, every cost in `cost_curve` is wrong with it, however
+  faithfully the curve reproduces its own coefficients.
+- **Skimming is priced as cooling the entry, and thermal fatigue is what bounds it.**
+  `skim_heat_multiplier` must start at 1.0, be non-increasing, and flatten out by its last
+  two entries — the benefit saturates once the orbit is grazing, and a curve that keeps
+  falling is claiming a physics that was measured not to exist. `cycle_toll_growth` must
+  exceed 1, because a flat toll is linear in skim count and cannot stop a player skimming
+  indefinitely. If either fails, say which, because they fail for opposite reasons.
 - **Parachute descent speed at full hold is under the soft-landing threshold**, and near
   enough to it that the Parachute upgrade is a real purchase. Under 5 m/s but above about
   3.5 m/s.

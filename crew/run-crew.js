@@ -63,7 +63,10 @@ Junkstronaut tuning crew — five agents that produce the game's config file.
   node run-crew.js --gdd <file>   point at a different design document
   node run-crew.js --out <dir>    write artifacts somewhere else (default: crew/out)
   node run-crew.js --reuse a,b    replay these agents from stubs, run the rest live
-                                  (e.g. --reuse researcher, while iterating downstream)
+                                  (e.g. --reuse researcher, while iterating downstream).
+                                  Names are labels, so revisions are addressable too:
+                                  --reuse researcher,economy-balancer.rev1 — which is how
+                                  you resume a run that died partway through.
 
 Environment:
   JUNK_MODEL          model alias for the agents (default: opus)
@@ -186,9 +189,18 @@ function main() {
       inputs,
       schema: schema(schemaName),
       logDir,
-      // --reuse replays named agents from stubs while the rest run live. It exists so that
-      // iterating on a downstream charter does not re-pay for the Researcher every time.
-      mode: args.reuse.includes(name) ? 'stub' : args.mode,
+      // --reuse replays named agents from stubs while the rest run live, so iterating on a
+      // downstream charter does not re-pay for the Researcher every time.
+      //
+      // It matches the LABEL, which is the thing a fixture is actually filed under — so
+      // `--reuse researcher` replays the Researcher, and `--reuse economy-balancer.rev1`
+      // replays that one revision and nothing else. Matching the charter name instead is
+      // what broke this before: `--reuse debris-designer` sent every revision hunting for
+      // its own fixture, found none, and killed the run three attempts later. An exact
+      // label cannot make that mistake, because a revision's label is a different string
+      // from the first pass's — which is also what makes resuming an interrupted run
+      // possible at all: name the calls that already happened, live the ones that did not.
+      mode: args.reuse.includes(label || name) ? 'stub' : args.mode,
       stubDir,
       log,
     });
@@ -264,7 +276,7 @@ function main() {
     const balance = track(call('economy-balancer', balanceInputs, 'game-params', `economy-balancer${suffix}`));
     params = balance.object;
     log(`     ok — ${params.upgrades.length} upgrades, ` +
-        `optimal passes ${JSON.stringify(params.ablation.optimal_pass_count)}`);
+        `optimal skims ${JSON.stringify(params.ablation.optimal_skims)}`);
     if ((params.catalog_concerns || []).length) {
       log(`     raised ${params.catalog_concerns.length} catalog concern(s) for the Designer`);
     }

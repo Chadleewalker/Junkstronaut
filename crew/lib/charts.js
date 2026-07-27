@@ -86,10 +86,15 @@ function pieceValue(entry, params) {
 // GDD §2.3.1, as the Economy Balancer's charter states it and as the schema requires it to
 // be emitted:
 //
-//   cost(band, n) = n · toll[band] + coeff · n · (heat_index[band] / n) ^ exponent
+//   cost(band, k) = SUM(i=0..k) cycle_toll_base · growth^i
+//                 + coeff · (heat_index[band] · skim_heat_multiplier[k]) ^ exponent
+//                 + k · coeff · skim_peak ^ exponent
 //
-// The first term punishes feathering, the second punishes a single plunge, and with
-// exponent > 1 the sum is U-shaped. Where its floor sits is the whole design question.
+// for k shallow skims then one committed entry. Skims cool the entry, saturating after
+// about two; escalating thermal fatigue is what stops a player skimming indefinitely. An
+// earlier model divided peak heat by pass count instead, and flying it showed a committed
+// entry's peak is set by its own depth and by the ballistic coefficient, not by what came
+// before — so one plunge always won and the U-curve never existed.
 //
 // This renderer does NOT reconstruct that model from the physics. An earlier version did,
 // guessed a different heat reference, and drew a curve whose minimum contradicted the
@@ -101,8 +106,15 @@ function pieceValue(entry, params) {
 // is exactly what the Auditor's ablation check exists to catch.
 function ablationClosedForm(params) {
   const a = params.ablation;
-  return (toll, heatIndex, passes) =>
-    passes * toll + a.heat_cost_coefficient * passes * Math.pow(heatIndex / passes, a.heat_cost_exponent);
+  const mult = a.skim_heat_multiplier || [1, 1, 1, 1];
+  return (heatIndex, skims) => {
+    const k = Math.max(0, Math.min(mult.length - 1, Math.round(skims)));
+    let tolls = 0;
+    for (let i = 0; i <= k; i++) tolls += a.cycle_toll_base_pct * Math.pow(a.cycle_toll_growth, i);
+    const entry = a.heat_cost_coefficient * Math.pow(heatIndex * mult[k], a.heat_cost_exponent);
+    const skimHeat = k * a.heat_cost_coefficient * Math.pow(a.skim_peak || 0, a.heat_cost_exponent);
+    return tolls + entry + skimHeat;
+  };
 }
 
 // ---------------------------------------------------------------- chart 1 · debris scatter
@@ -149,19 +161,23 @@ function chartDebris(catalog, params) {
 
 function chartAblation(params) {
   const W = 720, H = 420, M = { t: 20, r: 92, b: 52, l: 68 };
-  const passes = [1, 2, 3, 4, 5, 6, 7, 8];
+  const passes = [0, 1, 2, 3];   // skim counts, not pass counts
 
-  // The Balancer's own arithmetic, plotted as given.
+  // The Balancer's own arithmetic, plotted as given. The x axis is SKIM COUNT — how many
+  // shallow passes precede the committed entry — not a pass count. An earlier version of
+  // this chart plotted passes, from a model that assumed peak heat divides across them;
+  // flying it showed a committed entry's peak is set by its own depth and by the ballistic
+  // coefficient, so pass count was the wrong variable entirely.
   const series = BANDS.map((band) => {
     const curve = params.ablation.cost_curve[band];
-    const pts = passes.map((n) => ({ n, cost: curve[n - 1] }));
+    const pts = passes.map((n) => ({ n, cost: curve[n] })).filter((p) => p.cost !== undefined);
     const best = pts.reduce((a, b) => (b.cost < a.cost ? b : a));
-    return { band, pts, best, claimed: params.ablation.optimal_pass_count[band] };
+    return { band, pts, best, claimed: params.ablation.optimal_skims[band] };
   });
 
   const all = series.flatMap((s) => s.pts.map((p) => p.cost));
-  const yMax = Math.min(Math.max(...all), Math.min(...all) * 6); // clip the 1-pass spike
-  const x = linear(1, 8, M.l, W - M.r);
+  const yMax = Math.min(Math.max(...all), Math.min(...all) * 6); // clip a runaway endpoint
+  const x = linear(0, 3, M.l, W - M.r);
   const y = linear(0, yMax, H - M.b, M.t);
   const clamp = (v) => Math.max(M.t - 4, Math.min(H - M.b, y(v)));
 
@@ -172,9 +188,9 @@ function chartAblation(params) {
   const xticks = passes.map((n) =>
     `<text class="tick" x="${x(n).toFixed(1)}" y="${H - M.b + 20}" text-anchor="middle">${n}</text>`).join('');
 
-  // The GDD's target window: the cheapest descent should sit at 2–4 passes from every band.
-  const bandRect = `<rect class="target" x="${x(2)}" y="${M.t}" width="${x(4) - x(2)}" height="${H - M.b - M.t}"/>
-    <text class="target-label" x="${(x(2) + x(4)) / 2}" y="${M.t + 14}" text-anchor="middle">GDD target: 2–4 passes</text>`;
+  // The target window: the cheapest descent from the high band should sit at 1–2 skims.
+  const bandRect = `<rect class="target" x="${x(1)}" y="${M.t}" width="${x(2) - x(1)}" height="${H - M.b - M.t}"/>
+    <text class="target-label" x="${(x(1) + x(2)) / 2}" y="${M.t + 14}" text-anchor="middle">target: 1–2 skims</text>`;
 
   // Direct labels sit at each line's right-hand end, so two lines that finish close
   // together produce overlapping text. Push them apart to a minimum spacing, working from
@@ -195,7 +211,7 @@ function chartAblation(params) {
     const dots = s.pts.map((p) =>
       `<circle class="mark" cx="${x(p.n).toFixed(1)}" cy="${clamp(p.cost).toFixed(1)}" r="4.5"
         fill="var(--band-${s.band})" stroke="var(--surface-1)" stroke-width="2"
-        data-tip="${esc(`${BAND_LABEL[s.band]} · ${p.n} pass${p.n > 1 ? 'es' : ''} · ${fmt(p.cost, 1)}% plate burned`)}"/>`).join('');
+        data-tip="${esc(`${BAND_LABEL[s.band]} · ${p.n} skim${p.n === 1 ? '' : 's'} then commit · ${fmt(p.cost, 1)}% plate burned`)}"/>`).join('');
     const marker = `<circle cx="${x(s.best.n).toFixed(1)}" cy="${clamp(s.best.cost).toFixed(1)}" r="9"
         fill="none" stroke="var(--band-${s.band})" stroke-width="2.5"/>`;
     // A leader line when the label has been nudged off its series' actual end, so the text
@@ -211,22 +227,23 @@ function chartAblation(params) {
   }).join('');
 
   const verdicts = series.map((s) => {
-    const inWindow = s.best.n >= 2 && s.best.n <= 4;
+    // Only the high band has to land inside the window; lower bands should need no more.
+    const inWindow = s.band !== 'high' || (s.best.n >= 1 && s.best.n <= 2);
     const agrees = s.best.n === s.claimed;
     const note = !agrees
       ? `<span class="verdict bad">curve bottoms at ${s.best.n}, params claim ${s.claimed}</span>`
-      : `<span class="verdict ${inWindow ? 'good' : 'bad'}">${inWindow ? 'in the 2–4 window' : 'outside the 2–4 window'}</span>`;
+      : `<span class="verdict ${inWindow ? 'good' : 'bad'}">${inWindow ? 'as designed' : 'outside the 1–2 skim target'}</span>`;
     return `<li><span class="swatch" style="background:var(--band-${s.band})"></span>
-      <b>${BAND_LABEL[s.band]}</b> — cheapest at <b>${s.best.n} pass${s.best.n > 1 ? 'es' : ''}</b> ${note}</li>`;
+      <b>${BAND_LABEL[s.band]}</b> — cheapest at <b>${s.best.n} skim${s.best.n === 1 ? '' : 's'}</b> ${note}</li>`;
   }).join('');
 
   return `
-<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Heat shield plate burned against number of aerobraking passes, per band">
+<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="Heat shield plate burned against the number of shallow skims before the committed entry, per band">
   ${bandRect}${grid}
   <line class="axis" x1="${M.l}" x2="${W - M.r}" y1="${H - M.b}" y2="${H - M.b}"/>
   <line class="axis" x1="${M.l}" x2="${M.l}" y1="${M.t}" y2="${H - M.b}"/>
   ${lines}${xticks}
-  <text class="axis-label" x="${(M.l + W - M.r) / 2}" y="${H - 10}" text-anchor="middle">aerobraking passes</text>
+  <text class="axis-label" x="${(M.l + W - M.r) / 2}" y="${H - 10}" text-anchor="middle">shallow skims before the committed entry</text>
   <text class="axis-label" transform="translate(16,${(M.t + H - M.b) / 2}) rotate(-90)" text-anchor="middle">heat shield plate burned (%)</text>
 </svg>
 <ul class="findings">${verdicts}</ul>`;
@@ -298,32 +315,21 @@ function chartSurface(params) {
   // produces, rather than one the renderer invented.
   const idx = BANDS.map((b) => a.heat_index[b]);
   const hMin = Math.min(...idx) * 0.85, hMax = Math.max(...idx) * 1.15;
-  const NI = 16, NJ = 8;                       // heat steps, pass counts 1..8
+  const NI = 16, NJ = 4;                       // heat steps, skim counts 0..3
   const hAt = (i) => hMin + (hMax - hMin) * (i / (NI - 1));
 
-  // Toll is band-specific, so interpolate it across the same axis rather than picking one.
-  const knots = BANDS.map((b) => ({ h: a.heat_index[b], toll: a.fixed_toll_per_pass_pct_by_band[b] }))
-    .sort((p, q) => p.h - q.h);
-  const tollAt = (h) => {
-    if (h <= knots[0].h) return knots[0].toll;
-    if (h >= knots[knots.length - 1].h) return knots[knots.length - 1].toll;
-    for (let k = 0; k < knots.length - 1; k++) {
-      if (h <= knots[k + 1].h) {
-        const t = (h - knots[k].h) / ((knots[k + 1].h - knots[k].h) || 1);
-        return knots[k].toll + t * (knots[k + 1].toll - knots[k].toll);
-      }
-    }
-    return knots[knots.length - 1].toll;
-  };
+  // The toll is now per heat cycle and escalates, so it is one pair of numbers rather than
+  // a per-band value to interpolate. Cost of k skims then a committed entry:
+  //   sum of the k+1 cycle tolls, plus the heat cost of an entry cooled by skim_heat_multiplier.
   const closed = ablationClosedForm(params);
-  const cost = (h, n) => closed(tollAt(h), h, n);
+  const cost = (h, k) => closed(h, k);
 
   const z = [];
   let zMin = Infinity, zMax = -Infinity;
   for (let i = 0; i < NI; i++) {
     z.push([]);
     for (let j = 0; j < NJ; j++) {
-      const c = cost(hAt(i), j + 1);
+      const c = cost(hAt(i), j);
       z[i].push(c);
       if (c < zMin) zMin = c;
       if (c > zMax) zMax = c;
@@ -373,7 +379,7 @@ function chartSurface(params) {
   const floorDots = floor.filter((_, k) => k % 3 === 0).map((p) =>
     `<circle class="mark" cx="${px(p.i, p.j).toFixed(1)}" cy="${(py(p.i, p.j) - 3).toFixed(1)}" r="4.5"
       fill="var(--text-primary)" stroke="var(--surface-1)" stroke-width="2"
-      data-tip="${esc(`heat index ${fmt(p.h)} → cheapest at ${p.n} pass${p.n > 1 ? 'es' : ''} (${fmt(z[p.i][p.j], 1)}% plate)`)}"/>`).join('');
+      data-tip="${esc(`heat index ${fmt(p.h)} → cheapest at ${p.n} skim${p.n === 1 ? '' : 's'} (${fmt(z[p.i][p.j], 1)}% plate)`)}"/>`).join('');
 
   // Where each real band lands on the surface. The three can sit close together on the
   // heat axis, so the callout stems are staggered in length rather than all drawn at once
@@ -407,7 +413,7 @@ function chartSurface(params) {
   <text class="tick" x="${W - 152}" y="22" text-anchor="start">less plate burned</text>
   <text class="tick" x="${W - 20}" y="52" text-anchor="end">more</text>
   <text class="axis-label" x="150" y="${H - 34}" text-anchor="middle">single-pass heat index →</text>
-  <text class="axis-label" x="${W - 250}" y="${H - 12}" text-anchor="middle">← aerobraking passes</text>
+  <text class="axis-label" x="${W - 250}" y="${H - 12}" text-anchor="middle">← skims before commit</text>
 </svg>
 <p class="caption">The dark line is the valley floor — the cheapest pass count at every entry
 speed. It is the answer to the hardest question in §2.3.1, and it should stay inside 2–4
@@ -463,14 +469,26 @@ function claimedVsMeasured(verification, params) {
   const rows = [];
   const num = (n, dp = 1) => (Number.isFinite(n) ? n.toFixed(dp) : '—');
 
+  // Does skimming cool the committed entry, and by how much? This is the row the whole
+  // simulator exists for: the params claim a multiplier, the flights measure one.
   for (const band of BANDS) {
-    const d = verification.descents.find((x) => x.band === band && x.load === 'empty');
-    if (!d || !d.landed) continue;
+    // Each band is an object, not the flat series array this used to index. A descent is
+    // flown at more than one periapsis depth now, so the per-skim numbers live under
+    // by_entry_depth and the headline row is the deepest entry that flew — which is what
+    // skim_heat_multiplier_measured already holds. The old `st[2]` read undefined off the
+    // object instead of throwing, and `st.length < 3` never caught it because
+    // `undefined < 3` is false, so the miss surfaced as a crash in the artifact writer
+    // after the entire crew had finished running.
+    const st = verification.skims && verification.skims[band];
+    const measuredBySkims = (st && st.skim_heat_multiplier_measured) || [];
+    if (measuredBySkims.length < 3) continue;
+    const claimed = (params.ablation.skim_heat_multiplier || [])[2];
+    const measured = measuredBySkims[2];
     rows.push({
-      what: `Cheapest descent, ${BAND_LABEL[band].toLowerCase()}`,
-      claimed: `${params.ablation.optimal_pass_count[band]} passes`,
-      measured: `${d.cheapest_pass_count} pass${d.cheapest_pass_count > 1 ? 'es' : ''}`,
-      ok: d.cheapest_pass_count === params.ablation.optimal_pass_count[band],
+      what: `Entry heat after 2 skims, ${BAND_LABEL[band].toLowerCase()}`,
+      claimed: claimed === undefined ? 'not stated' : `${(claimed * 100).toFixed(0)}% of a direct entry`,
+      measured: `${(measured * 100).toFixed(0)}% of a direct entry`,
+      ok: claimed !== undefined && Math.abs(measured - claimed) <= 0.15,
     });
   }
 
@@ -537,13 +555,19 @@ function playtestCard(playtest, verification, exploration, params) {
     : '';
 
   const best = exploration.top && exploration.top[0];
+  // Only fields the exploration scorer actually measures belong in here. It reports four,
+  // and a cheapest pass count is not among them — that lives on the verification descents,
+  // and asking these rows for it rendered "cheapest descent undefined passes" into the
+  // shipped page. touchdown is null when no full hold landed, so it is stated only when flown.
+  const touchdown = best && best.measured.full_hold_touchdown_ms != null
+    ? `, full hold touching down at ${best.measured.full_hold_touchdown_ms} m/s`
+    : '';
   const bestLine = best
     ? `<p class="caption">Best world found: <b>${best.score}/${best.max_score}</b> targets —
        gravity ${best.surface_gravity_ms2} m/s2, air density ${best.sea_level_density_kgm3} kg/m3,
        scale height ${best.scale_height_m} m, frontal area ${best.reference_area_m2} m2,
        dry mass ${best.dry_mass_kg} kg (ballistic coefficient
-       ${best.measured.ballistic_coefficient_staged} kg/m2, cheapest descent
-       ${best.measured.cheapest_pass_count} passes).</p>`
+       ${best.measured.ballistic_coefficient_staged} kg/m2${touchdown}).</p>`
     : '';
 
   return `

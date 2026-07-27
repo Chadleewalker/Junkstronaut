@@ -5,12 +5,12 @@
 [resource]
 script = ExtResource("1_gameparams")
 flight = {
-	"dry_mass_kg": 500.0,
-	"fuel_capacity_kg": 300.0,
-	"thrust_n": 38400.0,
-	"fuel_burn_kgs": 28.0,
-	"rcs_thrust_n": 1700.0,
-	"rcs_fuel_burn_kgs": 1.2,
+	"dry_mass_kg": 1200.0,
+	"fuel_capacity_kg": 620.0,
+	"thrust_n": 16000.0,
+	"fuel_burn_kgs": 4.0,
+	"rcs_thrust_n": 800.0,
+	"rcs_fuel_burn_kgs": 0.2,
 	"rotation_rate_degs": 90.0
 }
 cargo = {
@@ -21,59 +21,51 @@ reentry = {
 	"heat_capacity": 100.0,
 	"heat_dissipation_s": 5.0,
 	"cargo_damage_interval_s": 3.0,
-	"unstaged_heat_multiplier": 1.6,
+	"unstaged_heat_multiplier": 3.0,
 	"off_retrograde_penalty": 1.0
 }
 ablation = {
-	"fixed_toll_per_pass_pct_by_band": {
-		"suborbital": 2.0,
-		"low": 2.3,
-		"high": 2.9
-	},
-	"heat_cost_coefficient": 0.00074,
-	"heat_cost_exponent": 2.2,
+	"cycle_toll_base_pct": 0.56,
+	"cycle_toll_growth": 1.8,
+	"heat_cost_coefficient": 0.00001,
+	"heat_cost_exponent": 3.0,
+	"skim_peak": 30.0,
+	"skim_heat_multiplier": [
+		1.0,
+		0.971,
+		0.944,
+		0.918
+	],
 	"heat_index": {
 		"suborbital": 100.0,
-		"low": 109.4,
-		"high": 127.2
+		"low": 126.6,
+		"high": 157.1
 	},
 	"cost_curve": {
 		"suborbital": [
-			20.59,
-			12.09,
-			10.97,
-			11.52,
-			12.69,
-			14.16,
-			15.8,
-			17.53
+			10.56,
+			10.99,
+			12.33,
+			15.19
 		],
 		"low": [
-			24.95,
-			14.46,
-			12.96,
-			13.49,
-			14.78,
-			16.44,
-			18.29,
-			20.27
+			20.85,
+			20.41,
+			20.99,
+			23.16
 		],
 		"high": [
-			34.46,
-			19.54,
-			17.14,
-			17.58,
-			19.07,
-			21.08,
-			23.35,
-			25.8
+			39.33,
+			37.33,
+			36.54,
+			37.45
 		]
 	},
 	"plate_capacity_pct": 100.0,
-	"optimal_pass_count": {
-		"suborbital": 3,
-		"low": 3,
-		"high": 3
+	"optimal_skims": {
+		"suborbital": 0,
+		"low": 1,
+		"high": 2
 	}
 }
 landing = {
@@ -81,39 +73,38 @@ landing = {
 	"damage_per_ms_over": 6.0,
 	"no_gear_multiplier": 2.0,
 	"fragile_multiplier": 2.0,
-	"parachute_drag_coefficient": 1.5,
-	"parachute_area_m2": 700.0,
-	"descent_speed_full_hold_ms": 4.59
+	"parachute_drag_coefficient": 1.8,
+	"descent_speed_full_hold_ms": 4.18
 }
 tow_fee = {
-	"free_radius_m": 100.0,
+	"free_radius_m": 1200.0,
 	"max_fee_fraction": 0.5,
 	"curve": "linear"
 }
 eva = {
-	"suit_mass_kg": 45.0,
-	"jetpack_thrust_n": 180.0,
-	"jetpack_fuel_kg": 6.0,
-	"jetpack_burn_kgs": 0.18,
+	"suit_mass_kg": 110.0,
+	"jetpack_thrust_n": 280.0,
+	"jetpack_fuel_kg": 28.0,
+	"jetpack_burn_kgs": 0.4,
 	"base_tether_slots": 2,
-	"magnet_hold_force_n": 450.0,
+	"magnet_hold_force_n": 900.0,
 	"magnet_range_screens": 0.125,
 	"latch_jerk_coefficient": 1.0,
-	"swing_jerk_coefficient": 2.0
+	"swing_jerk_coefficient": 1.0
 }
 economy = {
-	"launch_cost": 140.0,
+	"launch_cost": 100.0,
 	"replate_cost_per_pct": 2.0,
-	"repair_cost_per_pct": 4.0,
+	"repair_cost_per_pct": 5.0,
 	"band_value_multiplier": {
 		"suborbital": 1.0,
-		"low": 2.6,
-		"high": 6.0
+		"low": 2.4,
+		"high": 5.5
 	},
 	"size_class_base_value": {
-		"small": 60.0,
-		"medium": 130.0,
-		"oversized": 450.0
+		"small": 40.0,
+		"medium": 90.0,
+		"oversized": 320.0
 	},
 	"fragile_value_premium": 3.0
 }
@@ -123,145 +114,121 @@ upgrades = [
 		"tier": 1,
 		"cost": 400.0,
 		"effect": "fuel_capacity_kg",
-		"value": 415.0
+		"value": 800.0
 	},
 	{
 		"part": "fuel_tank",
 		"tier": 2,
-		"cost": 1300.0,
+		"cost": 1150.0,
 		"effect": "fuel_capacity_kg",
-		"value": 560.0
+		"value": 1000.0
 	},
 	{
 		"part": "thruster",
 		"tier": 1,
-		"cost": 450.0,
+		"cost": 360.0,
 		"effect": "thrust_n",
-		"value": 49400.0
+		"value": 20000.0
 	},
 	{
 		"part": "thruster",
 		"tier": 2,
-		"cost": 1450.0,
+		"cost": 1000.0,
 		"effect": "thrust_n",
-		"value": 63100.0
+		"value": 24000.0
 	},
 	{
 		"part": "storage",
 		"tier": 1,
 		"cost": 500.0,
 		"effect": "base_slots",
-		"value": 9.0
+		"value": 8.0
 	},
 	{
 		"part": "storage",
 		"tier": 2,
-		"cost": 1600.0,
+		"cost": 1400.0,
 		"effect": "base_slots",
-		"value": 12.0
+		"value": 10.0
 	},
 	{
 		"part": "heat_shield",
 		"tier": 1,
-		"cost": 550.0,
-		"effect": "plate_capacity_pct",
-		"value": 150.0
+		"cost": 440.0,
+		"effect": "heat_capacity",
+		"value": 135.0
 	},
 	{
 		"part": "heat_shield",
 		"tier": 2,
-		"cost": 1700.0,
-		"effect": "plate_capacity_pct",
-		"value": 210.0
+		"cost": 1300.0,
+		"effect": "heat_capacity",
+		"value": 175.0
 	},
 	{
 		"part": "parachute",
 		"tier": 1,
-		"cost": 420.0,
+		"cost": 320.0,
 		"effect": "parachute_drag_coefficient",
-		"value": 2.1
+		"value": 2.4
 	},
 	{
 		"part": "parachute",
 		"tier": 2,
-		"cost": 1350.0,
+		"cost": 900.0,
 		"effect": "parachute_drag_coefficient",
-		"value": 2.9
+		"value": 3.2
 	},
 	{
 		"part": "hand_magnet",
 		"tier": 1,
-		"cost": 380.0,
+		"cost": 280.0,
 		"effect": "magnet_range_screens",
 		"value": 0.1875
 	},
 	{
 		"part": "hand_magnet",
 		"tier": 2,
-		"cost": 1250.0,
+		"cost": 800.0,
 		"effect": "magnet_hold_force_n",
-		"value": 750.0
+		"value": 1500.0
 	}
 ]
 debris = [
+	{
+		"id": "scorched_hull_panel",
+		"display_name": "Scorched Hull Panel",
+		"band": "suborbital",
+		"size_class": "small",
+		"fragile": false,
+		"mass_kg": 140.0,
+		"spawn_weight": 20,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
+		"hand_tetherable": true
+	},
 	{
 		"id": "bent_truss_section",
 		"display_name": "Bent Truss Section",
 		"band": "suborbital",
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 221.0,
-		"spawn_weight": 8,
+		"mass_kg": 380.0,
+		"spawn_weight": 14,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
-		"hand_tetherable": true
-	},
-	{
-		"id": "scorched_hull_plate",
-		"display_name": "Scorched Hull Plate",
-		"band": "suborbital",
-		"size_class": "small",
-		"fragile": false,
-		"mass_kg": 78.0,
-		"spawn_weight": 15,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
 		"hand_tetherable": true
 	},
 	{
 		"id": "spent_booster_ring",
 		"display_name": "Spent Booster Ring",
 		"band": "suborbital",
-		"size_class": "small",
+		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 182.0,
-		"spawn_weight": 6,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
-		"hand_tetherable": true
-	},
-	{
-		"id": "tangled_wiring_loom",
-		"display_name": "Tangled Wiring Loom",
-		"band": "suborbital",
-		"size_class": "small",
-		"fragile": false,
-		"mass_kg": 42.25,
-		"spawn_weight": 13,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
-		"hand_tetherable": true
-	},
-	{
-		"id": "cracked_antenna_dish",
-		"display_name": "Cracked Antenna Dish",
-		"band": "suborbital",
-		"size_class": "small",
-		"fragile": true,
-		"mass_kg": 58.5,
-		"spawn_weight": 4,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
+		"mass_kg": 460.0,
+		"spawn_weight": 9,
+		"slots_crushed": 2,
+		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
@@ -270,8 +237,8 @@ debris = [
 		"band": "suborbital",
 		"size_class": "small",
 		"fragile": false,
-		"mass_kg": 26.0,
-		"spawn_weight": 10,
+		"mass_kg": 60.0,
+		"spawn_weight": 18,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
@@ -282,20 +249,32 @@ debris = [
 		"band": "suborbital",
 		"size_class": "small",
 		"fragile": false,
-		"mass_kg": 52.0,
-		"spawn_weight": 10,
+		"mass_kg": 110.0,
+		"spawn_weight": 16,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
 	},
 	{
-		"id": "camera_optics_pod",
-		"display_name": "Camera Optics Pod",
+		"id": "cracked_camera_dome",
+		"display_name": "Cracked Camera Dome",
 		"band": "suborbital",
 		"size_class": "small",
 		"fragile": true,
-		"mass_kg": 35.75,
-		"spawn_weight": 3,
+		"mass_kg": 95.0,
+		"spawn_weight": 5,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
+		"hand_tetherable": true
+	},
+	{
+		"id": "battered_antenna_whip",
+		"display_name": "Battered Antenna Whip",
+		"band": "suborbital",
+		"size_class": "small",
+		"fragile": true,
+		"mass_kg": 70.0,
+		"spawn_weight": 4,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
@@ -306,7 +285,7 @@ debris = [
 		"band": "suborbital",
 		"size_class": "oversized",
 		"fragile": false,
-		"mass_kg": 600.0,
+		"mass_kg": 1150.0,
 		"spawn_weight": 1,
 		"slots_crushed": 6,
 		"slots_uncrushed": 12,
@@ -318,20 +297,8 @@ debris = [
 		"band": "low",
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 403.0,
-		"spawn_weight": 9,
-		"slots_crushed": 2,
-		"slots_uncrushed": 4,
-		"hand_tetherable": true
-	},
-	{
-		"id": "reaction_wheel_housing",
-		"display_name": "Reaction Wheel Housing",
-		"band": "low",
-		"size_class": "medium",
-		"fragile": false,
-		"mass_kg": 312.0,
-		"spawn_weight": 11,
+		"mass_kg": 500.0,
+		"spawn_weight": 14,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
@@ -342,22 +309,34 @@ debris = [
 		"band": "low",
 		"size_class": "medium",
 		"fragile": true,
-		"mass_kg": 143.0,
+		"mass_kg": 500.0,
 		"spawn_weight": 5,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
-		"id": "fuel_tank_bladder",
-		"display_name": "Fuel Tank Bladder",
+		"id": "reaction_wheel_housing",
+		"display_name": "Reaction Wheel Housing",
 		"band": "low",
 		"size_class": "small",
 		"fragile": false,
-		"mass_kg": 117.0,
-		"spawn_weight": 12,
+		"mass_kg": 300.0,
+		"spawn_weight": 16,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
+		"hand_tetherable": true
+	},
+	{
+		"id": "propellant_tank_shell",
+		"display_name": "Propellant Tank Shell",
+		"band": "low",
+		"size_class": "medium",
+		"fragile": false,
+		"mass_kg": 450.0,
+		"spawn_weight": 11,
+		"slots_crushed": 2,
+		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
@@ -366,8 +345,20 @@ debris = [
 		"band": "low",
 		"size_class": "small",
 		"fragile": false,
-		"mass_kg": 169.0,
-		"spawn_weight": 9,
+		"mass_kg": 260.0,
+		"spawn_weight": 13,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
+		"hand_tetherable": true
+	},
+	{
+		"id": "parabolic_dish_section",
+		"display_name": "Parabolic Dish Section",
+		"band": "low",
+		"size_class": "small",
+		"fragile": true,
+		"mass_kg": 240.0,
+		"spawn_weight": 4,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
@@ -378,151 +369,115 @@ debris = [
 		"band": "low",
 		"size_class": "small",
 		"fragile": true,
-		"mass_kg": 71.5,
+		"mass_kg": 210.0,
 		"spawn_weight": 3,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
 	},
 	{
-		"id": "thruster_quad_cluster",
-		"display_name": "Thruster Quad Cluster",
-		"band": "low",
-		"size_class": "medium",
-		"fragile": false,
-		"mass_kg": 357.5,
-		"spawn_weight": 8,
-		"slots_crushed": 2,
-		"slots_uncrushed": 4,
-		"hand_tetherable": true
-	},
-	{
-		"id": "dish_reflector_petal",
-		"display_name": "Dish Reflector Petal",
-		"band": "low",
-		"size_class": "medium",
-		"fragile": true,
-		"mass_kg": 123.5,
-		"spawn_weight": 2,
-		"slots_crushed": 2,
-		"slots_uncrushed": 4,
-		"hand_tetherable": true
-	},
-	{
-		"id": "collapsed_boom_mast",
-		"display_name": "Collapsed Boom Mast",
+		"id": "tumbling_comsat_core",
+		"display_name": "Tumbling Comsat Core",
 		"band": "low",
 		"size_class": "oversized",
 		"fragile": false,
-		"mass_kg": 750.0,
+		"mass_kg": 2000.0,
 		"spawn_weight": 1,
 		"slots_crushed": 6,
 		"slots_uncrushed": 12,
 		"hand_tetherable": false
 	},
 	{
-		"id": "rtg_core_shell",
-		"display_name": "RTG Core Shell",
+		"id": "dense_avionics_core",
+		"display_name": "Dense Avionics Core",
 		"band": "high",
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 624.0,
-		"spawn_weight": 10,
+		"mass_kg": 1000.0,
+		"spawn_weight": 12,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
-		"id": "tungsten_ballast_slug",
-		"display_name": "Tungsten Ballast Slug",
-		"band": "high",
-		"size_class": "small",
-		"fragile": false,
-		"mass_kg": 320.0,
-		"spawn_weight": 9,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
-		"hand_tetherable": true
-	},
-	{
-		"id": "shattered_optics_mirror",
-		"display_name": "Shattered Optics Mirror",
+		"id": "shattered_solar_wing",
+		"display_name": "Shattered Solar Wing",
 		"band": "high",
 		"size_class": "medium",
 		"fragile": true,
-		"mass_kg": 286.0,
+		"mass_kg": 820.0,
 		"spawn_weight": 6,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
-		"id": "cryo_tank_segment",
-		"display_name": "Cryo Tank Segment",
+		"id": "iridium_battery_stack",
+		"display_name": "Iridium Battery Stack",
 		"band": "high",
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 507.0,
+		"mass_kg": 1000.0,
 		"spawn_weight": 10,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
-		"id": "ion_engine_gridset",
-		"display_name": "Ion Engine Gridset",
-		"band": "high",
-		"size_class": "small",
-		"fragile": true,
-		"mass_kg": 136.5,
-		"spawn_weight": 5,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
-		"hand_tetherable": true
-	},
-	{
-		"id": "hardened_avionics_core",
-		"display_name": "Hardened Avionics Core",
+		"id": "platinum_thruster_cluster",
+		"display_name": "Platinum Thruster Cluster",
 		"band": "high",
 		"size_class": "small",
 		"fragile": false,
-		"mass_kg": 290.0,
-		"spawn_weight": 10,
+		"mass_kg": 540.0,
+		"spawn_weight": 11,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
 	},
 	{
-		"id": "deep_space_dish_array",
-		"display_name": "Deep Space Dish Array",
+		"id": "optical_telescope_barrel",
+		"display_name": "Optical Telescope Barrel",
 		"band": "high",
 		"size_class": "medium",
 		"fragile": true,
-		"mass_kg": 377.0,
+		"mass_kg": 900.0,
 		"spawn_weight": 4,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
-		"id": "sensor_boom_assembly",
-		"display_name": "Sensor Boom Assembly",
+		"id": "cryo_instrument_housing",
+		"display_name": "Cryo Instrument Housing",
+		"band": "high",
+		"size_class": "small",
+		"fragile": true,
+		"mass_kg": 430.0,
+		"spawn_weight": 3,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
+		"hand_tetherable": true
+	},
+	{
+		"id": "gold_foil_bus_module",
+		"display_name": "Gold Foil Bus Module",
 		"band": "high",
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 442.0,
+		"mass_kg": 980.0,
 		"spawn_weight": 9,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
-		"id": "armstrongs_satellite",
-		"display_name": "Armstrong's Satellite",
+		"id": "mirrored_survey_array",
+		"display_name": "Mirrored Survey Array",
 		"band": "high",
 		"size_class": "oversized",
 		"fragile": true,
-		"mass_kg": 950.0,
+		"mass_kg": 2900.0,
 		"spawn_weight": 1,
 		"slots_crushed": 6,
 		"slots_uncrushed": 12,

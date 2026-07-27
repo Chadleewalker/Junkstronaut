@@ -12,6 +12,7 @@
 // Both are deterministic. No model runs here; the Playtester agent reads the results.
 
 const sim = require('./sim');
+const simDescent = sim.simulateDescent;
 
 const BANDS = ['suborbital', 'low', 'high'];
 const SLICE_BANDS = ['suborbital', 'low'];   // what actually ships this semester (§4.1)
@@ -41,6 +42,73 @@ function fullHoldMass(catalog, params) {
   }
   const perSlot = wSlots > 0 ? wMass / wSlots : 0;
   return { perSlot, fullHold: perSlot * slots };
+}
+
+// A descent is k shallow skims then a committed entry — two depths, with a burn between.
+// Scanning one shared depth conflates "how many skims" with "how deep the entry", which is
+// how an earlier version of this sweep concluded that skimming never cools an entry: both
+// effects moved together and cancelled. Here the skim altitude is held high and fixed, the
+// entry depth is scanned, and the skim count is varied independently.
+// HOLD THE ENTRY DEPTH FIXED. This is the third time the same confound has been made here,
+// each time in a new disguise, so it is worth stating as a rule: to measure what skimming
+// does, ONLY the skim count may vary. Letting the entry depth float and taking the best
+// descent at each skim count silently compares a shallow direct entry against a deep
+// skimmed one — two effects moving at once, cancelling into "skimming does nothing".
+//
+// The three earlier versions: one periapsis for the whole descent (skims were really a
+// decay); a per-band heat normalisation (every row scaled to itself); and this one, picking
+// the coolest entry available per skim count. All three produced confident, wrong flat lines.
+function skimStudy(world, cfg, startAlt, params, band, cargoMass) {
+  const skimAlt = world.atmTop * 0.87;          // high and thin: a real skim, not a decay
+  const entryDepths = [0, 0.25, 0.5].map((f) => f * world.atmTop);
+  const byDepth = [];
+
+  for (const entry of entryDepths) {
+    const series = [];
+    for (const skims of [0, 1, 2, 3]) {
+      let r;
+      try {
+        r = simDescent(world, { ...cfg, cargoMass }, startAlt, skimAlt, 0,
+          { skims, entryPeriapsis: entry });
+      } catch (e) { continue; }
+      if (!r.landed || !r.passes.length) continue;
+      const final = r.passes[r.passes.length - 1];
+      series.push({
+        skims,
+        entry_peak_rate: final.peakRate,
+        entry_peak_heat: Number(final.peakHeat.toFixed(1)),
+        skim_peak_heat: r.passes.length > 1
+          ? Number(Math.max(...r.passes.slice(0, -1).map((p) => p.peakHeat)).toFixed(1)) : 0,
+        touchdown_ms: Number(r.touchdownSpeed.toFixed(2)),
+        soft_landing: r.touchdownSpeed <= params.landing.soft_landing_ms,
+        commit_dv_ms: Number((r.commitDv || 0).toFixed(0)),
+        hours: Number((r.time / 3600).toFixed(2)),
+      });
+    }
+    // A series is only meaningful if the 0-skim baseline flew, since every ratio is against it.
+    if (series.length >= 2 && series[0].skims === 0) {
+      const direct = series[0].entry_peak_rate;
+      byDepth.push({
+        entry_depth_m: Number(entry.toFixed(0)),
+        series: series.map((s) => ({
+          ...s,
+          entry_peak_rate: Number(s.entry_peak_rate.toExponential(3)),
+          heat_vs_direct: Number((s.entry_peak_rate / direct).toFixed(3)),
+        })),
+      });
+    }
+  }
+  if (!byDepth.length) return null;
+
+  // The headline multiplier comes from the DEEPEST entry that flew — the committed plunge
+  // the design is trying to make survivable, and the case where skimming has the most to
+  // give. Shallower entries are reported alongside so the trend is visible.
+  const deepest = byDepth[0];
+  return {
+    measured_at_entry_depth_m: deepest.entry_depth_m,
+    skim_heat_multiplier_measured: deepest.series.map((s) => s.heat_vs_direct),
+    by_entry_depth: byDepth,
+  };
 }
 
 // ---------------------------------------------------------------- 1 · verification
@@ -107,6 +175,13 @@ function verificationSweep(baseline, params, catalog) {
     }
   }
 
+  // -- skims: does bleeding speed high up cool the committed entry, and where does it stop
+  const skims = {};
+  for (const band of BANDS) {
+    const st = skimStudy(world, cfg, bandAlt(baseline, band), params, band, 0);
+    if (st) skims[band] = st;
+  }
+
   // -- the unstaged braking pass the GDD's descent depends on
   const unstaged = [];
   for (const band of SLICE_BANDS) {
@@ -141,6 +216,7 @@ function verificationSweep(baseline, params, catalog) {
     },
     ascents,
     descents,
+    skims,
     unstaged_braking: unstaged,
   };
 }
@@ -169,18 +245,17 @@ function scoreWorld(baseline, params, catalog) {
   targets.bands_reachable = allReached && minMargin > 0.08;
   targets.fuel_margin_sane = allReached && minMargin > 0.08 && maxMargin < 0.6;
 
-  // 2. Aerobraking exists at all: more than one pass count is achievable, so the player has
-  //    a decision rather than a single forced descent.
-  const subScan = sim.descentScan(world, { ...cfg, cargoMass: 0 },
-    bandAlt(baseline, 'suborbital'), params, 'suborbital', 70);
-  const subByN = sim.ablationByPassCount(subScan);
-  targets.aerobraking_exists = subByN.length >= 3;
-
-  // 3. The cheapest descent sits in the 2-4 window the GDD asks for.
-  const cheapest = subByN.length
-    ? subByN.reduce((a, x) => (x.totalAblation < a.totalAblation ? x : a)).passes
-    : null;
-  targets.optimum_in_window = cheapest !== null && cheapest >= 2 && cheapest <= 4;
+  // 2 & 3. Skimming: does bleeding speed high up actually cool the committed entry, and does
+  //        the benefit saturate? Both are properties of the world, and both have to hold for
+  //        the design's descent to be a decision rather than a formality. Measured from the
+  //        high band, where skims are supposed to matter most.
+  const skimStudyHigh = skimStudy(world, cfg, bandAlt(baseline, 'high'), params, 'high', 0);
+  const mults = skimStudyHigh ? skimStudyHigh.skim_heat_multiplier_measured : [];
+  // A skim is worth flying if two of them cut the entry's peak by at least 15%.
+  targets.skimming_cools_the_entry = mults.length >= 3 && mults[2] <= 0.85;
+  // ...and worth stopping if the third adds little over the second, so fatigue can price it.
+  targets.skim_benefit_saturates = mults.length >= 4
+    && mults[3] >= mults[2] - 0.12 && mults[3] <= mults[2];
 
   // 4. An unstaged shallow braking pass is survivable — the GDD's descent begins with them.
   const un = sim.simulateDescent(world, { ...cfg, cargoMass: 0 },
@@ -219,8 +294,7 @@ function scoreWorld(baseline, params, catalog) {
     score: met,
     max_score: Object.keys(targets).length,
     measured: {
-      cheapest_pass_count: cheapest,
-      pass_counts_reachable: subByN.length,
+      skim_heat_multipliers: mults,
       unstaged_peak_heat: Number.isFinite(unPeak) ? Number(unPeak.toFixed(0)) : null,
       full_hold_touchdown_ms: fullBest ? Number(fullBest.touchdownSpeed.toFixed(2)) : null,
       ballistic_coefficient_staged: Number((cfg.dryMass / (cfg.cdShield * cfg.area)).toFixed(1)),
@@ -230,12 +304,18 @@ function scoreWorld(baseline, params, catalog) {
 
 // Vary the world and the ship over a grid. These are the five things the design can still
 // freely choose — everything else in the params follows from them.
+// Planet radius is the first axis because it is the one that decides whether aerobraking
+// exists at all: an 800 m world can only carry a shell of air a ship cannot fly through,
+// and no combination of the other four rescues it. Orbital period is not a constraint —
+// the game ships a time warp — so the range runs up to roughly 1/20 of Earth's diameter.
+// Atmosphere depth and scale height are derived from the radius rather than swept
+// independently, because a planet's air column scales with the planet.
 const GRID = {
-  surface_gravity_ms2: [10, 20, 30],
-  sea_level_density_kgm3: [0.02, 0.1, 0.5, 3],
-  scale_height_frac: [0.08, 0.15, 0.3],      // as a fraction of atmosphere thickness
-  reference_area_m2: [0.4, 1.2, 3.5],
-  dry_mass_kg: [60, 180, 500],
+  radius_m: [800, 60000, 160000, 320000],
+  surface_gravity_ms2: [3, 6, 9.81],
+  sea_level_density_kgm3: [0.1, 0.5, 1.2],
+  reference_area_m2: [1.2, 4, 12],
+  dry_mass_kg: [200, 800, 2400],
 };
 
 function explorationSweep(baseline, params, catalog, opts = {}) {
@@ -243,25 +323,32 @@ function explorationSweep(baseline, params, catalog, opts = {}) {
   const rows = [];
   let n = 0;
 
-  for (const g of GRID.surface_gravity_ms2) {
-    for (const rho of GRID.sea_level_density_kgm3) {
-      for (const shFrac of GRID.scale_height_frac) {
+  for (const R of GRID.radius_m) {
+    for (const g of GRID.surface_gravity_ms2) {
+      for (const rho of GRID.sea_level_density_kgm3) {
         for (const area of GRID.reference_area_m2) {
           for (const dry of GRID.dry_mass_kg) {
             if (n++ >= limit) break;
 
             const b = JSON.parse(JSON.stringify(baseline));
+            const mu = g * R * R;
+            // The air column scales with the planet: a shallow shell on a big world and a
+            // deep one on a small world are both incoherent. Bands sit above the air.
+            const atmTop = R * 0.28;
+            b.planet.radius_m = R;
             b.planet.surface_gravity_ms2 = g;
             b.planet.sea_level_density_kgm3 = rho;
-            b.planet.scale_height_m = b.planet.atmosphere_top_m * shFrac;
+            b.planet.atmosphere_top_m = atmTop;
+            b.planet.scale_height_m = atmTop * 0.1;
             b.reentry.reference_area_m2 = area;
-            // Orbital speeds follow from gravity; keep the baseline internally consistent.
-            const R = b.planet.radius_m, mu = g * R * R;
-            for (const band of b.bands) {
-              const r = R + (band.altitude_min_m + band.altitude_max_m) / 2;
+            const bandAlts = [atmTop * 1.6, atmTop * 2.6, atmTop * 4.2];
+            b.bands.forEach((band, i) => {
+              band.altitude_min_m = bandAlts[i] * 0.9;
+              band.altitude_max_m = bandAlts[i] * 1.1;
+              const r = R + bandAlts[i];
               band.orbital_speed_ms = Math.sqrt(mu / r);
               band.period_s = (2 * Math.PI * r) / band.orbital_speed_ms;
-            }
+            });
 
             const p = JSON.parse(JSON.stringify(params));
             p.flight.dry_mass_kg = dry;
@@ -274,8 +361,10 @@ function explorationSweep(baseline, params, catalog, opts = {}) {
             catch (e) { continue; }
 
             rows.push({
+              radius_m: R,
               surface_gravity_ms2: g,
               sea_level_density_kgm3: rho,
+              atmosphere_top_m: Number(b.planet.atmosphere_top_m.toFixed(0)),
               scale_height_m: Number(b.planet.scale_height_m.toFixed(1)),
               reference_area_m2: area,
               dry_mass_kg: dry,

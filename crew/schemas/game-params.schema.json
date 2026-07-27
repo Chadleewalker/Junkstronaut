@@ -47,30 +47,44 @@
       }
     },
     "ablation": {
-      "description": "The model is stated in the Economy Balancer's charter and is the single definition both the game and the report use: cost(band, n) = n * fixed_toll_per_pass_pct_by_band[band] + heat_cost_coefficient * n * (heat_index[band] / n)^heat_cost_exponent. cost_curve is the Balancer's own evaluation of it, so nothing downstream ever has to reconstruct the model from prose.",
+      "description": "The model is stated in the Economy Balancer's charter and is the single definition the game, the audit and the report all use. A descent is k shallow skims followed by one committed entry, so k+1 heat cycles: cost(band,k) = SUM(i=0..k) cycle_toll_base_pct * cycle_toll_growth^i + heat_cost_coefficient * (heat_index[band] * skim_heat_multiplier[k])^heat_cost_exponent + k * heat_cost_coefficient * skim_peak^heat_cost_exponent. cost_curve is the Balancer's own evaluation of it, so nothing downstream reconstructs the model from prose. This replaces an earlier model that divided peak heat by pass count; flying it showed a committed entry's peak is set by entry depth and ballistic coefficient, not by how many passes preceded it.",
       "type": "object",
       "required": [
-        "fixed_toll_per_pass_pct_by_band",
+        "cycle_toll_base_pct",
+        "cycle_toll_growth",
         "heat_cost_coefficient",
         "heat_cost_exponent",
+        "skim_peak",
+        "skim_heat_multiplier",
         "heat_index",
         "cost_curve",
         "plate_capacity_pct",
-        "optimal_pass_count"
+        "optimal_skims"
       ],
       "properties": {
-        "fixed_toll_per_pass_pct": { "type": "number", "exclusiveMinimum": 0 },
-        "fixed_toll_per_pass_pct_by_band": {
-          "type": "object",
-          "required": ["suborbital", "low", "high"],
-          "patternProperties": {
-            "^(suborbital|low|high)$": { "type": "number", "exclusiveMinimum": 0 }
-          }
+        "cycle_toll_base_pct": {
+          "description": "Thermal-fatigue toll for the first heat cycle, in percent of plate.",
+          "type": "number", "exclusiveMinimum": 0
+        },
+        "cycle_toll_growth": {
+          "description": "Multiplier applied per subsequent cycle. Must exceed 1: a flat toll is linear in skim count and cannot hold the optimum in place.",
+          "type": "number", "exclusiveMinimum": 1
         },
         "heat_cost_coefficient": { "type": "number", "exclusiveMinimum": 0 },
         "heat_cost_exponent": { "type": "number", "minimum": 1 },
+        "skim_peak": {
+          "description": "Peak heat of one shallow skim pass on the 0-100 bar. Skims are cool; the committed entry dominates.",
+          "type": "number", "exclusiveMinimum": 0
+        },
+        "skim_heat_multiplier": {
+          "description": "Factor on the committed entry's peak after 0, 1, 2 and 3 skims. Starts at 1.0, non-increasing, floored at 0.4 — skimming cools the entry but the benefit saturates once the orbit is grazing.",
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": { "type": "number", "minimum": 0.4, "maximum": 1 }
+        },
         "heat_index": {
-          "description": "Peak heat of a single-pass descent from each band, on the 0-100 heat bar.",
+          "description": "Peak heat of a DIRECT entry from each band, no skims, on the 0-100 heat bar.",
           "type": "object",
           "required": ["suborbital", "low", "high"],
           "patternProperties": {
@@ -78,24 +92,25 @@
           }
         },
         "cost_curve": {
-          "description": "Plate burned for 1..8 passes, per band. Exactly eight numbers each, in pass order.",
+          "description": "Plate burned for 0..3 skims, per band. Exactly four numbers each, in skim order.",
           "type": "object",
           "required": ["suborbital", "low", "high"],
           "patternProperties": {
             "^(suborbital|low|high)$": {
               "type": "array",
-              "minItems": 8,
-              "maxItems": 8,
+              "minItems": 4,
+              "maxItems": 4,
               "items": { "type": "number", "minimum": 0 }
             }
           }
         },
         "plate_capacity_pct": { "type": "number", "exclusiveMinimum": 0 },
-        "optimal_pass_count": {
+        "optimal_skims": {
+          "description": "0-based index of each cost_curve's minimum. The high band must be 1 or 2, and no band may exceed it, so the return leg gets harder with altitude.",
           "type": "object",
           "required": ["suborbital", "low", "high"],
           "patternProperties": {
-            "^(suborbital|low|high)$": { "type": "integer", "minimum": 2, "maximum": 4 }
+            "^(suborbital|low|high)$": { "type": "integer", "minimum": 0, "maximum": 3 }
           }
         }
       }
