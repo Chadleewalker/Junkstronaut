@@ -14,6 +14,11 @@ Read the caveats at the bottom before acting on any of it.
 
 ## 1. §2.3.1 — replace "2–4 committed passes" with "1–2 skims, then commit"
 
+> **Contested — read §7 before acting on this.** A later run measured the same quantity on a
+> different planet scale and got a tenth of the effect. The half of this section that
+> survived is the half that says a single plunge is cheapest; the proposed replacement
+> wording did not.
+
 **What the GDD says now:**
 
 > the two knobs are tuned so the cheapest descent is 2–4 committed passes, never a single
@@ -102,7 +107,7 @@ moves, and note in §4.5 that risk 2's mitigation is structural rather than a tu
 
 ---
 
-## 5. §2.3.1 — the unstaged braking phase is currently unflyable
+## 5. §2.3.1 — the unstaged braking phase is unflyable on every planet examined closely
 
 **What the GDD says:** coarse braking happens before staging, *"shallow passes with the
 naked hull soaking slow heat"*.
@@ -112,10 +117,21 @@ naked hull soaking slow heat"*.
 instead of 3.2 it is still 2× over the cap, so the multiplier is not the cause — the hull's
 lower drag lets it linger where the heat bar reaches equilibrium.
 
+**Correction, from the 5184-cell sweep:** "unflyable" was too strong, and so was a later
+claim that no ship configuration survives it. Across the full space, **15.4% of configurations
+satisfy `unstaged_pass_survivable`** — it is the rarest of the eight design targets, not an
+impossible one. The earlier verdict came from probing the shipped planet and the
+best-scoring worlds of a *previous* grid, all of which happened to fail it; a sample chosen
+by one grid is not evidence about the space. On the shipped planet the pass peaks at 407
+against a capacity of 100, and on the best-scoring world 354 — still 3.5× over, and still
+227 when barely dipping in at 94% of the atmosphere's top. So it is hard everywhere that
+has been looked at closely, and possible somewhere that has not.
+
 **Proposed:** either the naked hull needs materially more heat tolerance, or the braking
 phase happens *after* staging and the one-way commit moves later in the sequence. This one
 is a genuine design decision, not a number to nudge, and the measurements do not choose
-for you.
+for you. If the answer is "keep the phase", the 15.4% of the space that survives it is where
+to go looking for the planet.
 
 ---
 
@@ -140,6 +156,111 @@ track the rate**, which is a one-parameter fix that keeps the existing concept.
 
 ---
 
+## 7. §2.3.1 again — the newest run contradicts §1 above, and §1 may be the wrong one
+
+This section disagrees with section 1 of this document. Both are recorded rather than one
+quietly replacing the other, because the disagreement is the finding.
+
+The crew's most recent full run flew the shipped config and measured the skim multipliers at
+the same entry depth section 1 uses (0 m — a grazing entry, where skimming has the most to
+give):
+
+| band | 0 skims | 1 | 2 | 3 |
+|---|---|---|---|---|
+| suborbital | 1 | 0.951 | 0.897 | **0.684** |
+| low | 1 | 0.977 | 0.955 | 0.934 |
+| high | 1 | 0.984 | 0.968 | **0.954** |
+
+Section 1's table, on a different planet scale, has three skims cooling a grazing entry by
+**50%**. This run has three high-band skims cooling it by **4.6%** — an order of magnitude
+apart, in the same measurement, on the same simulator. Something about planet scale or
+ballistic coefficient moves this enormously, and **neither number should be written into the
+GDD until it is known which.** That is the open question this document now carries.
+
+What does not depend on resolving it:
+
+**A single committed plunge is the cheapest descent at every band and every load.** Ablation
+rises monotonically with pass count in all nine band × load descents without exception:
+
+| descent | 1 pass | 2 | 3 | 4 |
+|---|---|---|---|---|
+| suborbital, full hold | 15.6 | 18.0 | 18.5 | 18.9 |
+| low, full hold | 13.1 | 17.2 | 18.1 | 18.5 |
+| high, full hold | 13.6 | 18.7 | 19.5 | 19.7 |
+
+The second pass costs 3.9–6.9 plate-percent and returns nothing. §2.3.1's *"never a single
+plunge"* is false at every band and every load, and this is the one check the crew could not
+revise its way out of across three rounds — the cost array is internally exact to within
+0.01% and describes a descent the game does not fly.
+
+**Depth is the lever skimming was supposed to be.** On the high band, moving entry depth from
+0 to 36000 m drops peak heat 163.1 → 93.8 (0.575×), while three skims reach only 0.954 —
+**depth is roughly eight times the lever.** Each skim also costs 43–54 m/s of commit Δv and
+about an hour of simulated flight (1.25 h direct against 4.18 h with three skims).
+
+**Proposed:** the descent decision the design wants is *how deep do you commit*, not *how many
+times do you skim*. That is a decision the config does not currently expose — there is no
+entry-depth parameter — and it is worth considering before tuning the skim economy further.
+Section 2's escalating thermal toll still stands either way: it exists to close the feathering
+exploit, and it does that regardless of which lever picks the optimum.
+
+---
+
+## 8. The ship spec is a design axis nobody has chosen
+
+Not a GDD change so much as a gap in it. The tank and the engine were never explored: every
+world the crew scored flew one fixed 620 kg tank at a fixed 1.8 liftoff TWR — including,
+for a long time, a tank that could not reach orbit on the shipped planet at all. The grid was
+scoring worlds using a ship that could not fly in them and reporting the result as a property
+of the worlds.
+
+With both swept, two of the eight design targets turn out to be the scarce ones:
+
+| target | satisfied by |
+|---|---|
+| `unstaged_pass_survivable` | 15.4% |
+| `fuel_margin_sane` | 16.2% |
+| `difficulty_rises_with_band` | 31.8% |
+| `bands_reachable` | 33.8% |
+
+`fuel_margin_sane` is bounded **above as well as below** (spare fuel between 8% and 60%),
+which is the design correctly refusing a ship with nothing to decide. It is also why more
+fuel is not simply better: on the good worlds a 1500 kg tank scores strictly worse than a
+900 kg one. Fuel and thrust trade along a ridge rather than a gradient.
+
+Two specifics worth recording:
+
+- **The base tank is oversized for the slice.** All three bands are reachable at base config,
+  including the deferred high band, at fuel margins 16.6% / 13.5% / 11.8%. So `fuel_tank`
+  tier 1 at 450 credits buys nothing the player needs — the first of twelve purchases is a
+  dead purchase.
+- **Thrust and engine efficiency are the same number in this model.** `ve = thrust / burn_rate`
+  and the burn rate is not swept, so raising thrust buys exhaust velocity. The ascent that
+  fails at 16000 N succeeds at 28000 N by turning a 408 s engine into a 714 s one. If the
+  GDD wants those to be separate upgrades — a bigger engine and a better one — the params
+  need a separate handle for it.
+
+---
+
+## 9. Three small things the params say and the document does not
+
+- **`off_retrograde_penalty` is 1** — no penalty at all. §2.3.1 asks for heat to build with
+  the cosine of off-retrograde drift, which is what makes holding attitude a skill during the
+  plasma phase. As set, the player can tumble through an entry for free.
+- **The 100-heat bar appears to be decorative.** Sixteen entries in the descent table peak
+  above `heat_capacity` 100 — direct entries reach 131.5 (low) and 163.1 (high), 63% over —
+  and every one still reports `plate_survives`, `soft_landing`, touchdown 3.25 m/s. Either
+  the bar does not gate cargo damage, or the two heat figures are different quantities
+  wearing the same name. Worth resolving before anyone implements *"cargo damage begins at
+  100% heat"*.
+- **The parachute rule is checked against itself.** `parachute_area_m2` is absent from the
+  params, so the simulator solves the area from `descent_speed_full_hold_ms` and then measures
+  that same speed back. The greedy-haul crossing that justifies the Parachute upgrade is
+  asserted arithmetic, never a flight. Adding `parachute_area_m2` to the params would make it
+  measurable.
+
+---
+
 ## Caveats — what these numbers are not
 
 - **The pilot is perfect.** Point mass, no attitude error, always retrograde. Measured heat
@@ -152,3 +273,13 @@ track the rate**, which is a one-parameter fix that keeps the existing concept.
   helps". It also had time constants hardcoded for an 800 m world, which reported big
   planets as "never lands". Both are fixed, and both are the reason for the caveats: treat a
   surprising result as a question about the model first.
+- **The search has been wrong too, in a way that is harder to see.** A parameter held fixed
+  reads exactly like a parameter that does not matter. The grid held the tank and the engine
+  constant and reported the consequences as facts about planets; when they were finally
+  swept, the best cells all sat at the top of both new ranges, meaning the optimum was
+  outside the grid and the winning row was a wall rather than a peak. The ranges have since
+  been widened past that frontier. **Check where a best cell sits in its range before
+  believing it** — an edge is a warning, not an answer.
+- **Percentages here describe the swept space, not the game.** "15.4% of configurations" is a
+  statement about 5184 grid cells, most of which are worlds nobody would ship. It says a
+  target is reachable somewhere, not that it is reachable anywhere good.

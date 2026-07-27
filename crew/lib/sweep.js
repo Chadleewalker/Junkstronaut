@@ -324,8 +324,18 @@ const GRID = {
   sea_level_density_kgm3: [0.1, 0.5, 1.2],
   reference_area_m2: [1.2, 4, 12],
   dry_mass_kg: [200, 800, 2400],
-  fuel_fraction: [0.5, 0.9, 1.5],      // tank size as a multiple of dry mass
-  twr_at_liftoff: [1.4, 1.8, 2.6],     // also sets exhaust velocity, since ve = thrust/burn
+  // Both of these were truncated on their first outing: every cell that scored 7 sat at
+  // fuel_fraction 1.5 and mean score rose monotonically to the top of both ranges, which
+  // means the optimum was outside the grid and the top row was a wall, not a peak. The
+  // ranges now run well past where the frontier was, so a best cell in the interior is
+  // evidence and a best cell at the edge is still a warning. Radius needed no widening —
+  // its best is interior at 60-160 km, with 800 m and 320 km both scoring worse.
+  fuel_fraction: [0.5, 1.5, 2.5, 4.0],   // tank size as a multiple of dry mass
+  // Liftoff TWR, and exhaust velocity with it: ve is thrust/burn_rate and the burn rate is
+  // not swept, so a cell at 6.0 is not a bigger engine but a far more efficient one — about
+  // 700 s of specific impulse where 2.6 is about 300. Read the high end as "the design is
+  // asking for a better engine", and check the Isp before believing a cell that wins there.
+  twr_at_liftoff: [1.4, 2.6, 4.0, 6.0],
 };
 
 function explorationSweep(baseline, params, catalog, opts = {}) {
