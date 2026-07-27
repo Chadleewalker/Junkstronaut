@@ -302,20 +302,30 @@ function scoreWorld(baseline, params, catalog) {
   };
 }
 
-// Vary the world and the ship over a grid. These are the five things the design can still
+// Vary the world and the ship over a grid. These are the seven things the design can still
 // freely choose — everything else in the params follows from them.
 // Planet radius is the first axis because it is the one that decides whether aerobraking
 // exists at all: an 800 m world can only carry a shell of air a ship cannot fly through,
-// and no combination of the other four rescues it. Orbital period is not a constraint —
+// and no combination of the others rescues it. Orbital period is not a constraint —
 // the game ships a time warp — so the range runs up to roughly 1/20 of Earth's diameter.
 // Atmosphere depth and scale height are derived from the radius rather than swept
 // independently, because a planet's air column scales with the planet.
+//
+// The last two axes are the tank and the engine. They were fixed before — every cell flew
+// the params' own 620 kg of fuel, and thrust was pinned to a 1.8 liftoff TWR — which meant
+// the grid scored 324 worlds using a ship that could not reach orbit in any of them, and
+// reported the result as a property of the worlds. They are swept as RATIOS for the same
+// reason thrust always was: a fixed 620 kg tank is enormous on a 200 kg hull and negligible
+// on a 2400 kg one, so absolute values would mostly measure which cells happen to be able
+// to take off rather than which worlds make a good game.
 const GRID = {
   radius_m: [800, 60000, 160000, 320000],
   surface_gravity_ms2: [3, 6, 9.81],
   sea_level_density_kgm3: [0.1, 0.5, 1.2],
   reference_area_m2: [1.2, 4, 12],
   dry_mass_kg: [200, 800, 2400],
+  fuel_fraction: [0.5, 0.9, 1.5],      // tank size as a multiple of dry mass
+  twr_at_liftoff: [1.4, 1.8, 2.6],     // also sets exhaust velocity, since ve = thrust/burn
 };
 
 function explorationSweep(baseline, params, catalog, opts = {}) {
@@ -328,6 +338,8 @@ function explorationSweep(baseline, params, catalog, opts = {}) {
       for (const rho of GRID.sea_level_density_kgm3) {
         for (const area of GRID.reference_area_m2) {
           for (const dry of GRID.dry_mass_kg) {
+          for (const fuelFrac of GRID.fuel_fraction) {
+          for (const twr of GRID.twr_at_liftoff) {
             if (n++ >= limit) break;
 
             const b = JSON.parse(JSON.stringify(baseline));
@@ -352,9 +364,11 @@ function explorationSweep(baseline, params, catalog, opts = {}) {
 
             const p = JSON.parse(JSON.stringify(params));
             p.flight.dry_mass_kg = dry;
+            const fuel = dry * fuelFrac;
+            p.flight.fuel_capacity_kg = fuel;
             // Thrust scales with weight so every config has a comparable liftoff TWR;
             // otherwise the grid just measures which cells happen to be able to take off.
-            p.flight.thrust_n = (dry + p.flight.fuel_capacity_kg) * g * 1.8;
+            p.flight.thrust_n = (dry + fuel) * g * twr;
 
             let s;
             try { s = scoreWorld(b, p, catalog); }
@@ -368,11 +382,18 @@ function explorationSweep(baseline, params, catalog, opts = {}) {
               scale_height_m: Number(b.planet.scale_height_m.toFixed(1)),
               reference_area_m2: area,
               dry_mass_kg: dry,
+              fuel_capacity_kg: Number(fuel.toFixed(0)),
+              fuel_fraction: fuelFrac,
+              thrust_n: Number(p.flight.thrust_n.toFixed(0)),
+              twr_at_liftoff: twr,
+              exhaust_velocity_ms: Number((p.flight.thrust_n / p.flight.fuel_burn_kgs).toFixed(0)),
               score: s.score,
               max_score: s.max_score,
               targets: s.targets,
               measured: s.measured,
             });
+          }
+          }
           }
         }
       }
