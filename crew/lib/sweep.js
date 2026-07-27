@@ -17,6 +17,29 @@ const simDescent = sim.simulateDescent;
 const BANDS = ['suborbital', 'low', 'high'];
 const SLICE_BANDS = ['suborbital', 'low'];   // what actually ships this semester (§4.1)
 
+// How many braking depths a scored world's descent is scanned at. Three of these scans are
+// 98.5% of what it costs to score a cell — 1412 ms of 1433 ms — so this number, and not the
+// grid size, is what decides whether a sweep takes minutes or hours.
+//
+// It was 70. The targets only ever read the cheapest row out of a scan, so the question is
+// not whether a coarse scan finds the same minimum but whether it finds the same VERDICTS.
+// Measured against 70 over 472 cells spread across the whole grid:
+//
+//   50 samples   0 verdicts changed of 3776      <- this
+//   40 samples  11 changed (0.29%)
+//   32 samples  10 changed (0.27%)
+//   24 samples  16 changed (0.42%)
+//
+// Nearly every flip is difficulty_rises_with_band, which compares two scans' cheapest
+// ablation against a 1.1x threshold — a coarse scan misses one minimum by a hair and the
+// ratio crosses. That target is already one of the scarce ones and is load-bearing for a live
+// design finding, so corrupting it to save a few minutes would be a bad trade.
+//
+// An earlier version of this comment claimed 24 was safe, on the strength of eight worlds.
+// Eight worlds could not see a 0.4% effect. If this is lowered again, measure it against a
+// few hundred cells spread across the grid, not against a handful of interesting ones.
+const SCAN_SAMPLES = Number(process.env.JUNK_SCAN_SAMPLES) || 50;
+
 // ---------------------------------------------------------------- helpers
 
 function bandAlt(baseline, name) {
@@ -265,7 +288,7 @@ function scoreWorld(baseline, params, catalog) {
 
   // 5. A full hold lands soft, but only just — the margin is what the Parachute upgrade buys.
   const fullScan = sim.descentScan(world, { ...cfg, cargoMass: hold.fullHold },
-    bandAlt(baseline, 'low'), params, 'low', 70);
+    bandAlt(baseline, 'low'), params, 'low', SCAN_SAMPLES);
   const fullBest = fullScan.length
     ? fullScan.reduce((a, x) => (x.totalAblation < a.totalAblation ? x : a)) : null;
   targets.full_hold_lands_soft = !!fullBest
@@ -274,7 +297,7 @@ function scoreWorld(baseline, params, catalog) {
 
   // 6. Greed costs something: a full hold is measurably harder to bring home than an empty one.
   const emptyLow = sim.descentScan(world, { ...cfg, cargoMass: 0 },
-    bandAlt(baseline, 'low'), params, 'low', 70);
+    bandAlt(baseline, 'low'), params, 'low', SCAN_SAMPLES);
   const emptyBest = emptyLow.length
     ? emptyLow.reduce((a, x) => (x.totalAblation < a.totalAblation ? x : a)) : null;
   targets.greed_costs_something = !!(fullBest && emptyBest)
@@ -282,7 +305,7 @@ function scoreWorld(baseline, params, catalog) {
 
   // 7. The return leg gets harder with altitude.
   const highScan = sim.descentScan(world, { ...cfg, cargoMass: 0 },
-    bandAlt(baseline, 'high'), params, 'high', 70);
+    bandAlt(baseline, 'high'), params, 'high', SCAN_SAMPLES);
   const highBest = highScan.length
     ? highScan.reduce((a, x) => (x.totalAblation < a.totalAblation ? x : a)) : null;
   targets.difficulty_rises_with_band = !!(highBest && emptyBest)
@@ -338,77 +361,142 @@ const GRID = {
   twr_at_liftoff: [1.4, 2.6, 4.0, 6.0],
 };
 
-function explorationSweep(baseline, params, catalog, opts = {}) {
-  const limit = opts.limit || Infinity;
-  const rows = [];
-  let n = 0;
+// Every cell of the grid, in one fixed order. Flattened rather than left nested because the
+// work gets handed out in pieces: a worker has to be told "cells 7, 23, 39", which a seven-
+// deep loop cannot express. The order here is the order the nested loops used, so a row's
+// position is unchanged from when this ran on one thread.
+function enumerateCells() {
+  const cells = [];
+  for (const R of GRID.radius_m)
+    for (const g of GRID.surface_gravity_ms2)
+      for (const rho of GRID.sea_level_density_kgm3)
+        for (const area of GRID.reference_area_m2)
+          for (const dry of GRID.dry_mass_kg)
+            for (const fuelFrac of GRID.fuel_fraction)
+              for (const twr of GRID.twr_at_liftoff)
+                cells.push({ R, g, rho, area, dry, fuelFrac, twr });
+  return cells;
+}
 
-  for (const R of GRID.radius_m) {
-    for (const g of GRID.surface_gravity_ms2) {
-      for (const rho of GRID.sea_level_density_kgm3) {
-        for (const area of GRID.reference_area_m2) {
-          for (const dry of GRID.dry_mass_kg) {
-          for (const fuelFrac of GRID.fuel_fraction) {
-          for (const twr of GRID.twr_at_liftoff) {
-            if (n++ >= limit) break;
+// One cell, flown. Returns null for a world the model cannot integrate at all, which is not
+// an error — some corners of the grid are genuinely unflyable and that is a finding.
+function scoreCell(baseline, params, catalog, cell) {
+  const { R, g, rho, area, dry, fuelFrac, twr } = cell;
 
-            const b = JSON.parse(JSON.stringify(baseline));
-            const mu = g * R * R;
-            // The air column scales with the planet: a shallow shell on a big world and a
-            // deep one on a small world are both incoherent. Bands sit above the air.
-            const atmTop = R * 0.28;
-            b.planet.radius_m = R;
-            b.planet.surface_gravity_ms2 = g;
-            b.planet.sea_level_density_kgm3 = rho;
-            b.planet.atmosphere_top_m = atmTop;
-            b.planet.scale_height_m = atmTop * 0.1;
-            b.reentry.reference_area_m2 = area;
-            const bandAlts = [atmTop * 1.6, atmTop * 2.6, atmTop * 4.2];
-            b.bands.forEach((band, i) => {
-              band.altitude_min_m = bandAlts[i] * 0.9;
-              band.altitude_max_m = bandAlts[i] * 1.1;
-              const r = R + bandAlts[i];
-              band.orbital_speed_ms = Math.sqrt(mu / r);
-              band.period_s = (2 * Math.PI * r) / band.orbital_speed_ms;
-            });
+  const b = JSON.parse(JSON.stringify(baseline));
+  const mu = g * R * R;
+  // The air column scales with the planet: a shallow shell on a big world and a
+  // deep one on a small world are both incoherent. Bands sit above the air.
+  const atmTop = R * 0.28;
+  b.planet.radius_m = R;
+  b.planet.surface_gravity_ms2 = g;
+  b.planet.sea_level_density_kgm3 = rho;
+  b.planet.atmosphere_top_m = atmTop;
+  b.planet.scale_height_m = atmTop * 0.1;
+  b.reentry.reference_area_m2 = area;
+  const bandAlts = [atmTop * 1.6, atmTop * 2.6, atmTop * 4.2];
+  b.bands.forEach((band, i) => {
+    band.altitude_min_m = bandAlts[i] * 0.9;
+    band.altitude_max_m = bandAlts[i] * 1.1;
+    const r = R + bandAlts[i];
+    band.orbital_speed_ms = Math.sqrt(mu / r);
+    band.period_s = (2 * Math.PI * r) / band.orbital_speed_ms;
+  });
 
-            const p = JSON.parse(JSON.stringify(params));
-            p.flight.dry_mass_kg = dry;
-            const fuel = dry * fuelFrac;
-            p.flight.fuel_capacity_kg = fuel;
-            // Thrust scales with weight so every config has a comparable liftoff TWR;
-            // otherwise the grid just measures which cells happen to be able to take off.
-            p.flight.thrust_n = (dry + fuel) * g * twr;
+  const p = JSON.parse(JSON.stringify(params));
+  p.flight.dry_mass_kg = dry;
+  const fuel = dry * fuelFrac;
+  p.flight.fuel_capacity_kg = fuel;
+  // Thrust scales with weight so every config has a comparable liftoff TWR;
+  // otherwise the grid just measures which cells happen to be able to take off.
+  p.flight.thrust_n = (dry + fuel) * g * twr;
 
-            let s;
-            try { s = scoreWorld(b, p, catalog); }
-            catch (e) { continue; }
+  let s;
+  try { s = scoreWorld(b, p, catalog); }
+  catch (e) { return null; }
 
-            rows.push({
-              radius_m: R,
-              surface_gravity_ms2: g,
-              sea_level_density_kgm3: rho,
-              atmosphere_top_m: Number(b.planet.atmosphere_top_m.toFixed(0)),
-              scale_height_m: Number(b.planet.scale_height_m.toFixed(1)),
-              reference_area_m2: area,
-              dry_mass_kg: dry,
-              fuel_capacity_kg: Number(fuel.toFixed(0)),
-              fuel_fraction: fuelFrac,
-              thrust_n: Number(p.flight.thrust_n.toFixed(0)),
-              twr_at_liftoff: twr,
-              exhaust_velocity_ms: Number((p.flight.thrust_n / p.flight.fuel_burn_kgs).toFixed(0)),
-              score: s.score,
-              max_score: s.max_score,
-              targets: s.targets,
-              measured: s.measured,
-            });
-          }
-          }
-          }
-        }
-      }
-    }
+  return {
+    radius_m: R,
+    surface_gravity_ms2: g,
+    sea_level_density_kgm3: rho,
+    atmosphere_top_m: Number(b.planet.atmosphere_top_m.toFixed(0)),
+    scale_height_m: Number(b.planet.scale_height_m.toFixed(1)),
+    reference_area_m2: area,
+    dry_mass_kg: dry,
+    fuel_capacity_kg: Number(fuel.toFixed(0)),
+    fuel_fraction: fuelFrac,
+    thrust_n: Number(p.flight.thrust_n.toFixed(0)),
+    twr_at_liftoff: twr,
+    exhaust_velocity_ms: Number((p.flight.thrust_n / p.flight.fuel_burn_kgs).toFixed(0)),
+    score: s.score,
+    max_score: s.max_score,
+    targets: s.targets,
+    measured: s.measured,
+  };
+}
+
+// Score a named set of cells, keeping each row's grid index so the caller can put the pieces
+// back in order. This is what runs inside a worker, and what runs on the main thread when
+// there is only one.
+function sweepIndices(baseline, params, catalog, indices) {
+  const cells = enumerateCells();
+  const out = [];
+  for (const i of indices) {
+    const row = scoreCell(baseline, params, catalog, cells[i]);
+    if (row) out.push({ i, row });
   }
+  return out;
+}
+
+// How many threads to fly the grid on. Two cores are left for the OS and for whatever else
+// the machine is doing, and the cap is 16 because that is what was actually measured: 16
+// workers on a 32-core machine returned about 8.6x, and the curve was already flattening.
+// Override with JUNK_SWEEP_WORKERS, and set it to 1 to run everything on this thread.
+function defaultWorkers() {
+  const env = Number(process.env.JUNK_SWEEP_WORKERS);
+  if (Number.isFinite(env) && env >= 1) return Math.floor(env);
+  const cores = require('os').cpus().length;
+  return Math.max(1, Math.min(cores - 2, 16));
+}
+
+// Cells are dealt round-robin, not in contiguous blocks. Cost varies almost entirely with
+// planet radius, which is the outermost axis, so contiguous slices would hand one worker
+// every 800 m world and another every 320 km world and then wait for the second. Dealing
+// them out one at a time gives every worker the same mix.
+function sweepParallel(baseline, params, catalog, count, workers) {
+  const { Worker } = require('worker_threads');
+  const path = require('path');
+  const file = path.join(__dirname, 'sweep-worker.js');
+
+  const buckets = Array.from({ length: workers }, () => []);
+  for (let i = 0; i < count; i++) buckets[i % workers].push(i);
+
+  return Promise.all(buckets.map((indices) => new Promise((resolve, reject) => {
+    if (!indices.length) return resolve([]);
+    const w = new Worker(file, { workerData: { baseline, params, catalog, indices } });
+    w.on('message', resolve);
+    w.on('error', reject);
+    w.on('exit', (code) => { if (code !== 0) reject(new Error(`sweep worker exited ${code}`)); });
+  }))).then((parts) => {
+    // Back into grid order before anything reads them, so a parallel run and a single-
+    // threaded run produce byte-identical output. The sort below is stable, so ties between
+    // equal scores also resolve the same way in both.
+    const merged = [].concat(...parts).sort((a, b) => a.i - b.i);
+    return merged.map((x) => x.row);
+  });
+}
+
+// Returns a promise: the grid is flown on several threads by default. Pass {workers: 1} for
+// the single-threaded path, which is the same code and the same answer, only slower.
+async function explorationSweep(baseline, params, catalog, opts = {}) {
+  const cells = enumerateCells();
+  const count = Math.min(opts.limit || Infinity, cells.length);
+  const workers = opts.workers !== undefined ? opts.workers : defaultWorkers();
+
+  const rows = workers > 1
+    ? await sweepParallel(baseline, params, catalog, count, workers)
+    : sweepIndices(baseline, params, catalog, Array.from({ length: count }, (_, i) => i))
+        .map((x) => x.row);
 
   rows.sort((a, b) => b.score - a.score);
   return {
@@ -429,4 +517,7 @@ function explorationSweep(baseline, params, catalog, opts = {}) {
   };
 }
 
-module.exports = { verificationSweep, explorationSweep, scoreWorld, fullHoldMass, GRID };
+module.exports = {
+  verificationSweep, explorationSweep, scoreWorld, fullHoldMass, GRID,
+  enumerateCells, scoreCell, sweepIndices,
+};

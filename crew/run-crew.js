@@ -161,7 +161,7 @@ function concernReport(concerns) {
 
 // ---------------------------------------------------------------- the crew
 
-function main() {
+async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
     console.log(USAGE);
@@ -294,7 +294,7 @@ function main() {
       const verification = verificationSweep(baseline, params, catalog);
       log(`     verification: ${verification.descents.filter((d) => d.landed).length}/${verification.descents.length} scenarios landed` +
           `, ballistic coefficient ${verification.ballistic_coefficient.staged_kg_m2} kg/m2`);
-      const exploration = explorationSweep(baseline, params, catalog);
+      const exploration = await explorationSweep(baseline, params, catalog);
       sweeps = { verification, exploration };
       log(`     exploration: ${exploration.total_configs} worlds scored, best ${exploration.best_score}/${exploration.max_score}` +
           ` (${((Date.now() - tSweep) / 1000).toFixed(0)}s)`);
@@ -529,13 +529,21 @@ function renderAudit(audit) {
 }
 
 if (require.main === module) {
-  try {
-    process.exit(main());
-  } catch (err) {
-    console.error('');
-    console.error(`crew failed: ${err.message}`);
-    console.error('');
-    console.error('Nothing was produced. Check crew/out/logs/ for the last agent prompt and reply.');
-    process.exit(1);
-  }
+  // A promise now, because the exploration grid is flown on several threads. try/catch around
+  // a call that returns a promise catches nothing, so the failure path hangs off the promise.
+  main().then(
+    (code) => process.exit(code),
+    (err) => {
+      console.error('');
+      console.error(`crew failed: ${err.message}`);
+      console.error('');
+      console.error('Check crew/out/logs/ for the last agent prompt and reply.');
+      // This used to say "Nothing was produced", which was a guess and twice a wrong one: a
+      // crash in the artifact writer happens AFTER the agents have all run and after most of
+      // the files are on disk. Once it cost an hour of assuming a finished run was lost.
+      console.error('Look in the output directory before assuming the run is lost — artifacts');
+      console.error('are written near the end, so a late failure still leaves most of them.');
+      process.exit(1);
+    }
+  );
 }
