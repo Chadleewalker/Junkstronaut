@@ -1,0 +1,428 @@
+'use strict';
+// A deterministic 2D flight model for Junkstronaut.
+//
+// Everything else in this crew reasons about the numbers. This flies them. It is the
+// difference between "the algebra says a full hold lands at 4.6 m/s" and "we launched it,
+// aerobraked it and it touched down at 4.6 m/s" — and the two disagree more often than you
+// would like.
+//
+// It is deterministic scaffolding, not an agent: fixed timestep, no randomness, no model in
+// the loop. The same config always produces the same trajectory, which is the only reason
+// a sweep of thousands of runs means anything (GDD §4.4, "headless determinism").
+//
+// WHAT IS PHYSICS AND WHAT IS A GAME RULE. The distinction matters and is kept sharp:
+//   * Physics, simulated here: gravity, atmospheric density, drag, heating, orbital
+//     mechanics, terminal velocity under a canopy.
+//   * Game rules, taken from the crew's params and NOT re-derived: how peak heat converts
+//     to shield ablation, what counts as a soft landing, the tow fee.
+// Simulating the physics and applying the crew's rules is what lets the sweep answer "is
+// the cheapest descent really 2-4 passes" by measurement, rather than by restating the
+// formula that claimed it.
+//
+// SIMPLIFICATIONS, stated plainly because they bound what the results are worth:
+//   * Point mass. No rotation, no attitude error — the pilot is assumed to hold retrograde
+//     perfectly, so measured heat is a best case and a real player will do slightly worse.
+//   * Impulsive burns for orbit changes; the fuel cost is charged from the rocket equation.
+//     Ascent is integrated properly because its fuel cost is the thing being measured.
+//   * Aerobraking uses one periapsis depth for the whole descent, which is how a player
+//     actually flies it: pick a braking altitude and repeat until committed.
+//   * Cargo is a mass. Slot accounting lives in the catalog, not here.
+
+// ---------------------------------------------------------------- world
+
+function makeWorld(baseline) {
+  const p = baseline.planet;
+  const R = p.radius_m;
+  const g0 = p.surface_gravity_ms2;
+  return {
+    R,
+    g0,
+    mu: g0 * R * R,
+    rho0: p.sea_level_density_kgm3,
+    H: p.scale_height_m,
+    atmTop: p.atmosphere_top_m,
+    // Exponential atmosphere, hard-cut at the stated top so orbits above it are drag-free.
+    rhoAt(h) {
+      if (h >= this.atmTop || h < 0) return h < 0 ? this.rho0 : 0;
+      return this.rho0 * Math.exp(-h / this.H);
+    },
+  };
+}
+
+// Classical elements from a state vector. Only what the descent logic needs.
+function orbit(world, x, y, vx, vy) {
+  const r = Math.hypot(x, y);
+  const v2 = vx * vx + vy * vy;
+  const energy = v2 / 2 - world.mu / r;
+  const h = x * vy - y * vx;                       // specific angular momentum, 2D scalar
+  const a = -world.mu / (2 * energy);              // negative energy -> bound
+  const e2 = 1 + (2 * energy * h * h) / (world.mu * world.mu);
+  const e = Math.sqrt(Math.max(e2, 0));
+  return {
+    r, a, e,
+    apoapsis: energy < 0 ? a * (1 + e) : Infinity,
+    periapsis: a * (1 - e),
+    bound: energy < 0,
+  };
+}
+
+// Velocity at radius ra on an ellipse whose apoapsis is ra and periapsis is rp.
+function velocityForPeriapsis(world, ra, rp) {
+  return Math.sqrt((2 * world.mu * rp) / (ra * (ra + rp)));
+}
+
+// ---------------------------------------------------------------- forces
+
+// Instantaneous heating rate, unnormalised. Convective heating scales with the square root
+// of density and a high power of velocity (Sutton-Graves); the exponent comes from the
+// Researcher rather than being hardcoded here.
+function heatRate(world, h, speed, exponent) {
+  const rho = world.rhoAt(h);
+  if (rho <= 0) return 0;
+  return Math.sqrt(rho / world.rho0) * Math.pow(speed, exponent);
+}
+
+// One integration step, semi-implicit Euler. Small fixed dt inside the atmosphere where
+// the interesting things happen, larger outside where nothing does.
+function step(world, s, dt, cfg) {
+  const r = Math.hypot(s.x, s.y);
+  const h = r - world.R;
+
+  // gravity
+  const gm = world.mu / (r * r * r);
+  let ax = -gm * s.x;
+  let ay = -gm * s.y;
+
+  // Drag, opposing velocity. Which coefficient applies depends on the configuration, and
+  // GDD §2.3.1 makes that a real decision rather than a detail: braking passes are flown
+  // UNSTAGED — slender naked hull, low drag, and no shield between the airflow and the
+  // ship, so heat builds far faster. Staging exposes the blunt shield: much more drag, much
+  // better protection, and no thrust ever again. Modelling both phases with the shield's
+  // numbers would quietly make aerobraking three times more effective than the design says.
+  const speed = Math.hypot(s.vx, s.vy);
+  const rho = world.rhoAt(h);
+  const cd = s.chuteOpen ? cfg.chuteCd : (s.staged ? cfg.cdShield : cfg.cdHull);
+  const area = s.chuteOpen ? cfg.chuteArea : cfg.area;
+  if (rho > 0 && speed > 0) {
+    const q = 0.5 * rho * speed * speed;
+    const aDrag = (q * cd * area) / s.mass;
+    ax -= aDrag * (s.vx / speed);
+    ay -= aDrag * (s.vy / speed);
+  }
+
+  s.vx += ax * dt;
+  s.vy += ay * dt;
+  s.x += s.vx * dt;
+  s.y += s.vy * dt;
+
+  // Heat is a bar that fills and bleeds off, exactly as GDD §2.3.1 describes it, rather
+  // than a running total — which is why a shallow pass can be long and still stay cool.
+  const shielding = s.staged ? 1 : cfg.unstagedHeatMultiplier;
+  const qdot = heatRate(world, h, speed, cfg.heatExponent) * cfg.heatScale * shielding;
+  s.heat += (qdot - s.heat / cfg.heatDissipation) * dt;
+  if (s.heat < 0) s.heat = 0;
+  if (s.heat > s.peakHeat) s.peakHeat = s.heat;
+
+  s.t += dt;
+  return { r, h, speed };
+}
+
+const DT_ATM = 0.002;
+const DT_VAC = 0.05;
+
+// ---------------------------------------------------------------- ascent
+
+// Integrated gravity turn: vertical off the pad, pitch over on a fixed program, burn until
+// apoapsis reaches the target, coast, then circularise. Fuel is measured, not assumed —
+// "can this ship even get there" is the first thing a sweep should answer.
+function simulateAscent(world, cfg, targetAlt) {
+  const s = {
+    x: 0, y: world.R, vx: 0, vy: 0,
+    mass: cfg.dryMass + cfg.fuel, fuel: cfg.fuel,
+    heat: 0, peakHeat: 0, t: 0, chuteOpen: false,
+  };
+  const targetR = world.R + targetAlt;
+  let burning = true;
+
+  while (s.t < 400) {
+    const r = Math.hypot(s.x, s.y);
+    const h = r - world.R;
+    const dt = h < world.atmTop ? DT_ATM : DT_VAC;
+
+    if (burning && s.fuel > 0) {
+      const o = orbit(world, s.x, s.y, s.vx, s.vy);
+      if (o.bound && o.apoapsis >= targetR) burning = false;
+      else {
+        // Pitch program: straight up until 12% of the way to the target, then lean over
+        // smoothly to horizontal. Crude, but it is the same program for every config in a
+        // sweep, so configs stay comparable.
+        const frac = Math.min(Math.max(h / (targetAlt * 0.55), 0), 1);
+        const pitch = (1 - frac) * (Math.PI / 2);        // from vertical to horizontal
+        const up = [s.x / r, s.y / r];
+        const east = [-up[1], up[0]];
+        const dirX = Math.sin(pitch) * up[0] + Math.cos(pitch) * east[0];
+        const dirY = Math.sin(pitch) * up[1] + Math.cos(pitch) * east[1];
+        const a = cfg.thrust / s.mass;
+        s.vx += dirX * a * dt;
+        s.vy += dirY * a * dt;
+        const burn = Math.min(cfg.burnRate * dt, s.fuel);
+        s.fuel -= burn;
+        s.mass -= burn;
+      }
+    }
+
+    step(world, s, dt, cfg);
+
+    const rr = Math.hypot(s.x, s.y);
+    if (rr <= world.R) return { reached: false, why: 'crashed on ascent', fuelRemaining: s.fuel };
+
+    const o = orbit(world, s.x, s.y, s.vx, s.vy);
+    if (!burning && o.bound && Math.abs(rr - o.apoapsis) < 1.5 && rr > world.R + world.atmTop) {
+      // At apoapsis above the atmosphere: circularise with an impulsive prograde burn and
+      // charge the fuel it would have cost.
+      const vCirc = Math.sqrt(world.mu / rr);
+      const vNow = Math.hypot(s.vx, s.vy);
+      const dv = Math.abs(vCirc - vNow);
+      const fuelNeeded = dv * (s.mass / cfg.exhaustVelocity);
+      if (fuelNeeded > s.fuel) {
+        return { reached: false, why: 'out of fuel before circularising', fuelRemaining: s.fuel,
+                 apoapsisAlt: o.apoapsis - world.R, shortfallDv: dv };
+      }
+      s.fuel -= fuelNeeded;
+      return {
+        reached: true,
+        apoapsisAlt: rr - world.R,
+        fuelRemaining: s.fuel,
+        fuelUsed: cfg.fuel - s.fuel,
+        ascentTime: s.t,
+      };
+    }
+    if (!burning && !o.bound) return { reached: false, why: 'escaped', fuelRemaining: s.fuel };
+    if (!burning && s.fuel <= 0 && o.apoapsis < targetR) {
+      return { reached: false, why: 'out of fuel below target altitude', fuelRemaining: 0,
+               apoapsisAlt: o.apoapsis - world.R };
+    }
+  }
+  return { reached: false, why: 'ascent timed out', fuelRemaining: s.fuel };
+}
+
+// ---------------------------------------------------------------- descent
+
+// Fly a whole descent from a circular orbit, braking at a fixed periapsis altitude, until
+// the ship is committed and lands. Returns one entry per atmospheric pass.
+// `stageAfter` is how many unstaged braking passes are flown before committing. The ship
+// stages at the apoapsis following that pass, which is the one-way decision in §2.3.1:
+// after it there is no thrust, so the rest is drag, chute and gear.
+function simulateDescent(world, cfg, startAlt, periapsisAlt, stageAfter = 0) {
+  const ra = world.R + startAlt;
+  const rp = world.R + periapsisAlt;
+  const v = velocityForPeriapsis(world, ra, rp);
+
+  const s = {
+    x: 0, y: ra, vx: v, vy: 0,
+    mass: cfg.dryMass + cfg.cargoMass, fuel: 0,
+    heat: 0, peakHeat: 0, t: 0, chuteOpen: false,
+    staged: stageAfter === 0,
+  };
+
+  const passes = [];
+  let inAtm = false;
+  let passPeak = 0;
+  let maxSpeed = 0;
+  let prevVr = 0;
+  let chuteShredded = false;
+
+  while (s.t < 3000) {
+    const r0 = Math.hypot(s.x, s.y);
+    const h0 = r0 - world.R;
+    const dt = h0 < world.atmTop ? DT_ATM : DT_VAC;
+
+    // Chute logic, per GDD §2.3.1: safe once plasma has cleared. Plasma is a speed cue, so
+    // the model deploys below the Researcher's plasma-onset speed and inside the air.
+    if (!s.chuteOpen && h0 < world.atmTop * 0.85) {
+      const speed = Math.hypot(s.vx, s.vy);
+      if (speed < cfg.plasmaOnset) s.chuteOpen = true;
+    }
+
+    const { h, speed } = step(world, s, dt, cfg);
+    if (speed > maxSpeed) maxSpeed = speed;
+
+    const inside = h < world.atmTop;
+    if (inside && !inAtm) { inAtm = true; passPeak = 0; }
+    if (inside) passPeak = Math.max(passPeak, s.heat);
+    // Cargo and hull start taking damage once the bar is pegged (§2.3.1). Tracked so the
+    // sweep can distinguish "survived the plate budget" from "arrived with the hold wrecked".
+    if (s.heat >= 100) s.overheatTime = (s.overheatTime || 0) + dt;
+
+    const r = Math.hypot(s.x, s.y);
+    const vr = (s.x * s.vx + s.y * s.vy) / r;         // radial velocity
+
+    if (r <= world.R) {
+      // Touchdown. Vertical speed is what the landing grade is scored on.
+      if (inAtm) passes.push({ peakHeat: passPeak, staged: s.staged });
+      return {
+        landed: true,
+        passes,
+        touchdownSpeed: Math.abs(vr),
+        touchdownTotalSpeed: Math.hypot(s.vx, s.vy),
+        overheatTime: s.overheatTime || 0,
+        chuteOpen: s.chuteOpen,
+        chuteShredded,
+        maxSpeed,
+        time: s.t,
+      };
+    }
+
+    if (!inside && inAtm) {
+      // Left the atmosphere — the pass is over.
+      inAtm = false;
+      passes.push({ peakHeat: passPeak, staged: s.staged });
+      // Stage at the apoapsis after the last braking pass. One-way, per §2.3.1.
+      if (!s.staged && passes.length >= stageAfter) s.staged = true;
+      if (passes.length > 25) return { landed: false, why: 'did not converge', passes };
+    }
+
+    // Apoapsis crossing outside the air: if the new apoapsis is inside the atmosphere the
+    // ship is committed and the next entry is the final one.
+    if (!inside && prevVr > 0 && vr <= 0) {
+      const o = orbit(world, s.x, s.y, s.vx, s.vy);
+      if (!o.bound) return { landed: false, why: 'escaped', passes };
+    }
+    prevVr = vr;
+  }
+  return { landed: false, why: 'descent timed out', passes };
+}
+
+// ---------------------------------------------------------------- calibration
+
+// Heat is reported on the 0-100 bar the GDD uses, and the crew's own convention is that a
+// single-pass descent from the suborbital band with an empty hold reads about 100. So the
+// scale factor is measured once against exactly that case and then held fixed for every
+// other run — which makes every cross-band and cross-load comparison a genuine measurement
+// rather than a restatement of the normalisation.
+function calibrateHeatScale(world, baseCfg, suborbitalAlt) {
+  const cfg = { ...baseCfg, heatScale: 1, cargoMass: 0 };
+  // A single pass means committing straight in: periapsis at the surface.
+  const probe = simulateDescent(world, cfg, suborbitalAlt, 0);
+  const peak = probe.passes.length ? Math.max(...probe.passes.map((p) => p.peakHeat)) : 0;
+  return peak > 0 ? 100 / peak : 1;
+}
+
+// ---------------------------------------------------------------- configuration
+
+// Build the simulator's config from the crew's artifacts. Anything the params do not state
+// is derived here and reported in `inferred`, so a gap in the contract shows up as a
+// finding instead of a silent default.
+function buildConfig(baseline, params, overrides = {}) {
+  const world = makeWorld(baseline);
+  const inferred = [];
+
+  const dryMass = overrides.dryMass ?? params.flight.dry_mass_kg;
+  const fuel = overrides.fuel ?? params.flight.fuel_capacity_kg;
+  const thrust = overrides.thrust ?? params.flight.thrust_n;
+  const burnRate = overrides.burnRate ?? params.flight.fuel_burn_kgs;
+
+  // Effective exhaust velocity, for charging impulsive burns.
+  const exhaustVelocity = thrust / burnRate;
+
+  let chuteArea = params.landing.parachute_area_m2;
+  if (!chuteArea) {
+    // Not stated in the params. Solve for the area that produces the claimed full-hold
+    // descent speed at sea level, so the model at least starts from the crew's own claim —
+    // and record that it had to.
+    const claimed = params.landing.descent_speed_full_hold_ms || params.landing.soft_landing_ms;
+    const fullMass = dryMass * 2;
+    chuteArea = (2 * fullMass * world.g0) /
+      (world.rho0 * (params.landing.parachute_drag_coefficient || 1.5) * claimed * claimed);
+    inferred.push(
+      `landing.parachute_area_m2 is not in the params, so the model solved for the area ` +
+      `implied by descent_speed_full_hold_ms ${claimed} m/s at twice dry mass: ` +
+      `${chuteArea.toFixed(1)} m2. Measured descent speeds are therefore anchored to that ` +
+      `claim rather than independent of it. The params should state the area.`
+    );
+  }
+
+  return {
+    world,
+    inferred,
+    cfg: {
+      dryMass,
+      fuel,
+      cargoMass: overrides.cargoMass ?? 0,
+      thrust,
+      burnRate,
+      exhaustVelocity,
+      cdShield: baseline.reentry.drag_coefficient_shield,
+      cdHull: baseline.reentry.drag_coefficient_hull,
+      unstagedHeatMultiplier: params.reentry.unstaged_heat_multiplier || 1,
+      area: baseline.reentry.reference_area_m2,
+      chuteCd: params.landing.parachute_drag_coefficient || 1.5,
+      chuteArea,
+      heatExponent: baseline.reentry.heating_velocity_exponent,
+      heatDissipation: params.reentry.heat_dissipation_s,
+      plasmaOnset: baseline.reentry.plasma_onset_speed_ms,
+      heatScale: 1,
+    },
+  };
+}
+
+// ---------------------------------------------------------------- the questions
+
+// Sweep the braking depth from "straight in" to "barely grazing" and fly every one.
+//
+// Bisecting for a target pass count was the obvious approach and it was wrong: pass count
+// is a step function of depth, so a bisection converges on a boundary and can skip whole
+// values entirely. It reported "2 passes is impossible from the suborbital band", which is
+// not a physical fact — it is what happens when the only depths you sample land either side
+// of the step. Scanning is a few hundred more integrations and cannot miss a step.
+function descentScan(world, cfg, startAlt, params, band, samples = 240) {
+  const maxDepth = world.atmTop * 0.999;
+  const out = [];
+  for (let i = 0; i < samples; i++) {
+    const periapsisAlt = (i / (samples - 1)) * maxDepth;
+    const r = simulateDescent(world, cfg, startAlt, periapsisAlt);
+    if (!r.landed || !r.passes.length) continue;
+    const abl = ablationFor(r.passes, params, band);
+    out.push({
+      periapsisAlt,
+      passes: r.passes.length,
+      peakHeat: Math.max(...r.passes.map((p) => p.peakHeat)),
+      totalAblation: abl.total,
+      touchdownSpeed: r.touchdownSpeed,
+      chuteOpen: r.chuteOpen,
+      time: r.time,
+    });
+  }
+  return out;
+}
+
+// The cheapest achievable descent at each pass count: for every pass count the scan
+// reached, the depth that burned the least plate.
+function ablationByPassCount(scan) {
+  const best = new Map();
+  for (const row of scan) {
+    const cur = best.get(row.passes);
+    if (!cur || row.totalAblation < cur.totalAblation) best.set(row.passes, row);
+  }
+  return [...best.entries()].sort((a, b) => a[0] - b[0]).map(([passes, row]) => ({ passes, ...row }));
+}
+
+// Ablation is a GAME RULE, not physics, so it is applied from the crew's params rather than
+// re-derived: a fixed thermal-cycling toll per pass plus a cost that rises steeply with the
+// peak heat of that pass. The peak heats are measured; the rule converting them is theirs.
+function ablationFor(passes, params, band) {
+  const a = params.ablation;
+  const toll = a.fixed_toll_per_pass_pct_by_band[band];
+  let total = 0;
+  const perPass = passes.map((p) => {
+    const cost = toll + a.heat_cost_coefficient * Math.pow(p.peakHeat, a.heat_cost_exponent);
+    total += cost;
+    return { peakHeat: p.peakHeat, ablation: cost };
+  });
+  return { perPass, total };
+}
+
+module.exports = {
+  makeWorld, orbit, simulateAscent, simulateDescent,
+  calibrateHeatScale, buildConfig, descentScan, ablationByPassCount, ablationFor,
+};

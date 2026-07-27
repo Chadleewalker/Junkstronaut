@@ -1,0 +1,576 @@
+{
+  "inferred": [],
+  "heat_scale_calibration": "Heat is reported on the 0-100 bar. The scale is fixed once so that an empty ship making a single-pass descent from the suborbital band peaks at 100, which is the crew's own normalisation. Every other figure is measured relative to that.",
+  "ballistic_coefficient": {
+    "staged_kg_m2": 98.5,
+    "unstaged_kg_m2": 317.5,
+    "note": "mass / (drag coefficient x reference area). Real reentry capsules run 300-500; below roughly 50 the atmosphere stops the ship rather than braking it, so multi-pass aerobraking cannot exist however the other numbers are tuned."
+  },
+  "cargo": {
+    "kg_per_slot": 101.13,
+    "full_hold_kg": 606.8,
+    "full_hold_mass_ratio": 2.21
+  },
+  "ascents": [
+    {
+      "band": "suborbital",
+      "altitude_m": 200,
+      "reached": true,
+      "why": null,
+      "fuel_remaining_kg": 166.82,
+      "fuel_margin_pct": 55.6
+    },
+    {
+      "band": "low",
+      "altitude_m": 340,
+      "reached": true,
+      "why": null,
+      "fuel_remaining_kg": 155.01,
+      "fuel_margin_pct": 51.7
+    },
+    {
+      "band": "high",
+      "altitude_m": 660,
+      "reached": true,
+      "why": null,
+      "fuel_remaining_kg": 139.99,
+      "fuel_margin_pct": 46.7
+    }
+  ],
+  "descents": [
+    {
+      "band": "suborbital",
+      "load": "empty",
+      "cargo_kg": 0,
+      "landed": true,
+      "pass_counts_reachable": [
+        1,
+        2,
+        3,
+        16
+      ],
+      "cheapest_pass_count": 1,
+      "cheapest_ablation_pct": 20.6,
+      "peak_heat": 100,
+      "touchdown_ms": 22.39,
+      "soft_landing": false,
+      "plate_survives": true,
+      "ablation_by_pass_count": [
+        {
+          "passes": 1,
+          "ablation_pct": 20.6,
+          "peak_heat": 100,
+          "braking_altitude_m": 0
+        },
+        {
+          "passes": 2,
+          "ablation_pct": 25.9,
+          "peak_heat": 106,
+          "braking_altitude_m": 81.3
+        },
+        {
+          "passes": 3,
+          "ablation_pct": 28.3,
+          "peak_heat": 106,
+          "braking_altitude_m": 82.7
+        },
+        {
+          "passes": 16,
+          "ablation_pct": 56.5,
+          "peak_heat": 106,
+          "braking_altitude_m": 81.8
+        }
+      ]
+    },
+    {
+      "band": "suborbital",
+      "load": "half hold",
+      "cargo_kg": 303.4,
+      "landed": true,
+      "pass_counts_reachable": [
+        1,
+        2,
+        3
+      ],
+      "cheapest_pass_count": 1,
+      "cheapest_ablation_pct": 34.1,
+      "peak_heat": 128,
+      "touchdown_ms": 21.83,
+      "soft_landing": false,
+      "plate_survives": true,
+      "ablation_by_pass_count": [
+        {
+          "passes": 1,
+          "ablation_pct": 34.1,
+          "peak_heat": 128,
+          "braking_altitude_m": 0
+        },
+        {
+          "passes": 2,
+          "ablation_pct": 41,
+          "peak_heat": 135,
+          "braking_altitude_m": 76.8
+        },
+        {
+          "passes": 3,
+          "ablation_pct": 43.7,
+          "peak_heat": 135,
+          "braking_altitude_m": 79.5
+        }
+      ]
+    },
+    {
+      "band": "suborbital",
+      "load": "full hold",
+      "cargo_kg": 606.8,
+      "landed": true,
+      "pass_counts_reachable": [
+        1,
+        2,
+        3,
+        5,
+        26
+      ],
+      "cheapest_pass_count": 1,
+      "cheapest_ablation_pct": 47.1,
+      "peak_heat": 150,
+      "touchdown_ms": 21.03,
+      "soft_landing": false,
+      "plate_survives": true,
+      "ablation_by_pass_count": [
+        {
+          "passes": 1,
+          "ablation_pct": 47.1,
+          "peak_heat": 150,
+          "braking_altitude_m": 0
+        },
+        {
+          "passes": 2,
+          "ablation_pct": 55.5,
+          "peak_heat": 157,
+          "braking_altitude_m": 73.2
+        },
+        {
+          "passes": 3,
+          "ablation_pct": 58.5,
+          "peak_heat": 157,
+          "braking_altitude_m": 76.4
+        },
+        {
+          "passes": 5,
+          "ablation_pct": 65.3,
+          "peak_heat": 157,
+          "braking_altitude_m": 74.1
+        },
+        {
+          "passes": 26,
+          "ablation_pct": 106,
+          "peak_heat": 158,
+          "braking_altitude_m": 77.3
+        }
+      ]
+    },
+    {
+      "band": "low",
+      "load": "empty",
+      "cargo_kg": 0,
+      "landed": true,
+      "pass_counts_reachable": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "cheapest_pass_count": 1,
+      "cheapest_ablation_pct": 22.3,
+      "peak_heat": 103,
+      "touchdown_ms": 21.75,
+      "soft_landing": false,
+      "plate_survives": true,
+      "ablation_by_pass_count": [
+        {
+          "passes": 1,
+          "ablation_pct": 22.3,
+          "peak_heat": 103,
+          "braking_altitude_m": 0
+        },
+        {
+          "passes": 2,
+          "ablation_pct": 27.1,
+          "peak_heat": 105,
+          "braking_altitude_m": 72.3
+        },
+        {
+          "passes": 3,
+          "ablation_pct": 30,
+          "peak_heat": 106,
+          "braking_altitude_m": 75.5
+        },
+        {
+          "passes": 4,
+          "ablation_pct": 32.9,
+          "peak_heat": 106,
+          "braking_altitude_m": 76.8
+        },
+        {
+          "passes": 5,
+          "ablation_pct": 35.5,
+          "peak_heat": 106,
+          "braking_altitude_m": 77.3
+        }
+      ]
+    },
+    {
+      "band": "low",
+      "load": "half hold",
+      "cargo_kg": 303.4,
+      "landed": true,
+      "pass_counts_reachable": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        7
+      ],
+      "cheapest_pass_count": 1,
+      "cheapest_ablation_pct": 37,
+      "peak_heat": 133,
+      "touchdown_ms": 21.1,
+      "soft_landing": false,
+      "plate_survives": true,
+      "ablation_by_pass_count": [
+        {
+          "passes": 1,
+          "ablation_pct": 37,
+          "peak_heat": 133,
+          "braking_altitude_m": 0
+        },
+        {
+          "passes": 2,
+          "ablation_pct": 42.7,
+          "peak_heat": 134,
+          "braking_altitude_m": 66.9
+        },
+        {
+          "passes": 3,
+          "ablation_pct": 46.2,
+          "peak_heat": 134,
+          "braking_altitude_m": 70
+        },
+        {
+          "passes": 4,
+          "ablation_pct": 49.2,
+          "peak_heat": 135,
+          "braking_altitude_m": 71.8
+        },
+        {
+          "passes": 5,
+          "ablation_pct": 52.1,
+          "peak_heat": 135,
+          "braking_altitude_m": 72.7
+        },
+        {
+          "passes": 7,
+          "ablation_pct": 57.8,
+          "peak_heat": 135,
+          "braking_altitude_m": 73.2
+        }
+      ]
+    },
+    {
+      "band": "low",
+      "load": "full hold",
+      "cargo_kg": 606.8,
+      "landed": true,
+      "pass_counts_reachable": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "cheapest_pass_count": 1,
+      "cheapest_ablation_pct": 50.4,
+      "peak_heat": 154,
+      "touchdown_ms": 22.35,
+      "soft_landing": false,
+      "plate_survives": true,
+      "ablation_by_pass_count": [
+        {
+          "passes": 1,
+          "ablation_pct": 50.4,
+          "peak_heat": 154,
+          "braking_altitude_m": 55.1
+        },
+        {
+          "passes": 2,
+          "ablation_pct": 57.7,
+          "peak_heat": 155,
+          "braking_altitude_m": 62.8
+        },
+        {
+          "passes": 3,
+          "ablation_pct": 61.7,
+          "peak_heat": 156,
+          "braking_altitude_m": 66.4
+        },
+        {
+          "passes": 4,
+          "ablation_pct": 64.9,
+          "peak_heat": 157,
+          "braking_altitude_m": 68.2
+        },
+        {
+          "passes": 5,
+          "ablation_pct": 67.8,
+          "peak_heat": 157,
+          "braking_altitude_m": 69.6
+        },
+        {
+          "passes": 6,
+          "ablation_pct": 70.7,
+          "peak_heat": 158,
+          "braking_altitude_m": 70
+        }
+      ]
+    },
+    {
+      "band": "high",
+      "load": "empty",
+      "cargo_kg": 0,
+      "landed": true,
+      "pass_counts_reachable": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "cheapest_pass_count": 1,
+      "cheapest_ablation_pct": 23.6,
+      "peak_heat": 105,
+      "touchdown_ms": 23.34,
+      "soft_landing": false,
+      "plate_survives": true,
+      "ablation_by_pass_count": [
+        {
+          "passes": 1,
+          "ablation_pct": 23.6,
+          "peak_heat": 105,
+          "braking_altitude_m": 55.1
+        },
+        {
+          "passes": 2,
+          "ablation_pct": 30.5,
+          "peak_heat": 105,
+          "braking_altitude_m": 62.8
+        },
+        {
+          "passes": 3,
+          "ablation_pct": 34.7,
+          "peak_heat": 106,
+          "braking_altitude_m": 66.4
+        },
+        {
+          "passes": 4,
+          "ablation_pct": 38,
+          "peak_heat": 106,
+          "braking_altitude_m": 68.7
+        },
+        {
+          "passes": 5,
+          "ablation_pct": 41.3,
+          "peak_heat": 106,
+          "braking_altitude_m": 70
+        },
+        {
+          "passes": 6,
+          "ablation_pct": 44.4,
+          "peak_heat": 106,
+          "braking_altitude_m": 70.9
+        },
+        {
+          "passes": 7,
+          "ablation_pct": 47.7,
+          "peak_heat": 106,
+          "braking_altitude_m": 71.4
+        }
+      ]
+    },
+    {
+      "band": "high",
+      "load": "half hold",
+      "cargo_kg": 303.4,
+      "landed": true,
+      "pass_counts_reachable": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "cheapest_pass_count": 1,
+      "cheapest_ablation_pct": 37.7,
+      "peak_heat": 133,
+      "touchdown_ms": 23.12,
+      "soft_landing": false,
+      "plate_survives": true,
+      "ablation_by_pass_count": [
+        {
+          "passes": 1,
+          "ablation_pct": 37.7,
+          "peak_heat": 133,
+          "braking_altitude_m": 49.2
+        },
+        {
+          "passes": 2,
+          "ablation_pct": 48.2,
+          "peak_heat": 134,
+          "braking_altitude_m": 56.9
+        },
+        {
+          "passes": 3,
+          "ablation_pct": 53.6,
+          "peak_heat": 135,
+          "braking_altitude_m": 60.5
+        },
+        {
+          "passes": 4,
+          "ablation_pct": 57.2,
+          "peak_heat": 135,
+          "braking_altitude_m": 62.8
+        },
+        {
+          "passes": 5,
+          "ablation_pct": 60.9,
+          "peak_heat": 135,
+          "braking_altitude_m": 64.2
+        },
+        {
+          "passes": 6,
+          "ablation_pct": 64.3,
+          "peak_heat": 136,
+          "braking_altitude_m": 65.1
+        },
+        {
+          "passes": 7,
+          "ablation_pct": 66.6,
+          "peak_heat": 135,
+          "braking_altitude_m": 66
+        },
+        {
+          "passes": 8,
+          "ablation_pct": 69.7,
+          "peak_heat": 135,
+          "braking_altitude_m": 66.4
+        },
+        {
+          "passes": 9,
+          "ablation_pct": 75,
+          "peak_heat": 135,
+          "braking_altitude_m": 65.5
+        }
+      ]
+    },
+    {
+      "band": "high",
+      "load": "full hold",
+      "cargo_kg": 606.8,
+      "landed": true,
+      "pass_counts_reachable": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "cheapest_pass_count": 1,
+      "cheapest_ablation_pct": 49.8,
+      "peak_heat": 152,
+      "touchdown_ms": 22.25,
+      "soft_landing": false,
+      "plate_survives": true,
+      "ablation_by_pass_count": [
+        {
+          "passes": 1,
+          "ablation_pct": 49.8,
+          "peak_heat": 152,
+          "braking_altitude_m": 45.6
+        },
+        {
+          "passes": 2,
+          "ablation_pct": 63.6,
+          "peak_heat": 154,
+          "braking_altitude_m": 53.3
+        },
+        {
+          "passes": 3,
+          "ablation_pct": 69.9,
+          "peak_heat": 155,
+          "braking_altitude_m": 56.9
+        },
+        {
+          "passes": 4,
+          "ablation_pct": 74.4,
+          "peak_heat": 156,
+          "braking_altitude_m": 59.2
+        },
+        {
+          "passes": 5,
+          "ablation_pct": 78.2,
+          "peak_heat": 156,
+          "braking_altitude_m": 60.5
+        },
+        {
+          "passes": 6,
+          "ablation_pct": 81.7,
+          "peak_heat": 156,
+          "braking_altitude_m": 61.4
+        },
+        {
+          "passes": 7,
+          "ablation_pct": 85.9,
+          "peak_heat": 157,
+          "braking_altitude_m": 61.9
+        },
+        {
+          "passes": 8,
+          "ablation_pct": 89.1,
+          "peak_heat": 158,
+          "braking_altitude_m": 62.3
+        },
+        {
+          "passes": 9,
+          "ablation_pct": 91.7,
+          "peak_heat": 158,
+          "braking_altitude_m": 62.8
+        }
+      ]
+    }
+  ],
+  "unstaged_braking": [
+    {
+      "band": "suborbital",
+      "shallow_pass_peak_heat": 80,
+      "survivable": true
+    },
+    {
+      "band": "low",
+      "shallow_pass_peak_heat": 72,
+      "survivable": true
+    }
+  ]
+}

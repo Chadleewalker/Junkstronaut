@@ -5,12 +5,12 @@
 [resource]
 script = ExtResource("1_gameparams")
 flight = {
-	"dry_mass_kg": 60.0,
-	"fuel_capacity_kg": 45.0,
-	"thrust_n": 4200.0,
-	"fuel_burn_kgs": 6.0,
-	"rcs_thrust_n": 220.0,
-	"rcs_fuel_burn_kgs": 0.32,
+	"dry_mass_kg": 500.0,
+	"fuel_capacity_kg": 300.0,
+	"thrust_n": 38400.0,
+	"fuel_burn_kgs": 28.0,
+	"rcs_thrust_n": 1700.0,
+	"rcs_fuel_burn_kgs": 1.2,
 	"rotation_rate_degs": 90.0
 }
 cargo = {
@@ -21,59 +21,59 @@ reentry = {
 	"heat_capacity": 100.0,
 	"heat_dissipation_s": 5.0,
 	"cargo_damage_interval_s": 3.0,
-	"unstaged_heat_multiplier": 3.2,
+	"unstaged_heat_multiplier": 1.6,
 	"off_retrograde_penalty": 1.0
 }
 ablation = {
 	"fixed_toll_per_pass_pct_by_band": {
-		"suborbital": 4.0,
-		"low": 4.2,
-		"high": 4.4
+		"suborbital": 2.0,
+		"low": 2.3,
+		"high": 2.9
 	},
-	"heat_cost_coefficient": 0.00027,
-	"heat_cost_exponent": 2.4,
+	"heat_cost_coefficient": 0.00074,
+	"heat_cost_exponent": 2.2,
 	"heat_index": {
 		"suborbital": 100.0,
-		"low": 129.0,
-		"high": 209.0
+		"low": 109.4,
+		"high": 127.2
 	},
 	"cost_curve": {
 		"suborbital": [
-			21.04,
-			14.46,
-			15.66,
-			18.45,
-			21.79,
-			25.39,
-			29.12,
-			32.93
+			20.59,
+			12.09,
+			10.97,
+			11.52,
+			12.69,
+			14.16,
+			15.8,
+			17.53
 		],
 		"low": [
-			35.59,
-			20.29,
-			19.34,
-			21.31,
-			24.3,
-			27.76,
-			31.46,
-			35.31
+			24.95,
+			14.46,
+			12.96,
+			13.49,
+			14.78,
+			16.44,
+			18.29,
+			20.27
 		],
 		"high": [
-			104.33,
-			46.67,
-			34.67,
-			31.95,
-			32.5,
-			34.54,
-			37.35,
-			40.64
+			34.46,
+			19.54,
+			17.14,
+			17.58,
+			19.07,
+			21.08,
+			23.35,
+			25.8
 		]
 	},
 	"plate_capacity_pct": 100.0,
 	"optimal_pass_count": {
-		"suborbital": 2,
+		"suborbital": 3,
 		"low": 3,
-		"high": 4
+		"high": 3
 	}
 }
 landing = {
@@ -82,7 +82,8 @@ landing = {
 	"no_gear_multiplier": 2.0,
 	"fragile_multiplier": 2.0,
 	"parachute_drag_coefficient": 1.5,
-	"descent_speed_full_hold_ms": 4.6
+	"parachute_area_m2": 700.0,
+	"descent_speed_full_hold_ms": 4.59
 }
 tow_fee = {
 	"free_radius_m": 100.0,
@@ -122,28 +123,28 @@ upgrades = [
 		"tier": 1,
 		"cost": 400.0,
 		"effect": "fuel_capacity_kg",
-		"value": 62.0
+		"value": 415.0
 	},
 	{
 		"part": "fuel_tank",
 		"tier": 2,
 		"cost": 1300.0,
 		"effect": "fuel_capacity_kg",
-		"value": 84.0
+		"value": 560.0
 	},
 	{
 		"part": "thruster",
 		"tier": 1,
 		"cost": 450.0,
 		"effect": "thrust_n",
-		"value": 5400.0
+		"value": 49400.0
 	},
 	{
 		"part": "thruster",
 		"tier": 2,
 		"cost": 1450.0,
 		"effect": "thrust_n",
-		"value": 6900.0
+		"value": 63100.0
 	},
 	{
 		"part": "storage",
@@ -204,13 +205,61 @@ upgrades = [
 ]
 debris = [
 	{
-		"id": "scorched_hull_panel",
-		"display_name": "Scorched Hull Panel",
+		"id": "bent_truss_section",
+		"display_name": "Bent Truss Section",
+		"band": "suborbital",
+		"size_class": "medium",
+		"fragile": false,
+		"mass_kg": 221.0,
+		"spawn_weight": 8,
+		"slots_crushed": 2,
+		"slots_uncrushed": 4,
+		"hand_tetherable": true
+	},
+	{
+		"id": "scorched_hull_plate",
+		"display_name": "Scorched Hull Plate",
 		"band": "suborbital",
 		"size_class": "small",
 		"fragile": false,
-		"mass_kg": 12.0,
-		"spawn_weight": 16,
+		"mass_kg": 78.0,
+		"spawn_weight": 15,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
+		"hand_tetherable": true
+	},
+	{
+		"id": "spent_booster_ring",
+		"display_name": "Spent Booster Ring",
+		"band": "suborbital",
+		"size_class": "small",
+		"fragile": false,
+		"mass_kg": 182.0,
+		"spawn_weight": 6,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
+		"hand_tetherable": true
+	},
+	{
+		"id": "tangled_wiring_loom",
+		"display_name": "Tangled Wiring Loom",
+		"band": "suborbital",
+		"size_class": "small",
+		"fragile": false,
+		"mass_kg": 42.25,
+		"spawn_weight": 13,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
+		"hand_tetherable": true
+	},
+	{
+		"id": "cracked_antenna_dish",
+		"display_name": "Cracked Antenna Dish",
+		"band": "suborbital",
+		"size_class": "small",
+		"fragile": true,
+		"mass_kg": 58.5,
+		"spawn_weight": 4,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
@@ -221,83 +270,59 @@ debris = [
 		"band": "suborbital",
 		"size_class": "small",
 		"fragile": false,
-		"mass_kg": 4.0,
-		"spawn_weight": 12,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
-		"hand_tetherable": true
-	},
-	{
-		"id": "spent_bolt_cluster",
-		"display_name": "Spent Bolt Cluster",
-		"band": "suborbital",
-		"size_class": "small",
-		"fragile": false,
-		"mass_kg": 6.5,
+		"mass_kg": 26.0,
 		"spawn_weight": 10,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
 	},
 	{
-		"id": "bent_truss_section",
-		"display_name": "Bent Truss Section",
-		"band": "suborbital",
-		"size_class": "medium",
-		"fragile": false,
-		"mass_kg": 34.0,
-		"spawn_weight": 9,
-		"slots_crushed": 2,
-		"slots_uncrushed": 4,
-		"hand_tetherable": true
-	},
-	{
-		"id": "launch_clamp_arm",
-		"display_name": "Launch Clamp Arm",
-		"band": "suborbital",
-		"size_class": "medium",
-		"fragile": false,
-		"mass_kg": 41.0,
-		"spawn_weight": 6,
-		"slots_crushed": 2,
-		"slots_uncrushed": 4,
-		"hand_tetherable": true
-	},
-	{
-		"id": "antenna_whip",
-		"display_name": "Antenna Whip",
+		"id": "fairing_shard",
+		"display_name": "Fairing Shard",
 		"band": "suborbital",
 		"size_class": "small",
-		"fragile": true,
-		"mass_kg": 3.0,
-		"spawn_weight": 4,
+		"fragile": false,
+		"mass_kg": 52.0,
+		"spawn_weight": 10,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
 	},
 	{
-		"id": "cracked_viewport_pane",
-		"display_name": "Cracked Viewport Pane",
+		"id": "camera_optics_pod",
+		"display_name": "Camera Optics Pod",
 		"band": "suborbital",
 		"size_class": "small",
 		"fragile": true,
-		"mass_kg": 9.0,
-		"spawn_weight": 2,
+		"mass_kg": 35.75,
+		"spawn_weight": 3,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
 	},
 	{
-		"id": "upper_stage_shroud",
-		"display_name": "Upper Stage Shroud",
+		"id": "derelict_upper_stage",
+		"display_name": "Derelict Upper Stage",
 		"band": "suborbital",
 		"size_class": "oversized",
 		"fragile": false,
-		"mass_kg": 180.0,
+		"mass_kg": 600.0,
 		"spawn_weight": 1,
 		"slots_crushed": 6,
 		"slots_uncrushed": 12,
 		"hand_tetherable": false
+	},
+	{
+		"id": "satellite_bus_frame",
+		"display_name": "Satellite Bus Frame",
+		"band": "low",
+		"size_class": "medium",
+		"fragile": false,
+		"mass_kg": 403.0,
+		"spawn_weight": 9,
+		"slots_crushed": 2,
+		"slots_uncrushed": 4,
+		"hand_tetherable": true
 	},
 	{
 		"id": "reaction_wheel_housing",
@@ -305,58 +330,10 @@ debris = [
 		"band": "low",
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 62.0,
-		"spawn_weight": 9,
+		"mass_kg": 312.0,
+		"spawn_weight": 11,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
-		"hand_tetherable": true
-	},
-	{
-		"id": "propellant_tank_stub",
-		"display_name": "Propellant Tank Stub",
-		"band": "low",
-		"size_class": "medium",
-		"fragile": false,
-		"mass_kg": 78.0,
-		"spawn_weight": 7,
-		"slots_crushed": 2,
-		"slots_uncrushed": 4,
-		"hand_tetherable": true
-	},
-	{
-		"id": "avionics_bay_module",
-		"display_name": "Avionics Bay Module",
-		"band": "low",
-		"size_class": "medium",
-		"fragile": false,
-		"mass_kg": 55.0,
-		"spawn_weight": 6,
-		"slots_crushed": 2,
-		"slots_uncrushed": 4,
-		"hand_tetherable": true
-	},
-	{
-		"id": "gyro_cluster",
-		"display_name": "Gyro Cluster",
-		"band": "low",
-		"size_class": "small",
-		"fragile": false,
-		"mass_kg": 24.0,
-		"spawn_weight": 8,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
-		"hand_tetherable": true
-	},
-	{
-		"id": "thruster_quad_pod",
-		"display_name": "Thruster Quad Pod",
-		"band": "low",
-		"size_class": "small",
-		"fragile": false,
-		"mass_kg": 19.0,
-		"spawn_weight": 7,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
 		"hand_tetherable": true
 	},
 	{
@@ -365,10 +342,34 @@ debris = [
 		"band": "low",
 		"size_class": "medium",
 		"fragile": true,
-		"mass_kg": 28.0,
-		"spawn_weight": 4,
+		"mass_kg": 143.0,
+		"spawn_weight": 5,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
+		"hand_tetherable": true
+	},
+	{
+		"id": "fuel_tank_bladder",
+		"display_name": "Fuel Tank Bladder",
+		"band": "low",
+		"size_class": "small",
+		"fragile": false,
+		"mass_kg": 117.0,
+		"spawn_weight": 12,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
+		"hand_tetherable": true
+	},
+	{
+		"id": "gyro_package",
+		"display_name": "Gyro Package",
+		"band": "low",
+		"size_class": "small",
+		"fragile": false,
+		"mass_kg": 169.0,
+		"spawn_weight": 9,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
 		"hand_tetherable": true
 	},
 	{
@@ -377,139 +378,151 @@ debris = [
 		"band": "low",
 		"size_class": "small",
 		"fragile": true,
-		"mass_kg": 14.0,
-		"spawn_weight": 2,
+		"mass_kg": 71.5,
+		"spawn_weight": 3,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
 	},
 	{
-		"id": "dish_reflector",
-		"display_name": "Dish Reflector",
+		"id": "thruster_quad_cluster",
+		"display_name": "Thruster Quad Cluster",
+		"band": "low",
+		"size_class": "medium",
+		"fragile": false,
+		"mass_kg": 357.5,
+		"spawn_weight": 8,
+		"slots_crushed": 2,
+		"slots_uncrushed": 4,
+		"hand_tetherable": true
+	},
+	{
+		"id": "dish_reflector_petal",
+		"display_name": "Dish Reflector Petal",
 		"band": "low",
 		"size_class": "medium",
 		"fragile": true,
-		"mass_kg": 31.0,
+		"mass_kg": 123.5,
 		"spawn_weight": 2,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
-		"id": "despun_bus_frame",
-		"display_name": "Despun Bus Frame",
+		"id": "collapsed_boom_mast",
+		"display_name": "Collapsed Boom Mast",
 		"band": "low",
 		"size_class": "oversized",
 		"fragile": false,
-		"mass_kg": 340.0,
+		"mass_kg": 750.0,
 		"spawn_weight": 1,
 		"slots_crushed": 6,
 		"slots_uncrushed": 12,
 		"hand_tetherable": false
 	},
 	{
-		"id": "iridium_bus_core",
-		"display_name": "Iridium Bus Core",
+		"id": "rtg_core_shell",
+		"display_name": "RTG Core Shell",
 		"band": "high",
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 165.0,
-		"spawn_weight": 7,
+		"mass_kg": 624.0,
+		"spawn_weight": 10,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
-		"id": "reactor_core_slug",
-		"display_name": "Reactor Core Slug",
-		"band": "high",
-		"size_class": "medium",
-		"fragile": false,
-		"mass_kg": 180.0,
-		"spawn_weight": 6,
-		"slots_crushed": 2,
-		"slots_uncrushed": 4,
-		"hand_tetherable": true
-	},
-	{
-		"id": "cryo_pump_assembly",
-		"display_name": "Cryo Pump Assembly",
-		"band": "high",
-		"size_class": "medium",
-		"fragile": false,
-		"mass_kg": 140.0,
-		"spawn_weight": 6,
-		"slots_crushed": 2,
-		"slots_uncrushed": 4,
-		"hand_tetherable": true
-	},
-	{
-		"id": "gold_foil_instrument_can",
-		"display_name": "Gold Foil Instrument Can",
+		"id": "tungsten_ballast_slug",
+		"display_name": "Tungsten Ballast Slug",
 		"band": "high",
 		"size_class": "small",
 		"fragile": false,
-		"mass_kg": 48.0,
-		"spawn_weight": 6,
+		"mass_kg": 320.0,
+		"spawn_weight": 9,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
 	},
 	{
-		"id": "rtg_capsule",
-		"display_name": "RTG Capsule",
+		"id": "shattered_optics_mirror",
+		"display_name": "Shattered Optics Mirror",
+		"band": "high",
+		"size_class": "medium",
+		"fragile": true,
+		"mass_kg": 286.0,
+		"spawn_weight": 6,
+		"slots_crushed": 2,
+		"slots_uncrushed": 4,
+		"hand_tetherable": true
+	},
+	{
+		"id": "cryo_tank_segment",
+		"display_name": "Cryo Tank Segment",
+		"band": "high",
+		"size_class": "medium",
+		"fragile": false,
+		"mass_kg": 507.0,
+		"spawn_weight": 10,
+		"slots_crushed": 2,
+		"slots_uncrushed": 4,
+		"hand_tetherable": true
+	},
+	{
+		"id": "ion_engine_gridset",
+		"display_name": "Ion Engine Gridset",
+		"band": "high",
+		"size_class": "small",
+		"fragile": true,
+		"mass_kg": 136.5,
+		"spawn_weight": 5,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
+		"hand_tetherable": true
+	},
+	{
+		"id": "hardened_avionics_core",
+		"display_name": "Hardened Avionics Core",
 		"band": "high",
 		"size_class": "small",
 		"fragile": false,
-		"mass_kg": 88.0,
+		"mass_kg": 290.0,
+		"spawn_weight": 10,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
+		"hand_tetherable": true
+	},
+	{
+		"id": "deep_space_dish_array",
+		"display_name": "Deep Space Dish Array",
+		"band": "high",
+		"size_class": "medium",
+		"fragile": true,
+		"mass_kg": 377.0,
 		"spawn_weight": 4,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
-		"hand_tetherable": true
-	},
-	{
-		"id": "optical_bench",
-		"display_name": "Optical Bench",
-		"band": "high",
-		"size_class": "medium",
-		"fragile": true,
-		"mass_kg": 95.0,
-		"spawn_weight": 4,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
-		"id": "sensor_gimbal_head",
-		"display_name": "Sensor Gimbal Head",
-		"band": "high",
-		"size_class": "small",
-		"fragile": true,
-		"mass_kg": 60.0,
-		"spawn_weight": 3,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
-		"hand_tetherable": true
-	},
-	{
-		"id": "deep_space_dish",
-		"display_name": "Deep Space Dish",
+		"id": "sensor_boom_assembly",
+		"display_name": "Sensor Boom Assembly",
 		"band": "high",
 		"size_class": "medium",
-		"fragile": true,
-		"mass_kg": 110.0,
-		"spawn_weight": 3,
+		"fragile": false,
+		"mass_kg": 442.0,
+		"spawn_weight": 9,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
-		"id": "comsat_main_body",
-		"display_name": "Comsat Main Body",
+		"id": "armstrongs_satellite",
+		"display_name": "Armstrong's Satellite",
 		"band": "high",
 		"size_class": "oversized",
-		"fragile": false,
-		"mass_kg": 620.0,
+		"fragile": true,
+		"mass_kg": 950.0,
 		"spawn_weight": 1,
 		"slots_crushed": 6,
 		"slots_uncrushed": 12,

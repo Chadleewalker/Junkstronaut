@@ -415,6 +415,167 @@ across the whole span. Where it climbs toward the back, higher bands are demandi
 passes; where it runs flat, a single strategy covers every altitude.</p>`;
 }
 
+// ---------------------------------------------------------------- chart 5 · the sweep
+
+// How often each design target is satisfiable anywhere in the parameter space. Magnitude,
+// one measure, ranked — so it is a single-hue bar chart, not a categorical one. A bar near
+// zero is the important reading: it means no amount of tuning reaches that target, and the
+// rule itself is what has to change.
+function chartTargets(exploration) {
+  const rates = Object.entries(exploration.target_satisfaction_rate || {})
+    .sort((a, b) => a[1] - b[1]);
+  if (!rates.length) return '';
+
+  const rowH = 34, W = 720, M = { t: 8, r: 64, l: 236, b: 34 };
+  const H = M.t + rates.length * rowH + M.b;
+  const x = linear(0, 1, M.l, W - M.r);
+
+  const grid = [0, 0.25, 0.5, 0.75, 1].map((t) =>
+    `<line class="grid" x1="${x(t).toFixed(1)}" x2="${x(t).toFixed(1)}" y1="${M.t}" y2="${H - M.b}"/>` +
+    `<text class="tick" x="${x(t).toFixed(1)}" y="${H - M.b + 18}" text-anchor="middle">${Math.round(t * 100)}%</text>`).join('');
+
+  const bars = rates.map(([key, v], i) => {
+    const y = M.t + i * rowH + 7;
+    const w = Math.max(x(v) - M.l, 1);
+    // Sequential ramp: a rarely-satisfiable target reads pale, a common one reads solid.
+    const fill = SEQ[Math.min(SEQ.length - 1, Math.max(2, Math.round(v * (SEQ.length - 1))))];
+    const label = key.replace(/_/g, ' ');
+    return `<text class="tick" x="${M.l - 12}" y="${(y + 14).toFixed(1)}" text-anchor="end">${esc(label)}</text>
+      <path class="mark" d="M${M.l},${y} L${(M.l + w - 4).toFixed(1)},${y}
+        Q${(M.l + w).toFixed(1)},${y} ${(M.l + w).toFixed(1)},${(y + 4).toFixed(1)}
+        L${(M.l + w).toFixed(1)},${(y + 16).toFixed(1)} Q${(M.l + w).toFixed(1)},${(y + 20).toFixed(1)} ${(M.l + w - 4).toFixed(1)},${(y + 20).toFixed(1)}
+        L${M.l},${(y + 20).toFixed(1)} Z" fill="${fill}"
+        data-tip="${esc(`${label}: satisfied by ${(v * 100).toFixed(1)}% of ${exploration.total_configs} worlds`)}"/>
+      <text class="series-label" x="${(M.l + w + 8).toFixed(1)}" y="${(y + 15).toFixed(1)}">${(v * 100).toFixed(0)}%</text>`;
+  }).join('');
+
+  return `
+<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="How often each design target is satisfied across the swept parameter space">
+  ${grid}${bars}
+  <line class="axis" x1="${M.l}" x2="${M.l}" y1="${M.t}" y2="${H - M.b}"/>
+  <text class="axis-label" x="${(M.l + W - M.r) / 2}" y="${H - 6}" text-anchor="middle">share of ${exploration.total_configs} swept worlds that satisfy the target</text>
+</svg>`;
+}
+
+// Claim against measurement, side by side. This table is the entire argument for having a
+// simulator: every row is something an agent asserted and the flight model then checked.
+function claimedVsMeasured(verification, params) {
+  const rows = [];
+  const num = (n, dp = 1) => (Number.isFinite(n) ? n.toFixed(dp) : '—');
+
+  for (const band of BANDS) {
+    const d = verification.descents.find((x) => x.band === band && x.load === 'empty');
+    if (!d || !d.landed) continue;
+    rows.push({
+      what: `Cheapest descent, ${BAND_LABEL[band].toLowerCase()}`,
+      claimed: `${params.ablation.optimal_pass_count[band]} passes`,
+      measured: `${d.cheapest_pass_count} pass${d.cheapest_pass_count > 1 ? 'es' : ''}`,
+      ok: d.cheapest_pass_count === params.ablation.optimal_pass_count[band],
+    });
+  }
+
+  const full = verification.descents.find((x) => x.band === 'low' && x.load === 'full hold');
+  if (full && full.landed) {
+    rows.push({
+      what: 'Full-hold touchdown speed',
+      claimed: `${num(params.landing.descent_speed_full_hold_ms, 2)} m/s`,
+      measured: `${num(full.touchdown_ms, 2)} m/s`,
+      ok: full.soft_landing,
+    });
+  }
+
+  rows.push({
+    what: 'Full hold mass ratio',
+    claimed: 'about 2x dry mass',
+    measured: `${num(verification.cargo.full_hold_mass_ratio, 2)}x (${num(verification.cargo.full_hold_kg)} kg)`,
+    ok: verification.cargo.full_hold_mass_ratio >= 1.75 && verification.cargo.full_hold_mass_ratio <= 2.25,
+  });
+
+  for (const u of verification.unstaged_braking || []) {
+    rows.push({
+      what: `Unstaged braking pass, ${BAND_LABEL[u.band].toLowerCase()}`,
+      claimed: `under ${params.reentry.heat_capacity} heat`,
+      measured: `peaks at ${u.shallow_pass_peak_heat}`,
+      ok: u.survivable,
+    });
+  }
+
+  const bc = verification.ballistic_coefficient;
+  rows.push({
+    what: 'Ballistic coefficient (staged)',
+    claimed: 'not stated',
+    measured: `${num(bc.staged_kg_m2)} kg/m2`,
+    ok: bc.staged_kg_m2 >= 50,
+  });
+
+  return `<table class="data">
+    <thead><tr><th>Quantity</th><th>What the params claim</th><th>What the flights measured</th><th></th></tr></thead>
+    <tbody>${rows.map((r) => `<tr>
+      <td>${esc(r.what)}</td>
+      <td>${esc(r.claimed)}</td>
+      <td class="num" style="text-align:left">${esc(r.measured)}</td>
+      <td><span class="verdict ${r.ok ? 'good' : 'bad'}">${r.ok ? 'holds' : 'does not hold'}</span></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function playtestCard(playtest, verification, exploration, params) {
+  if (!playtest || !verification || !exploration) return '';
+  const sev = { blocking: 'bad', significant: 'bad', minor: '' };
+  const findings = playtest.findings.map((f) => `<li>
+      <span class="verdict ${sev[f.severity] || ''}">${esc(f.severity)}</span>
+      <span><b>${esc(f.id.replace(/_/g, ' '))}</b> (§${esc(f.gdd_ref)}, ${esc(f.kind)}) — ${esc(f.measured)}</span>
+    </li>`).join('');
+
+  const proposals = (playtest.proposed_changes || []).length
+    ? `<details open><summary>Candidate value set — what the Playtester would fly instead</summary>
+        <table class="data"><thead><tr><th>Parameter</th><th class="num">Current</th><th class="num">Proposed</th><th>Why</th></tr></thead>
+        <tbody>${playtest.proposed_changes.map((c) => `<tr>
+          <td><code>${esc(c.path)}</code></td>
+          <td class="num">${esc(String(c.current ?? '—'))}</td>
+          <td class="num">${esc(String(c.proposed))}</td>
+          <td>${esc(c.reason)}</td></tr>`).join('')}</tbody></table></details>`
+    : '';
+
+  const best = exploration.top && exploration.top[0];
+  const bestLine = best
+    ? `<p class="caption">Best world found: <b>${best.score}/${best.max_score}</b> targets —
+       gravity ${best.surface_gravity_ms2} m/s2, air density ${best.sea_level_density_kgm3} kg/m3,
+       scale height ${best.scale_height_m} m, frontal area ${best.reference_area_m2} m2,
+       dry mass ${best.dry_mass_kg} kg (ballistic coefficient
+       ${best.measured.ballistic_coefficient_staged} kg/m2, cheapest descent
+       ${best.measured.cheapest_pass_count} passes).</p>`
+    : '';
+
+  return `
+  <div class="card">
+    <h2>What the flights measured</h2>
+    <p class="lede">Every other agent reasons about these numbers. The simulator flew them —
+      launch, aerobrake, land — across every band and cargo load. Where a row below says
+      <i>does not hold</i>, an agent asserted something the physics disagreed with.</p>
+    ${claimedVsMeasured(verification, params)}
+  </div>
+
+  <div class="card">
+    <h2>Where the design's targets are reachable at all</h2>
+    <p class="lede">${esc(String(exploration.total_configs))} worlds, varying gravity, air density,
+      atmosphere thickness, ship frontal area and dry mass. Each scored against seven targets
+      taken from the design document. A short bar means almost no configuration anywhere
+      satisfies that target — which is a fact about the rule, not about the current numbers.</p>
+    ${chartTargets(exploration)}
+    ${bestLine}
+  </div>
+
+  <div class="card">
+    <h2>Playtest — ${esc(playtest.verdict.replace(/_/g, ' '))}</h2>
+    <p class="lede">${esc(playtest.summary)}</p>
+    <ul class="findings">${findings}</ul>
+    ${proposals}
+    <details><summary>What the simulator cannot tell you</summary>
+      <ul class="findings">${(playtest.confidence_notes || []).map((n) => `<li>${esc(n)}</li>`).join('')}</ul>
+    </details>
+  </div>`;
+}
+
 // ---------------------------------------------------------------- the page
 
 function statTiles({ catalog, params, audit, manifest }) {
@@ -461,7 +622,7 @@ function legend() {
   </div>`;
 }
 
-function renderDashboard({ baseline, catalog, params, audit, manifest }) {
+function renderDashboard({ baseline, catalog, params, audit, manifest, playtest, sweeps }) {
   const failed = audit.checks.filter((c) => c.result === 'fail');
 
   return `<!doctype html>
@@ -583,6 +744,8 @@ function renderDashboard({ baseline, catalog, params, audit, manifest }) {
       this is the one place a surface beats a line chart.</p>
     ${chartSurface(params)}
   </div>
+
+  ${playtestCard(playtest, sweeps && sweeps.verification, sweeps && sweeps.exploration, params)}
 
   <div class="card">
     <h2>Spec audit — ${esc(audit.verdict.toUpperCase())}</h2>

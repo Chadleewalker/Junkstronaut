@@ -2,10 +2,16 @@
 'use strict';
 // The Junkstronaut tuning crew.
 //
-// Four agents in a chain with one feedback loop, producing the config the game loads.
-//   Researcher -> Debris Designer -> Economy Balancer -> Spec Auditor
-//                                          ^                  |
-//                                          +-- failing checks -+
+// Five agents in a chain with two feedback edges, producing the config the game loads.
+//
+//   Researcher -> Debris Designer -> Economy Balancer -> [flight sim] -> Playtester
+//                       ^                  ^                                 |
+//                       |                  |                                 v
+//                       +-- catalog rules -+-- parameter rules ------- Spec Auditor
+//
+// The flight simulator in the middle is deterministic scaffolding, not an agent: it flies
+// the params and sweeps the parameter space, and the Playtester reads what it found. That
+// is the difference between a crew that asserts its numbers and one that measures them.
 //
 // This file is the orchestrator and it contains no model. Control flow, retries, gates and
 // exit conditions are all deterministic — agents do the fuzzy work, scaffolding decides
@@ -23,6 +29,7 @@ const path = require('path');
 const { runAgent } = require('./lib/agent');
 const { emitResource, emitScript } = require('./lib/godot');
 const { renderDashboard } = require('./lib/charts');
+const { verificationSweep, explorationSweep } = require('./lib/sweep');
 
 const ROOT = __dirname;
 const MAX_REVISIONS = 2; // balancer attempts after the first audit failure
@@ -48,7 +55,7 @@ function parseArgs(argv) {
 }
 
 const USAGE = `
-Junkstronaut tuning crew — four agents that produce the game's config file.
+Junkstronaut tuning crew — five agents that produce the game's config file.
 
   node run-crew.js                run the real crew (needs Claude Code, signed in)
   node run-crew.js --stub         replay recorded output — no model calls, no credentials
@@ -61,7 +68,7 @@ Junkstronaut tuning crew — four agents that produce the game's config file.
 Environment:
   JUNK_MODEL          model alias for the agents (default: opus)
   JUNK_AGENT_CMD      replace the agent command entirely (the test seam)
-  JUNK_AGENT_TIMEOUT_MS  per-agent timeout in ms (default: 600000)
+  JUNK_AGENT_TIMEOUT_MS  per-agent timeout in ms (default: 1500000)
 `.trim();
 
 // ---------------------------------------------------------------- small helpers
@@ -194,7 +201,7 @@ function main() {
   const track = (r) => { if (r.model) models.add(r.model); return r; };
 
   // -- 1. Researcher ------------------------------------------------------------
-  log('1/4  Researcher — scaling real orbital physics to the game planet');
+  log('1/5  Researcher — scaling real orbital physics to the game planet');
   const research = track(call('researcher', { 'GAME DESIGN DOCUMENT': gdd }, 'baseline'));
   const baseline = research.object;
   log(`     ok — ${baseline.bands.length} bands, ` +
@@ -202,7 +209,7 @@ function main() {
       `${baseline.derivation.length} derivation steps`);
 
   // -- 2. Debris Designer -------------------------------------------------------
-  log('2/4  Debris Designer — authoring the loot table');
+  log('2/5  Debris Designer — authoring the loot table');
   const design = track(call('debris-designer', {
     'GAME DESIGN DOCUMENT': gdd,
     'BASELINE PHYSICS (from the Researcher)': JSON.stringify(baseline, null, 2),
@@ -220,6 +227,8 @@ function main() {
   // the loop, so every finding became its problem whether or not it owned the data.
   let params = null;
   let audit = null;
+  let sweeps = null;
+  let playtest = null;
   let revision = 0;
   let designerFeedback = null;
   let balancerFeedback = null;
@@ -228,7 +237,7 @@ function main() {
   while (true) {
     if (designerFeedback) {
       designerRevisions++;
-      log(`2/4  Debris Designer (revision ${designerRevisions}) — fixing the catalog findings routed back to it`);
+      log(`2/5  Debris Designer (revision ${designerRevisions}) — fixing the catalog findings routed back to it`);
       const redesign = track(call('debris-designer', {
         'GAME DESIGN DOCUMENT': gdd,
         'BASELINE PHYSICS (from the Researcher)': JSON.stringify(baseline, null, 2),
@@ -241,7 +250,7 @@ function main() {
       designerFeedback = null;
     }
 
-    const label = revision === 0 ? '3/4  Economy Balancer' : `3/4  Economy Balancer (revision ${revision})`;
+    const label = revision === 0 ? '3/5  Economy Balancer' : `3/5  Economy Balancer (revision ${revision})`;
     log(`${label} — pricing the catalog against every rule in §2.3`);
 
     const balanceInputs = {
@@ -260,12 +269,60 @@ function main() {
       log(`     raised ${params.catalog_concerns.length} catalog concern(s) for the Designer`);
     }
 
-    log('4/4  Spec Auditor — checking the numbers against the design document');
+    // -- the flight model. Deterministic: it flies the params, it does not judge them.
+    // Cached in stub mode so a replay stays instant; the exploration grid is ~8 minutes of
+    // honest compute and re-running it would defeat the point of having a replay at all.
+    log('4/5  Flight simulator — flying the config, then sweeping the parameter space');
+    const sweepCache = path.join(stubDir, `sweep${suffix}.json`);
+    if (args.mode === 'stub' && fs.existsSync(sweepCache)) {
+      sweeps = readJson(sweepCache);
+      log('     replayed from a recorded sweep');
+    } else {
+      const tSweep = Date.now();
+      const verification = verificationSweep(baseline, params, catalog);
+      log(`     verification: ${verification.descents.filter((d) => d.landed).length}/${verification.descents.length} scenarios landed` +
+          `, ballistic coefficient ${verification.ballistic_coefficient.staged_kg_m2} kg/m2`);
+      const exploration = explorationSweep(baseline, params, catalog);
+      sweeps = { verification, exploration };
+      log(`     exploration: ${exploration.total_configs} worlds scored, best ${exploration.best_score}/${exploration.max_score}` +
+          ` (${((Date.now() - tSweep) / 1000).toFixed(0)}s)`);
+      if (args.record) { fs.mkdirSync(stubDir, { recursive: true }); writeJson(sweepCache, sweeps); }
+    }
+
+    // The exploration grid is far too large to put in a prompt, and the rows past the top
+    // few are noise. What the Playtester needs is the satisfaction rates — which targets
+    // are reachable anywhere at all — plus the best configurations.
+    const explorationDigest = {
+      grid: sweeps.exploration.grid,
+      total_configs: sweeps.exploration.total_configs,
+      best_score: sweeps.exploration.best_score,
+      max_score: sweeps.exploration.max_score,
+      target_satisfaction_rate: sweeps.exploration.target_satisfaction_rate,
+      top: sweeps.exploration.top.slice(0, 12),
+    };
+
+    log('4/5  Playtester — reading what the numbers actually did');
+    const playRun = track(call('playtester', {
+      'GAME DESIGN DOCUMENT': gdd,
+      'BASELINE PHYSICS': JSON.stringify(baseline, null, 2),
+      'GAME PARAMETERS AS FLOWN': JSON.stringify(params, null, 2),
+      'VERIFICATION SWEEP — the crew\'s own config, flown': JSON.stringify(sweeps.verification, null, 2),
+      'EXPLORATION SWEEP — a grid of worlds, scored': JSON.stringify(explorationDigest, null, 2),
+    }, 'playtest-report', `playtester${suffix}`));
+    playtest = playRun.object;
+    const blocking = playtest.findings.filter((f) => f.severity === 'blocking').length;
+    log(`     ${playtest.verdict.toUpperCase()} — ${playtest.findings.length} findings (${blocking} blocking), ` +
+        `${(playtest.proposed_changes || []).length} proposed changes`);
+
+    log('5/5  Spec Auditor — checking the numbers against the design document');
     const auditRun = track(call('spec-auditor', {
       'GAME DESIGN DOCUMENT': gdd,
       'BASELINE PHYSICS': JSON.stringify(baseline, null, 2),
       'DEBRIS CATALOG': JSON.stringify(catalog, null, 2),
       'GAME PARAMETERS UNDER AUDIT': JSON.stringify(params, null, 2),
+      'MEASURED FLIGHT RESULTS — from the simulator, not from anyone\'s arithmetic':
+        JSON.stringify(sweeps.verification, null, 2),
+      'PLAYTESTER FINDINGS': JSON.stringify(playtest.findings, null, 2),
     }, 'audit-report', `spec-auditor${suffix}`));
     audit = auditRun.object;
 
@@ -307,6 +364,9 @@ function main() {
   writeJson(path.join(outDir, 'data', 'debris_catalog.json'), catalog);
   writeJson(path.join(outDir, 'config', 'game_params.json'), params);
   writeJson(path.join(outDir, 'audit', 'audit_report.json'), audit);
+  writeJson(path.join(outDir, 'playtest', 'playtest_report.json'), playtest);
+  writeJson(path.join(outDir, 'playtest', 'sweep_verification.json'), sweeps.verification);
+  writeJson(path.join(outDir, 'playtest', 'sweep_exploration.json'), sweeps.exploration);
 
   const configDir = path.join(outDir, 'config');
   fs.writeFileSync(path.join(configDir, 'game_params.tres'), emitResource(params, catalog));
@@ -324,6 +384,7 @@ function main() {
       { name: 'researcher', attempts: research.attempts },
       { name: 'debris-designer', attempts: design.attempts, revisions: designerRevisions },
       { name: 'economy-balancer', revisions: revision },
+      { name: 'playtester', verdict: playtest.verdict, findings: playtest.findings.length },
       { name: 'spec-auditor', verdict: audit.verdict, audits: revision + 1 },
     ],
     audit: {
@@ -345,6 +406,9 @@ function main() {
       'config/game_params.gd',
       'audit/audit_report.json',
       'audit/audit_report.md',
+      'playtest/playtest_report.json',
+      'playtest/sweep_verification.json',
+      'playtest/sweep_exploration.json',
       'report/dashboard.html',
     ],
   };
@@ -356,7 +420,7 @@ function main() {
   fs.mkdirSync(reportDir, { recursive: true });
   fs.writeFileSync(
     path.join(reportDir, 'dashboard.html'),
-    renderDashboard({ baseline, catalog, params, audit, manifest })
+    renderDashboard({ baseline, catalog, params, audit, manifest, playtest, sweeps })
   );
 
   // The audit report is the file a human opens; a concern that only exists in the params
@@ -394,6 +458,7 @@ function main() {
   console.log(`  audits run        ${revision + 1}`);
   console.log(`  revisions         ${revision} balancer, ${designerRevisions} designer`);
   console.log(`  audit             ${audit.checks.filter((c) => c.result === 'pass').length}/${audit.checks.length} checks passed`);
+  console.log(`  playtest          ${playtest.verdict} — ${playtest.findings.filter((f) => f.severity === 'blocking').length} blocking of ${playtest.findings.length} findings`);
   console.log(`  observations      ${(audit.observations || []).length} (advisory — never fail a run)`);
   if ((params.catalog_concerns || []).length) {
     console.log(`  catalog concerns  ${params.catalog_concerns.length} raised by the Balancer`);
@@ -408,6 +473,7 @@ function main() {
   console.log('    data/debris_catalog.json  the loot table');
   console.log('    audit/audit_report.md     what a human should look at before flying it');
   console.log('    report/dashboard.html     the charts — open this one in a browser');
+  console.log('    playtest/                 what the simulator measured, and the sweep');
   console.log('');
 
   // An audit failure is a finding, not a crash. The crew ran, every artifact exists, and

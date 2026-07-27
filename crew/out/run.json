@@ -1,7 +1,7 @@
 {
   "crew": "junkstronaut-tuning-crew",
   "mode": "stub",
-  "finished_at": "2026-07-26T22:32:41.970Z",
+  "finished_at": "2026-07-27T01:35:19.127Z",
   "duration_s": 0,
   "design_document": "Junkstronaut GDD.txt",
   "models": [
@@ -15,28 +15,33 @@
     {
       "name": "debris-designer",
       "attempts": 1,
-      "revisions": 0
+      "revisions": 2
     },
     {
       "name": "economy-balancer",
-      "revisions": 0
+      "revisions": 2
+    },
+    {
+      "name": "playtester",
+      "verdict": "targets_missed",
+      "findings": 7
     },
     {
       "name": "spec-auditor",
-      "verdict": "pass",
-      "audits": 1
+      "verdict": "fail",
+      "audits": 3
     }
   ],
   "audit": {
-    "verdict": "pass",
+    "verdict": "fail",
     "checks_total": 16,
-    "checks_failed": 0,
-    "observations": 9
+    "checks_failed": 2,
+    "observations": 8
   },
   "catalog_concerns": [
-    "antenna_whip - mass_kg 3 (with fragile true). At 3 kg it is the lightest piece in the game and costs 2 uncrushed slots, so at any fragile premium that satisfies 'worth several solid pieces' it becomes the strictly dominant suborbital pick: 180 value per 2 slots and 3 kg, against 120 per 2 slots and 24 kg for two hull panels - better value AND lighter, with the double-damage risk fully avoidable by landing softly. GDD 2.3.4 wants fragile to read as 'bulk plus risk'; at 3 kg there is no bulk penalty in mass terms and the risk is optional. I cannot fix this by pricing without dropping the premium below the level 2.3.7 requires. A mass in the 10-14 kg range, or a 4-slot uncrushed cost, would restore the trade.",
-    "rtg_capsule - size_class small (at 88 kg, non-fragile, 1 slot crushed). Six of these fill a base hold with 528 kg, which is 8.8x the densest possible suborbital hold and 5.9x the spawn-weighted high-band hold of 230 kg that every mass-derived number in this file uses. It is the only piece in the catalog whose mass-per-slot (88) is more than double the next best in its band (gold_foil_instrument_can at 48), so it defines a degenerate maximum-density strategy that no parachute tier can land softly. Either the mass or the size class should move; its own notes already call it 'absurdly heavy for one slot'.",
-    "insulation_blanket_wad - mass_kg 4 (with slots_crushed 1). Combined with scorched_hull_panel at 12 kg, the suborbital band's spawn-weighted density is 8.06 kg per slot, which is what forces dry_mass_kg down to 60 to keep GDD 2.3.5's doubling claim arithmetically true. A 60 kg rocket at the baseline's 3.5 m^2 reference area is a thin-walled scrap tube and sits awkwardly against eva.suit_mass_kg = 45. Raising the suborbital band's per-slot density by roughly 2-3x - most cheaply by lifting the two lightest smalls - would let dry mass land somewhere physically comfortable without touching the slot count the GDD puts on screen."
+    "The catalog's revision_notes size the rescale against 82.5 kg per slot, but that figure counts each piece once. Weighted by spawn_weight - which is how a player actually meets the population, and how the sweep computes a hold - the shipping slice is 101.13 kg per slot (suborbital 67.9, low 126.3). A 6-slot hold is therefore 606.8 kg, not the ~495 kg the notes predict, which is why full hold comes out at 2.21x dry mass instead of the 1.99x the Designer was aiming for. Nothing here is wrong enough to block the audit, but the doubling rule is being satisfied at the top of its tolerance rather than in the middle of it, and the arithmetic the catalog reasons with should probably be the spawn-weighted one.",
+    "satellite_bus_frame is the single largest driver of that gap: 403 kg at 2 crushed slots is 202 kg per slot carried at spawn_weight 9, the heaviest per-slot piece in either shipping band and roughly 2.5x the 82.5 kg/slot the rescale targeted. reaction_wheel_housing (312 kg, weight 11) and thruster_quad_cluster (357.5 kg, weight 8) compound it. If the Designer wants full hold nearer 2.0x without touching the ship, trimming the low band's three heavy non-fragile mediums is a smaller and more legible change than another uniform factor - and unlike a uniform factor it would not force the whole catalog to be re-priced again.",
+    "Not a defect, recorded because it constrains me and the Coder rather than the Designer: at these masses one tethered low-band medium (403 kg) against a 45 kg suit makes the astronaut effectively immovable, so suit mass and jetpack thrust have to rise together with the rescale. The Designer already declared this consequence; I am confirming from the pricing side that it is real and that it is on my side of the fence to fix, not theirs."
   ],
   "artifacts": [
     "params/baseline.json",
@@ -46,6 +51,9 @@
     "config/game_params.gd",
     "audit/audit_report.json",
     "audit/audit_report.md",
+    "playtest/playtest_report.json",
+    "playtest/sweep_verification.json",
+    "playtest/sweep_exploration.json",
     "report/dashboard.html"
   ]
 }

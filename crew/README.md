@@ -7,13 +7,20 @@ magnetic tethers, then survive reentry and land it. Sell the haul, buy upgrades,
 This is my capstone project.
 
 **What this crew produces:** the game's config file — `config/game_params.tres` — plus the
-debris catalog it prices and an audit report saying whether the numbers actually obey the
-design document.
+debris catalog it prices, an audit saying whether the numbers obey the design document, and
+a playtest report saying what those numbers actually *do* when the ship is flown.
 
 That one file matters more than it sounds. Junkstronaut's design says every tunable value
 in the game lives in one config file and nothing is hardcoded anywhere. Gravity, thrust,
 heat shield ablation, tow fees, magnet hold force, what each piece of junk weighs and what
 it sells for — all of it. This crew is what writes that file.
+
+The crew doesn't just argue about the numbers. A **flight simulator** sits in the middle of
+it: it launches the ship, aerobrakes it and lands it, thousands of times, across every
+altitude band and cargo load. Then it does the same across a grid of 324 different worlds —
+varying gravity, air density, ship mass and frontal area — to find where the design's own
+targets are achievable at all. So when the crew says a full hold lands at 4.4 m/s, that is
+a measurement, not an argument.
 
 ---
 
@@ -32,9 +39,10 @@ node run-crew.js
 
 That's it. It prints what it's doing as it goes, and everything it makes lands in `out/`.
 
-**It takes 30 to 45 minutes.** Most of that is two agents thinking hard — the Balancer
-solves every design constraint at once, and the Auditor recomputes all of them. If you only
-want to confirm the thing runs, use the replay below instead.
+**It takes 30 to 45 minutes.** Most of that is agents thinking hard — the Balancer solves
+every design constraint at once, the Auditor recomputes all of them — plus about eight
+minutes of the simulator flying 324 worlds. If you only want to confirm the thing runs, use
+the replay below instead.
 
 ### No credentials? Run this instead
 
@@ -73,7 +81,7 @@ thinking. Set `JUNK_MODEL=sonnet` for a faster, cheaper run.
 
 ---
 
-## The four agents
+## The five agents
 
 They run in order. Each one writes a file, and the next one reads it.
 
@@ -82,7 +90,12 @@ They run in order. Each one writes a file, and the next one reads it.
 | 1 | **Researcher** | The design document | Real orbital and reentry physics, scaled down to the game's small planet — orbital speeds, air density, the speed where heating starts, drag |
 | 2 | **Debris Designer** | The physics + the design doc | The loot table. 18–30 kinds of space junk, each with a weight, a size class, and whether it's fragile |
 | 3 | **Economy Balancer** | The physics + the loot table | Every tunable number in the game. Prices the junk, sets the upgrade costs, tunes reentry and landing |
-| 4 | **Spec Auditor** | The design document + all three files above | A pass/fail check on every rule in the design doc, with the arithmetic shown — and a label saying whose problem each failure is |
+| 4 | **Playtester** | The numbers, flown thousands of times | What the config actually does, where that contradicts the design, and a candidate value set to try instead |
+| 5 | **Spec Auditor** | The design document + everything above | A pass/fail check on every rule in the design doc, with the arithmetic shown — and a label saying whose problem each failure is |
+
+Between agent 3 and agent 4 sits the **flight simulator**. It isn't an agent — it's plain
+code with no model in it, so the same config always produces the same trajectory. It flies
+the ship and hands the Playtester the results.
 
 The Auditor is deliberately handed the **design document**, not the other agents' reasoning.
 If it read their reasoning it would absorb their mistakes along with their intent.
@@ -95,6 +108,11 @@ If it read their reasoning it would absorb their mistakes along with their inten
   built on what the junk weighs and how rare it is.
 - Take out the **Economy Balancer** and there is no config file. That is the thing the
   game actually loads.
+- Take out the **Playtester** and thousands of flight results go unread. It is also the only
+  agent that separates *"these numbers are wrong"* from *"this rule can't work at any
+  numbers"* — and that difference decides whether you go hunting for a value or rewrite a
+  mechanic. It's the only one that proposes a value set, too, which is the thing a human
+  actually flies.
 - Take out the **Spec Auditor** and nothing checks the work. This is the one that turns a
   straight line into a loop.
 
@@ -157,6 +175,9 @@ config/game_params.json    the same numbers as plain JSON
 data/debris_catalog.json   the loot table
 params/baseline.json       the physics, with the math shown
 audit/audit_report.md      every rule checked, pass or fail, with evidence
+playtest/playtest_report.json    what the flights measured vs what was claimed
+playtest/sweep_verification.json every scenario flown with these numbers
+playtest/sweep_exploration.json  324 worlds scored against 7 design targets
 report/dashboard.html      the charts — open this one in a browser
 run.json                   what ran, how long it took, which model
 logs/                      every prompt sent and every reply received
@@ -189,6 +210,31 @@ different starting assumption, and drew a chart that disagreed with the audit pr
 directly beneath it. Now the Balancer has to show its work and the chart just plots it.
 
 ---
+
+## What the simulator does
+
+`lib/sim.js` is a 2D flight model — a few hundred lines of plain Node, no engine required.
+It integrates the ship's trajectory at a fixed timestep: gravity, an exponential atmosphere,
+drag, heating, orbital mechanics, and terminal velocity under the parachute.
+
+It keeps a hard line between two kinds of number:
+
+- **Physics is simulated.** How fast the ship is going, how hot it gets, whether it skips
+  back out of the atmosphere.
+- **Game rules are applied, not re-derived.** How peak heat turns into shield damage is a
+  *design decision*, so it comes from the Balancer's params. Simulating the physics and
+  applying the crew's rules is what lets the sweep answer "is the cheapest descent really
+  2–4 passes" by measurement, instead of by restating the formula that claimed it.
+
+Then it sweeps. 324 worlds, varying gravity, air density, atmosphere thickness, the ship's
+frontal area and its dry mass, each scored against seven targets pulled from the design:
+are both bands reachable, does aerobraking exist at all, is the cheapest descent 2–4 passes,
+is an unstaged braking pass survivable, does a full hold land soft, does greed cost
+something, does the return leg get harder with altitude.
+
+That's the part a single config can never answer. Not *"are these numbers good"* but
+*"where in the parameter space is there a good set of numbers at all"* — and if almost
+nowhere satisfies a target, that's a fact about the design rather than about the numbers.
 
 ## How it's built
 
@@ -226,6 +272,8 @@ agents/                  the four agents, one markdown file each
 schemas/                 the JSON contract for each agent's output
 lib/agent.js             runs one agent, validates it, retries with the error
 lib/schema.js            the JSON Schema checker (hand-rolled, no dependencies)
+lib/sim.js               the 2D flight model
+lib/sweep.js             the scenario matrix and the 324-world grid
 lib/godot.js             writes the .tres and .gd files
 lib/charts.js            renders the dashboard
 stubs/                   a recorded run, for --stub mode
@@ -240,7 +288,9 @@ flowchart LR
   R -->|"baseline.json<br/><i>physics</i>"| D["2 · DEBRIS<br/>DESIGNER"]
   D -->|"debris_catalog.json<br/><i>the loot table</i>"| B["3 · ECONOMY<br/>BALANCER"]
   R --> B
-  B -->|"game_params.json<br/><i>every tunable</i>"| A["4 · SPEC<br/>AUDITOR"]
+  B -->|"game_params.json<br/><i>every tunable</i>"| SIM[["FLIGHT SIM<br/><i>no model in it</i>"]]
+  SIM -->|"measured<br/>outcomes"| P["4 · PLAYTESTER"]
+  P -->|"findings + a<br/>candidate value set"| A["5 · SPEC<br/>AUDITOR"]
   GDD ==>|"the spec itself"| A
   A -->|"game_params.tres<br/>+ dashboard"| OUT["game-ready<br/>output"]
 
@@ -249,8 +299,10 @@ flowchart LR
 
   classDef agent fill:#e8f0fb,stroke:#2c5aa0,stroke-width:2px,color:#14181d
   classDef ship fill:#e4f3e7,stroke:#2f7a41,stroke-width:2px,color:#14181d
-  class R,D,B,A agent
+  classDef sim fill:#ece9f7,stroke:#4a3aa7,stroke-width:2px,color:#14181d
+  class R,D,B,P,A agent
   class OUT ship
+  class SIM sim
 ```
 
 Full diagrams, including how the orchestrator's gates work, are in

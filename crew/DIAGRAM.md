@@ -1,8 +1,9 @@
 # Junkstronaut tuning crew — architecture
 
-Four agents, one deterministic orchestrator, two feedback edges. Every arrow between agents
-is a **file**, not a conversation: each agent writes a schema-checked JSON artifact and the
-next agent reads it. Nothing is passed as chat history, so any stage can be re-run alone.
+Five agents, one deterministic orchestrator, two feedback edges, and a flight simulator in
+the middle. Every arrow between agents is a **file**, not a conversation: each agent writes
+a schema-checked JSON artifact and the next agent reads it. Nothing is passed as chat
+history, so any stage can be re-run alone.
 
 ## Agent roles and data flow
 
@@ -10,17 +11,22 @@ next agent reads it. Nothing is passed as chat history, so any stage can be re-r
 flowchart TB
   GDD["Junkstronaut GDD<br/><i>§2.3 rules, §2.3 Key values</i>"]
 
-  subgraph CREW["The crew — four agents, one chain"]
+  subgraph CREW["The crew — five agents"]
     direction TB
     R["<b>1 · RESEARCHER</b><br/>scales real orbital and reentry<br/>physics to a small planet"]
     D["<b>2 · DEBRIS DESIGNER</b><br/>authors the loot table:<br/>mass, size class, fragility"]
     B["<b>3 · ECONOMY BALANCER</b><br/>prices the catalog against<br/>every rule in §2.3 at once"]
-    A["<b>4 · SPEC AUDITOR</b><br/>recomputes each Key values<br/>bullet against the numbers"]
+    P["<b>4 · PLAYTESTER</b><br/>reads what the flights did;<br/>proposes a value set"]
+    A["<b>5 · SPEC AUDITOR</b><br/>recomputes each Key values<br/>bullet against the numbers"]
   end
+
+  SIM[["<b>FLIGHT SIMULATOR</b><br/><i>deterministic, no model</i><br/>flies the config, then sweeps<br/>324 worlds against 7 targets"]]
 
   BASE[/"params/baseline.json<br/><i>orbital speeds, atmosphere,<br/>heating thresholds, drag</i>"/]
   CAT[/"data/debris_catalog.json<br/><i>18–30 debris types, no prices</i>"/]
   PAR[/"config/game_params.json<br/><i>every tunable in the game</i>"/]
+  SWP[/"playtest/sweep_*.json<br/><i>measured outcomes</i>"/]
+  PLAY[/"playtest/playtest_report.json<br/><i>claim vs measured, proposals</i>"/]
   AUD[/"audit/audit_report.md<br/><i>per-rule pass/fail + evidence</i>"/]
 
   TRES["<b>config/game_params.tres</b><br/>+ game_params.gd<br/><i>the resource Godot loads</i>"]
@@ -29,6 +35,7 @@ flowchart TB
   GDD --> R
   GDD -.->|"§2.3.4, §2.3.7"| D
   GDD -.->|"every Key values list"| B
+  GDD -.->|"§2.3.1, §4.5 risks"| P
   GDD ==>|"the spec, never the<br/>other agents' reasoning"| A
 
   R -->|writes| BASE
@@ -37,7 +44,15 @@ flowchart TB
   BASE --> B
   CAT -->|"masses to price"| B
   B -->|writes| PAR
+  PAR --> SIM
+  BASE --> SIM
+  CAT --> SIM
+  SIM -->|writes| SWP
+  SWP -->|"thousands of flights"| P
+  P -->|writes| PLAY
   PAR -->|"the numbers<br/>under audit"| A
+  SWP -->|"measured evidence"| A
+  PLAY -->|"findings"| A
   A -->|writes| AUD
 
   A -->|"<b>fail · owner: economy-balancer</b><br/>prices, ablation, landing, tow fee"| B
@@ -47,6 +62,7 @@ flowchart TB
   PAR --> TRES
   CAT --> TRES
   AUD --> HUMAN
+  PLAY -->|"candidate value set"| HUMAN
   TRES --> HUMAN
   HUMAN -->|"feels wrong — narrow the range"| B
 
@@ -54,11 +70,32 @@ flowchart TB
   classDef artifact fill:#fdf4e3,stroke:#a86c17,stroke-width:1.5px,color:#14181d
   classDef ship fill:#e4f3e7,stroke:#2f7a41,stroke-width:2px,color:#14181d
   classDef human fill:#f7e2df,stroke:#9d3a2f,stroke-width:2px,color:#14181d
-  class R,D,B,A agent
-  class BASE,CAT,PAR,AUD artifact
+  classDef sim fill:#ece9f7,stroke:#4a3aa7,stroke-width:2px,color:#14181d
+  class R,D,B,P,A agent
+  class BASE,CAT,PAR,SWP,PLAY,AUD artifact
   class TRES ship
   class HUMAN human
+  class SIM sim
 ```
+
+**The simulator is scaffolding, not an agent.** It integrates trajectories at a fixed
+timestep with no randomness and no model in the loop, which is what makes a sweep of
+thousands of flights mean anything (GDD §4.4, headless determinism). It keeps a hard line
+between physics and game rules: gravity, drag, heating and orbital mechanics are simulated;
+how peak heat converts to shield ablation is a *design decision* and is taken from the
+Balancer's params rather than re-derived. Simulating the physics and applying the crew's
+rules is what lets the sweep answer "is the cheapest descent really 2–4 passes" by
+measurement instead of by restating the formula that claimed it.
+
+**Why the Playtester sits between the simulator and the Auditor.** The sweep produces
+thousands of rows; somebody has to say what they mean. The Auditor could read them, but it
+answers a different question — *does the config obey the written rules* — and the GDD (§3.1)
+draws that boundary explicitly: QA tests conformance, the Playtester measures behaviour and
+proposes numbers. Only the Playtester emits a candidate value set, which is the artifact
+Chad actually flies at Checkpoint 2, and only the Playtester distinguishes a **tuning**
+problem (grid configurations exist that fix it) from a **design** problem (almost none do,
+so the rule itself has to change). That distinction decides whether you go hunting for a
+value or rewrite a mechanic, and nothing else in the crew produces it.
 
 The thick arrow into the Spec Auditor is load-bearing. The Auditor is given the **design
 document**, never the other agents' reasoning — if it audited their reasoning it would
