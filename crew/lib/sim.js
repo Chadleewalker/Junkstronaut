@@ -24,8 +24,10 @@
 //     perfectly, so measured heat is a best case and a real player will do slightly worse.
 //   * Impulsive burns for orbit changes; the fuel cost is charged from the rocket equation.
 //     Ascent is integrated properly because its fuel cost is the thing being measured.
-//   * Aerobraking uses one periapsis depth for the whole descent, which is how a player
-//     actually flies it: pick a braking altitude and repeat until committed.
+//   * Aerobraking takes two depths — a braking periapsis for the skims and a separate one
+//     for the committed entry — with an impulsive burn between them. That is the manoeuvre
+//     §2.3.1 describes. A single shared depth cannot express it, and modelling it that way
+//     conflates skimming with decaying.
 //   * Cargo is a mass. Slot accounting lives in the catalog, not here.
 
 // ---------------------------------------------------------------- world
@@ -225,12 +227,29 @@ function simulateAscent(world, cfg, targetAlt) {
 
 // ---------------------------------------------------------------- descent
 
-// Fly a whole descent from a circular orbit, braking at a fixed periapsis altitude, until
-// the ship is committed and lands. Returns one entry per atmospheric pass.
-// `stageAfter` is how many unstaged braking passes are flown before committing. The ship
-// stages at the apoapsis following that pass, which is the one-way decision in §2.3.1:
-// after it there is no thrust, so the rest is drag, chute and gear.
-function simulateDescent(world, cfg, startAlt, periapsisAlt, stageAfter = 0) {
+// Fly a descent: shallow braking passes at `periapsisAlt`, then a committed entry.
+//
+// TWO DEPTHS, AND THAT IS THE WHOLE POINT. An earlier version of this function took one
+// periapsis and used it for the entire descent, which cannot express the manoeuvre §2.3.1
+// actually describes — the player keeps thrust during braking precisely so they can "raise
+// or lower the periapsis between passes" and then commit to a different, deeper entry.
+//
+// With a single depth the only descents available are "pick a braking altitude and repeat
+// until you fall out of the sky", and a shallow choice there does not skim: it decays,
+// drifting into dense air under its own drag. Measuring those and concluding that skimming
+// does not cool an entry answered a question nobody asked. The shallow runs were not
+// skimming — they were slowly crashing.
+//
+// opts.skims          how many braking passes before committing (default: unlimited, which
+//                     reproduces the old behaviour exactly)
+// opts.entryPeriapsis the periapsis for the committed entry (default: same as braking)
+// `stageAfter` is how many unstaged braking passes are flown before staging. The ship stages
+// at the apoapsis following that pass — the one-way decision in §2.3.1, after which there is
+// no thrust and the rest is drag, chute and gear.
+function simulateDescent(world, cfg, startAlt, periapsisAlt, stageAfter = 0, opts = {}) {
+  const maxSkims = opts.skims === undefined ? Infinity : opts.skims;
+  const entryRp = world.R + (opts.entryPeriapsis === undefined ? periapsisAlt : opts.entryPeriapsis);
+
   const ra = world.R + startAlt;
   const rp = world.R + periapsisAlt;
   const v = velocityForPeriapsis(world, ra, rp);
@@ -250,6 +269,8 @@ function simulateDescent(world, cfg, startAlt, periapsisAlt, stageAfter = 0) {
   let maxSpeed = 0;
   let prevVr = 0;
   let chuteShredded = false;
+  let committed = maxSkims === Infinity;   // unlimited skims = never commit, the old behaviour
+  let commitDv = 0;
 
   while (s.t < cfg.maxDescentTime) {
     const r0 = Math.hypot(s.x, s.y);
@@ -286,6 +307,7 @@ function simulateDescent(world, cfg, startAlt, periapsisAlt, stageAfter = 0) {
         touchdownTotalSpeed: Math.hypot(s.vx, s.vy),
         overheatTime: s.overheatTime || 0,
         heatLoad: s.heatLoad,
+        commitDv,
         chuteOpen: s.chuteOpen,
         chuteShredded,
         maxSpeed,
@@ -296,17 +318,33 @@ function simulateDescent(world, cfg, startAlt, periapsisAlt, stageAfter = 0) {
     if (!inside && inAtm) {
       // Left the atmosphere — the pass is over.
       inAtm = false;
-      passes.push({ peakHeat: passPeak, heatLoad: s.heatLoad - passLoadStart, peakRate: passRate, staged: s.staged });
+      passes.push({ peakHeat: passPeak, heatLoad: s.heatLoad - passLoadStart, peakRate: passRate,
+                    staged: s.staged, skim: passes.length < maxSkims });
       // Stage at the apoapsis after the last braking pass. One-way, per §2.3.1.
       if (!s.staged && passes.length >= stageAfter) s.staged = true;
       if (passes.length > (cfg.maxPasses || 25)) return { landed: false, why: 'did not converge', passes };
     }
 
-    // Apoapsis crossing outside the air: if the new apoapsis is inside the atmosphere the
-    // ship is committed and the next entry is the final one.
+    // Apoapsis crossing outside the air.
     if (!inside && prevVr > 0 && vr <= 0) {
       const o = orbit(world, s.x, s.y, s.vx, s.vy);
       if (!o.bound) return { landed: false, why: 'escaped', passes };
+
+      // The commit burn. Once the planned skims are flown, drop periapsis to the entry
+      // depth — this is the manoeuvre the player makes with their remaining thrust, and
+      // modelling it is the difference between "skim then enter" and "decay".
+      if (!committed && passes.length >= maxSkims && entryRp < o.periapsis - 1) {
+        const rNow = Math.hypot(s.x, s.y);
+        const vNew = velocityForPeriapsis(world, rNow, entryRp);
+        const vNow = Math.hypot(s.vx, s.vy);
+        if (vNow > 0 && Number.isFinite(vNew)) {
+          const k = vNew / vNow;
+          s.vx *= k;
+          s.vy *= k;
+          commitDv += Math.abs(vNow - vNew);
+        }
+        committed = true;
+      }
     }
     prevVr = vr;
   }
