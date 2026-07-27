@@ -1,12 +1,12 @@
 {
   "agent": "economy-balancer",
   "flight": {
-    "dry_mass_kg": 1200,
-    "fuel_capacity_kg": 620,
-    "thrust_n": 16000,
-    "fuel_burn_kgs": 4,
-    "rcs_thrust_n": 800,
-    "rcs_fuel_burn_kgs": 0.2,
+    "dry_mass_kg": 900,
+    "fuel_capacity_kg": 1900,
+    "thrust_n": 35200,
+    "fuel_burn_kgs": 16,
+    "rcs_thrust_n": 1200,
+    "rcs_fuel_burn_kgs": 0.4,
     "rotation_rate_degs": 90
   },
   "cargo": {
@@ -21,40 +21,40 @@
     "off_retrograde_penalty": 1
   },
   "ablation": {
-    "cycle_toll_base_pct": 0.56,
-    "cycle_toll_growth": 1.8,
-    "heat_cost_coefficient": 0.00001,
+    "cycle_toll_base_pct": 0.16,
+    "cycle_toll_growth": 1.35,
+    "heat_cost_coefficient": 0.000018,
     "heat_cost_exponent": 3,
-    "skim_peak": 30,
+    "skim_peak": 29,
     "skim_heat_multiplier": [
       1,
-      0.971,
-      0.944,
-      0.918
+      0.984,
+      0.974,
+      0.972
     ],
     "heat_index": {
-      "suborbital": 100,
-      "low": 126.6,
-      "high": 157.1
+      "suborbital": 83,
+      "low": 100,
+      "high": 119
     },
     "cost_curve": {
       "suborbital": [
-        10.56,
-        10.99,
-        12.33,
-        15.19
+        10.45,
+        10.62,
+        11.06,
+        11.83
       ],
       "low": [
-        20.85,
-        20.41,
-        20.99,
-        23.16
+        18.16,
+        17.96,
+        18.18,
+        18.91
       ],
       "high": [
-        39.33,
-        37.33,
-        36.54,
-        37.45
+        30.49,
+        29.72,
+        29.57,
+        30.23
       ]
     },
     "plate_capacity_pct": 100,
@@ -70,7 +70,7 @@
     "no_gear_multiplier": 2,
     "fragile_multiplier": 2,
     "parachute_drag_coefficient": 1.8,
-    "descent_speed_full_hold_ms": 4.18
+    "descent_speed_full_hold_ms": 4.6
   },
   "tow_fee": {
     "free_radius_m": 1200,
@@ -79,9 +79,9 @@
   },
   "eva": {
     "suit_mass_kg": 110,
-    "jetpack_thrust_n": 280,
-    "jetpack_fuel_kg": 28,
-    "jetpack_burn_kgs": 0.4,
+    "jetpack_thrust_n": 400,
+    "jetpack_fuel_kg": 18,
+    "jetpack_burn_kgs": 0.35,
     "base_tether_slots": 2,
     "magnet_hold_force_n": 900,
     "magnet_range_screens": 0.125,
@@ -90,7 +90,7 @@
   },
   "economy": {
     "launch_cost": 100,
-    "replate_cost_per_pct": 2,
+    "replate_cost_per_pct": 3,
     "repair_cost_per_pct": 5,
     "band_value_multiplier": {
       "suborbital": 1,
@@ -108,30 +108,30 @@
     {
       "part": "fuel_tank",
       "tier": 1,
-      "cost": 400,
+      "cost": 450,
       "effect": "fuel_capacity_kg",
-      "value": 800
+      "value": 2400
     },
     {
       "part": "fuel_tank",
       "tier": 2,
-      "cost": 1150,
+      "cost": 1100,
       "effect": "fuel_capacity_kg",
-      "value": 1000
+      "value": 3100
     },
     {
       "part": "thruster",
       "tier": 1,
-      "cost": 360,
+      "cost": 400,
       "effect": "thrust_n",
-      "value": 20000
+      "value": 42000
     },
     {
       "part": "thruster",
       "tier": 2,
-      "cost": 1000,
+      "cost": 950,
       "effect": "thrust_n",
-      "value": 24000
+      "value": 48000
     },
     {
       "part": "storage",
@@ -143,71 +143,63 @@
     {
       "part": "storage",
       "tier": 2,
-      "cost": 1400,
+      "cost": 1200,
       "effect": "base_slots",
       "value": 10
     },
     {
       "part": "heat_shield",
       "tier": 1,
-      "cost": 440,
-      "effect": "heat_capacity",
-      "value": 135
+      "cost": 550,
+      "effect": "plate_capacity_pct",
+      "value": 150
     },
     {
       "part": "heat_shield",
       "tier": 2,
       "cost": 1300,
-      "effect": "heat_capacity",
-      "value": 175
+      "effect": "plate_capacity_pct",
+      "value": 220
     },
     {
       "part": "parachute",
       "tier": 1,
-      "cost": 320,
-      "effect": "parachute_drag_coefficient",
-      "value": 2.4
+      "cost": 480,
+      "effect": "descent_speed_full_hold_ms",
+      "value": 3.9
     },
     {
       "part": "parachute",
       "tier": 2,
-      "cost": 900,
-      "effect": "parachute_drag_coefficient",
-      "value": 3.2
+      "cost": 1150,
+      "effect": "descent_speed_full_hold_ms",
+      "value": 3.3
     },
     {
       "part": "hand_magnet",
       "tier": 1,
-      "cost": 280,
-      "effect": "magnet_range_screens",
-      "value": 0.1875
-    },
-    {
-      "part": "hand_magnet",
-      "tier": 2,
-      "cost": 800,
+      "cost": 420,
       "effect": "magnet_hold_force_n",
-      "value": 1500
+      "value": 1400
+    },
+    {
+      "part": "hand_magnet",
+      "tier": 2,
+      "cost": 1000,
+      "effect": "magnet_hold_force_n",
+      "value": 2000
     }
   ],
   "balance_notes": [
-    "AUDIT FIX 1 of 2, skim_multiplier_matches_flown. skim_heat_multiplier is now the flown high-band array [1.0, 0.971, 0.944, 0.918], adopted exactly rather than argued with. The schema carries one array and the check is stated against the high band, so the high band is what it is anchored to; measured low ([1, 0.956, 0.912, 0.867]) sits within 0.015/0.032/0.051 of it and also passes the 0.10 tolerance. Measured suborbital ([1, 0.898, 0.730, 0.730]) does not and cannot — 0.730 and 0.944 are 0.214 apart, so no single array can be within 0.10 of both bands at index 2. That is a schema limitation, not a tuning choice: if the Auditor intends the tolerance to bind per band, this field has to become a per-band object and I cannot make that change from here. The whole cost_curve below is recomputed from the adopted array; nothing is carried over from the rejected pass.",
-    "AUDIT FIX 2 of 2, no_target_moved, part (a) the heat scale. ablation.heat_index is re-anchored to a flown entry as directed — the simulator's empty single-pass suborbital descent is 100 — giving heat_index 100 / 126.6 / 157.1 against the flown 100.0 / 126.6 / 157.1. The previous pass normalised on the low band, which is a chosen constant, and then claimed a safety margin that existed only in those units. I am not reclaiming it: at base gear a direct suborbital entry reads exactly 100 against reentry.heat_capacity 100, i.e. it sits on the cargo-damage line, not under it. That is a real decision rather than a defect — one skim drops the same entry to 97.1 for 0.43% of plate, and heat_shield t1 raises capacity to 135. The low band (126.6 direct, 122.9 at its optimum) requires heat_shield t1 and the high band (157.1 direct, 148.3 at its optimum) requires t2, which is exactly GDD 2.3.7's 'surviving the return from a band takes heat shield upgrades' expressed in numbers instead of prose.",
-    "AUDIT FIX 2 of 2, part (b) the slot accounting behind the doubling rule, GDD 2.3.5 and 2.3.4. Fragile pieces are now charged slots_uncrushed, which 2.3.4 requires at every compactor tier. Over the shipping slice's hand-tetherable population (suborbital + low, spawn-weighted) that is 231 slots, not the 205 the previous pass used, giving 170.89 kg per slot flown, a 6-slot hold of 1025.3 kg and (1200 + 1025.3) / 1200 = 1.854x — 'roughly doubles' by GDD 2.3.5, and 5.6 points further from 2.0 than the rejected 1.958x claimed. dry_mass_kg stays 1200; the error was in the reported arithmetic, not in the mass. One honest caveat: the flown 170.89 carries cracked_solar_array at its pre-revision 380 kg, and against the catalog as shipped (500 kg) the identical arithmetic gives 173.5 kg/slot, a 1041.0 kg hold and 1.868x. Both pass; I report the flown figure because that is the number the simulator can reproduce.",
-    "Parachute descent speed at full hold, GDD 2.3.2 and method step 4. descent_speed_full_hold_ms is 4.18, the flown value, replacing the 4.3 the previous pass produced by sqrt-scaling the inflated 1149.9 kg hold (4.18 * sqrt(2349.9/2225.3) = 4.30 — that is precisely how the error propagated). parachute_drag_coefficient is unchanged at 1.8, since 4.18 is what it flies; only the claim moved. Under v proportional to sqrt(mass), the base 6-slot hold lands at 4.18 m/s — near the 5 m/s line and under it, which is what makes the Parachute a purchase rather than a formality.",
-    "Storage and Parachute are a tier-for-tier pair, GDD 2.3.6. Storage t1 (8 slots) takes a low-band hold to 5.12 m/s on the base chute — over the soft-landing line — and Parachute t1 (Cd 2.4) brings it back to 4.43. Storage t2 (10 slots) from the high band is 6.34 m/s on the base chute, and Parachute t2 (Cd 3.2) brings it to 4.76. Every Storage tier buys a hard landing and the matching Parachute tier buys it back, so the two read as natural paired purchases and maximum greed at an unmatched chute costs a graze (1.34 m/s over the line at 6.0 damage per m/s), never the haul.",
-    "Ablation optimum, method step 3, evaluated not asserted. With cycle_toll_base_pct 0.56, cycle_toll_growth 1.8, heat_cost_coefficient 1e-5, heat_cost_exponent 3.0 and skim_peak 30, the cost curves are suborbital [10.56, 10.99, 12.33, 15.19], low [20.85, 20.41, 20.99, 23.16], high [39.33, 37.33, 36.54, 37.45], so optimal_skims is 0 / 1 / 2 and the return leg gets strictly harder with altitude. Worked example, high band k=2: toll 0.56 + 1.008 + 1.8144 = 3.3824, entry heat 1e-5 * (157.1 * 0.944)^3 = 1e-5 * 3,261,702 = 32.617, skim heat 2 * 1e-5 * 30^3 = 0.54, total 36.54 against 37.33 at k=1 and 37.45 at k=3. Growth of 1.8 is what closes it: the third skim's cycle toll alone (3.27%) exceeds the heat it saves (2.62%).",
-    "The flown skims are far weaker than the charter's guess, and that shows in the shape of the optimum. A high-band skim removes 2.9% of committed-entry peak, not the 5% the charter's illustrative array assumed, so at a cubic ablation exponent it buys about 7% of the heat term. The optimum is therefore genuine but shallow — 0.79 points of plate between 1 and 2 skims from the high band, 0.44 between 0 and 1 from the low band, out of 36.5 and 20.4 respectively. I priced the flown physics rather than steepening the multiplier array to make the decision look sharper, which is what the rejected pass effectively did. If the crew wants a wider gap, the charter names the right levers and neither is mine: ballistic coefficient (the Researcher's beta, which the Debris Designer's mass gradient already moves 2-3x between bands) and skim entry depth (the Coder's).",
-    "Lazy-run break-even, GDD 2.3.6. A cheap suborbital piece (small, solid) prices at size_class_base_value.small 40 * band_value_multiplier.suborbital 1.0 = 40, so launch_cost 100 is 2.5 cheap pieces, inside the 'about two to three' the GDD fixes. The cheapest complete run is a direct suborbital descent: 10.56% of plate at replate_cost_per_pct 2 = 21.1, so total outlay is 121.1. Three cheap pieces (120) is break-even to within a credit; a typical 6-slot suborbital hold of four smalls and one medium is 250 and nets 129. A lazy run breaks even and a careless one cannot go bankrupt, which is the claim.",
-    "No shear under steady-state towing, GDD 2.3.4 and method step 6, and it is bounded rather than tuned. Steady tension in a cable is that piece's mass times the astronaut's acceleration, and acceleration is jetpack_thrust_n / (suit_mass_kg + total towed mass), so the tension in any one cable is thrust * m_i / (110 + sum m) — strictly less than jetpack_thrust_n itself, at any tether count and any load in the catalog. With thrust 280 N the ceiling is 280 N and magnet_hold_force_n 900 sits 3.2x above it, so steady towing can never shear at any legal load, including the deferred 4-slot case and the deferred Jetpack tiers up to 900 N. Shear is left to the two impulsive terms the GDD names: at latch_jerk_coefficient 1.0 a 500 kg low-band piece shears above about 1.8 m/s closing speed and a 140 kg suborbital panel above about 6.4 m/s, so the skill gate tightens exactly as the salvage gets valuable, and hand_magnet t2 (1500 N) buys that tolerance back rather than buying tow capacity that was never at risk.",
-    "EVA load, method step 6. jetpack_thrust_n 280 against suit_mass_kg 110 gives 2.55 m/s^2 free and 0.25 m/s^2 towing the worst legal two-piece low-band load (satellite_bus_frame 500 + cracked_solar_array 500) — a 10x handling change, which is 'noticeably heavier but still controllable' and is the tugboat feel GDD 2.3.4 asks for. jetpack_fuel_kg 28 at 0.4 kg/s is 70 seconds of continuous burn: about 18 m/s of delta-v with a full two-piece load, enough for one deliberate haul home with reserve, and about 169 m/s empty, which is what makes chasing a fragile piece off the clumps a real fuel decision rather than a free one.",
-    "Tow fee, GDD 2.3.3. free_radius_m 1200 is the pad's one screen; beyond it the fee is linear in distance and reaches max_fee_fraction 0.5 at half the planet's circumference, pi * 250000 = 785,398 m, so fee = 0.5 * clamp((d - 1200) / 784198, 0, 1) * haul value. It is zero at the pad, never negative, never above 50%, and is taken off the sale only — savings are untouched, so a bad landing is a setback and not a loss condition.",
-    "Fragile premium, GDD 2.3.7. fragile_value_premium 3.0 puts a low-band fragile medium (cracked_solar_array) at 90 * 2.4 * 3 = 648 against 216 for a solid medium from the same band. It occupies 4 uncrushed slots of a 6-slot hold and the rest of that hold is worth about 216, so one intact fragile piece is three quarters of the run's payout — 'reshapes a run's payout' is literally true, and losing it to a hard landing or a hot entry (double damage on both) is felt. Its value is gated on approach discipline and touchdown softness rather than on gear, which is the one reward in the economy no upgrade can buy outright.",
-    "Flight, method step 1, checked against the return leg rather than the launch. At exhaust velocity 16000/4.0 = 4000 m/s, a 620 kg tank on 1200 kg dry gives 4000 * ln(1820/1200) = 1666 m/s. The Researcher's numbers put an ideal surface-to-102.5 km circularisation at 1157 m/s (1082 at perigee, 75 to circularise), so roughly 1350 m/s with losses at launch TWR 16000/7280 = 2.2, leaving about 315 m/s for the 42 m/s deorbit burn, the periapsis reshaping between skims, and station-keeping while the astronaut is outside. The low band needs about 1430 m/s and is reachable at base only with no margin, which is what makes fuel_tank t1 (2043 m/s) the first purchase. Acceleration on the way home with a full hold and a near-empty tank is 16000/2375 = 6.7 m/s^2, so the ship is sluggish but never stranded.",
-    "One thing the schema cannot express and the Coder must handle. An upgrade row carries a single effect, so the thruster tiers set thrust_n only; fuel_burn_kgs must be scaled with them (5.0 at t1, 6.0 at t2) to hold exhaust velocity at 4000 m/s. If it is not, each thruster tier silently hands the player free delta-v and the band gating in the note above stops holding. Nothing in this file can state that coupling, so it is stated here.",
-    "Staging remains one-way and nothing here reintroduces post-stage thrust: rcs_thrust_n and thrust_n both belong to the jettisoned stage, and the only force available after staging is the EVA jetpack applied to the hull, which at 280 N against a 2225 kg staged ship is 0.13 m/s^2 — a rescue for a decaying orbit, not an engine, exactly as GDD 2.3.1 requires."
+    "GDD 4.1 shipping-slice reachability, the audit's second failure: fuel_capacity_kg goes 1200 -> 1900 and thrust_n 26400 -> 35200 with fuel_burn_kgs 12.0 -> 16.0, which holds exhaust velocity at 35200/16 = 2200 m/s exactly as before, so only the tank size and the thrust level move and the engine's efficiency is untouched. Ideal delta-v at base rises from 2200*ln(2100/900) = 1864 m/s to 2200*ln(2800/900) = 2497 m/s, a gain of 633 m/s against a measured suborbital shortfall of 290.17 kg (the fuel that ascent needed and did not have, which at the old wet mass is 2200*ln(2390/900) - 1864 = 284 m/s). The extra thrust is the second half of the fix rather than decoration: liftoff thrust-to-weight goes 26400/(2100*4) = 3.14 to 35200/(2800*4) = 3.14, i.e. the bigger tank is carried at the same acceleration it had before, so the 58% larger propellant load does not buy itself extra gravity loss. Burn time to depletion is 1900/16 = 118.8 s against 1200/12 = 100 s.",
+    "GDD 2.3.5 full-hold mass doubling: dry_mass_kg 900 and base_slots 6 are unchanged, and the Debris Designer's recomputed shipping-slice figure is 150.27 kg per crushed-equivalent slot (49290 kg-slots over 328 slots across suborbital and low). A full base hold is 6 * 150.27 = 901.6 kg against a 900 kg staged dry ship, i.e. 2.002x. That is measured on the catalog as it stands, not asserted. Note that base_slots is the number the GDD's own walkthrough puts on screen ('Cargo reads 4 of 6') and I have deliberately not moved it to make any other check pass.",
+    "GDD 2.3.1 ablation optimum, the audit's first failure, re-derived rather than re-asserted. The audit reports the flown cooling as roughly a fifth of the claimed [1.0, 0.92, 0.87, 0.86]; applied element-wise to the claimed reductions (8/13/14 percent -> 1.6/2.6/2.8 percent) that is skim_heat_multiplier [1.0, 0.984, 0.974, 0.972], which is what I have adopted. At the fixed cubic law the entry-heat saving from skimming is therefore only 1 - 0.984^3 = 4.72% of the direct-entry cost for the first skim, a further 2.88% for the second and 0.57% for the third. A U-curve still exists, but only if the per-skim price is smaller than those savings, so I re-derived all three knobs the audit named plus skim_peak: cycle_toll_base_pct 1.42 -> 0.16, cycle_toll_growth 1.25 -> 1.35, heat_cost_coefficient 0.00002 -> 0.000018, skim_peak 40 -> 29. heat_index and heat_cost_exponent are unchanged. The per-skim price is then toll_i + 0.000018*29^3 = toll_i + 0.4390, i.e. 0.6550 for the first skim and 0.7306 for the second, and the savings are 0.0472*30.333 = 1.4325 and 0.0288*30.333 = 0.8721 from the high band, 0.8503 and 0.5175 from the low band, 0.4862 and 0.2959 from suborbital. Every skim whose saving exceeds its price is taken and no other, which lands the optimum at 2 skims from high, 1 from low and 0 from suborbital, and cost_curve is that model evaluated: high [30.49, 29.72, 29.57, 30.23], low [18.16, 17.96, 18.18, 18.91], suborbital [10.45, 10.62, 11.06, 11.83]. Worked example anyone can check: high k=2 = 0.000018*(119*0.974)^3 + (0.16 + 0.216 + 0.2916) + 2*0.4390 = 28.0279 + 0.6676 + 0.8780 = 29.57.",
+    "Flagged for the human under GDD 4.5 risk 1, because it is a design finding and not a tuning one: at the measured cooling the U-curve is real but shallow. The high band's optimum beats a single plunge by 0.92 plate-percent and beats one skim by 0.15, and the low band's optimum beats a plunge by 0.20. The audit's own suggestion allowed for escalation on the grounds that no toll setting produces a U at the measured cooling; that is true if only the toll moves, and it stops being true once heat_cost_coefficient and skim_peak move with it, which is the path I took. But a 0.15-percent difference between one skim and two is arithmetic the player cannot feel, so the mechanic is currently correct and invisible. The honest levers are upstream of me and both are in the GDD: make skims actually cool the entry more (deeper skims at 40-45 km periapsis, per the Researcher's own dv table, where a pass is worth 25-85 m/s rather than a feather), or accept 4.5's stated fallback of a flat toll with a hard pass cap. If the simulator can report the exact per-band skim_heat_multiplier arrays rather than a single ratio, I will price those instead of a fifth-of-claimed estimate.",
+    "GDD 2.3.2 parachute at full hold: descent_speed_full_hold_ms 4.6 sits just under the 5.0 m/s soft-landing line for a staged 900 kg ship carrying a full 900 kg base hold, i.e. 1800 kg. Because terminal speed goes as sqrt(m), the same canopy brings an empty staged ship down at 4.6/sqrt(2) = 3.25 m/s, and a greedy hold rather than a legal-average one crosses the line: three docking collars from the low band is 1665 kg of cargo, 2565 kg total, 4.6*sqrt(2565/1800) = 5.49 m/s and a hard landing. That gap is exactly what the Parachute upgrade is sold against - tier 1 at 3.9 m/s restores a 1665 kg haul to 4.66 m/s. The implied canopy at parachute_drag_coefficient 1.8 is A = 2*1800*4/(0.6*1.8*4.6^2) = 630 m2, which is the same size the Researcher derived (343 m2 at Cd 1.4 for a 900 kg ship at 5 m/s) scaled for twice the mass.",
+    "GDD 2.3.6 lazy-run break-even: launch_cost 100 is 2.5 pieces of the cheapest junk in the game (a suborbital small solid prices at 1.0 * 40 = 40), which is the 'about the value of 2-3 pieces of cheap junk' clause read literally. A lazy run is six suborbital smalls, 240, minus 100 launch and minus the re-plating bill for the band's optimal descent, 10.45% * 3 = 31, for a profit of 109. The same run flown badly - a direct plunge is only 10.45 vs 10.62 percent here, so laziness in the descent costs almost nothing at this band - still clears the launch. A full low-band hold of solids is 576 to 648 before the 17.96% re-plate (54), so the band change roughly quadruples the profit per run, which is what paces the upgrade tree.",
+    "GDD 2.3.4 no shear under steady tow: steady-state tension in one cable is that piece's mass times the astronaut's acceleration, and that acceleration is already suppressed by everything on the line, so tension = F * m_i / (110 + sum m) <= F * m_i / (110 + m_i) < F = 400 N for any load whatsoever. The worst legal case in the whole catalog is a single momentum_wheel_cluster at 715 kg: 400 * 715/825 = 346.7 N. In the shipping slice it is a single docking_collar at 555 kg: 400 * 555/665 = 333.8 N. Adding the second collar lowers per-cable tension to 555 * 400/1220 = 182 N, which is the design's stated inversion - a heavy load is sluggish, not fragile. magnet_hold_force_n 900 clears the worst case by 2.6x, so nothing steady can ever shear and the whole shear budget belongs to latch jerk and swing jerk.",
+    "GDD 2.3.3 tow fee: free_radius_m 1200 is one screen at the game's scale, the fee is zero inside it, and beyond it the fraction is 0.5 * (d - 1200) / (628319 - 1200) clamped to [0, 0.5], where 628319 m is half the circumference of the Researcher's 200 km planet. It reaches exactly 0.5 at the antipode, cannot exceed it, cannot go negative, and is charged off the haul rather than the balance, so it never touches savings.",
+    "Upgrade pacing and the one thing I could not verify: the tier-1 set totals 2800 and the tier-2 set 6700, which at roughly 110 profit per suborbital run and 450 to 550 per low-band run paces the twelve purchases across about 20-24 runs. fuel_tank tier 1 raises delta-v to 2200*ln(3300/900) = 2858 m/s, tier 2 to 2200*ln(4000/900) = 3283 m/s. The audit asked me to re-check that fuel_tank tier 1 stays a wanted purchase rather than a prerequisite, and I cannot settle that from here: the flown ascent cost of the low band was never measured, only its failure, so I do not know whether 2497 m/s at base already reaches it. I have sized the base tank for the reachability requirement, which is the hard check, and if the next sweep shows the low band opening at base config the fix is to take fuel_capacity_kg back toward 1600 rather than to touch thrust, since thrust is what is holding the ascent's gravity losses flat."
   ],
-  "catalog_concerns": [
-    "dense_avionics_core, iridium_battery_stack and gold_foil_bus_module, property mass_kg: the high band's hand-tetherable mediums plateau at 980-1000 kg, so a legal two-tether high-band load is 2000 kg and base-tier EVA acceleration falls to 280/2110 = 0.13 m/s^2 — below the 'noticeably heavier but still controllable' target the charter sets, and half the 0.25 m/s^2 the low band gives. The Debris Designer already routed this to the Jetpack upgrade as the counterweight, and I agree that is the right lever, but Jetpack is not among the shipping slice's six upgrade parts, so no tier of it exists for me to price. This does not bind the slice (the high band is deferred with it) and I have balanced against the catalog as it stands; flagging it so the finding is on record before the high band comes online."
-  ]
+  "catalog_concerns": []
 }

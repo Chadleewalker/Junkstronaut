@@ -1,42 +1,42 @@
 {
   "inferred": [
-    "landing.parachute_area_m2 is not in the params, so the model solved for the area implied by descent_speed_full_hold_ms 4.18 m/s at twice dry mass: 610.5 m2. Measured descent speeds are therefore anchored to that claim rather than independent of it. The params should state the area."
+    "landing.parachute_area_m2 is not in the params, so the model solved for the area implied by descent_speed_full_hold_ms 4.6 m/s at twice dry mass: 630.1 m2. Measured descent speeds are therefore anchored to that claim rather than independent of it. The params should state the area."
   ],
   "heat_scale_calibration": "Heat is reported on the 0-100 bar. The scale is fixed once so that an empty ship making a single-pass descent from the suborbital band peaks at 100, which is the crew's own normalisation. Every other figure is measured relative to that.",
   "ballistic_coefficient": {
-    "staged_kg_m2": 228.6,
-    "unstaged_kg_m2": 685.7,
+    "staged_kg_m2": 171.4,
+    "unstaged_kg_m2": 734.7,
     "note": "mass / (drag coefficient x reference area). Real reentry capsules run 300-500; below roughly 50 the atmosphere stops the ship rather than braking it, so multi-pass aerobraking cannot exist however the other numbers are tuned."
   },
   "cargo": {
-    "kg_per_slot": 173.48,
-    "full_hold_kg": 1040.9,
-    "full_hold_mass_ratio": 1.87
+    "kg_per_slot": 150.27,
+    "full_hold_kg": 901.6,
+    "full_hold_mass_ratio": 2
   },
   "ascents": [
     {
       "band": "suborbital",
-      "altitude_m": 102500,
-      "reached": false,
-      "why": "crashed on ascent",
-      "fuel_remaining_kg": 0,
-      "fuel_margin_pct": 0
+      "altitude_m": 100000,
+      "reached": true,
+      "why": null,
+      "fuel_remaining_kg": 316.19,
+      "fuel_margin_pct": 16.6
     },
     {
       "band": "low",
-      "altitude_m": 170000,
-      "reached": false,
-      "why": "crashed on ascent",
-      "fuel_remaining_kg": 0,
-      "fuel_margin_pct": 0
+      "altitude_m": 180000,
+      "reached": true,
+      "why": null,
+      "fuel_remaining_kg": 255.75,
+      "fuel_margin_pct": 13.5
     },
     {
       "band": "high",
-      "altitude_m": 275000,
-      "reached": false,
-      "why": "crashed on ascent",
-      "fuel_remaining_kg": 0,
-      "fuel_margin_pct": 0
+      "altitude_m": 295000,
+      "reached": true,
+      "why": null,
+      "fuel_remaining_kg": 223.8,
+      "fuel_margin_pct": 11.8
     }
   ],
   "descents": [
@@ -51,173 +51,222 @@
         3,
         4,
         5,
-        13
-      ],
-      "cheapest_pass_count": 1,
-      "cheapest_ablation_pct": 4.1,
-      "peak_heat": 70,
-      "touchdown_ms": 2.96,
-      "soft_landing": true,
-      "plate_survives": true,
-      "ablation_by_pass_count": [
-        {
-          "passes": 1,
-          "ablation_pct": 4.1,
-          "peak_heat": 70,
-          "braking_altitude_m": 55602.6
-        },
-        {
-          "passes": 2,
-          "ablation_pct": 5,
-          "peak_heat": 73,
-          "braking_altitude_m": 66958.1
-        },
-        {
-          "passes": 3,
-          "ablation_pct": 5.6,
-          "peak_heat": 73,
-          "braking_altitude_m": 72831.6
-        },
-        {
-          "passes": 4,
-          "ablation_pct": 6.2,
-          "peak_heat": 73,
-          "braking_altitude_m": 74006.3
-        },
-        {
-          "passes": 5,
-          "ablation_pct": 6.8,
-          "peak_heat": 73,
-          "braking_altitude_m": 73223.2
-        },
-        {
-          "passes": 13,
-          "ablation_pct": 11.3,
-          "peak_heat": 74,
-          "braking_altitude_m": 74789.5
-        }
-      ]
-    },
-    {
-      "band": "suborbital",
-      "load": "half hold",
-      "cargo_kg": 520.5,
-      "landed": true,
-      "pass_counts_reachable": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6
-      ],
-      "cheapest_pass_count": 1,
-      "cheapest_ablation_pct": 6.8,
-      "peak_heat": 85,
-      "touchdown_ms": 3.54,
-      "soft_landing": true,
-      "plate_survives": true,
-      "ablation_by_pass_count": [
-        {
-          "passes": 1,
-          "ablation_pct": 6.8,
-          "peak_heat": 85,
-          "braking_altitude_m": 53253.2
-        },
-        {
-          "passes": 2,
-          "ablation_pct": 8,
-          "peak_heat": 88,
-          "braking_altitude_m": 65000.3
-        },
-        {
-          "passes": 3,
-          "ablation_pct": 8.7,
-          "peak_heat": 89,
-          "braking_altitude_m": 70482.2
-        },
-        {
-          "passes": 4,
-          "ablation_pct": 9.3,
-          "peak_heat": 89,
-          "braking_altitude_m": 72048.5
-        },
-        {
-          "passes": 5,
-          "ablation_pct": 9.9,
-          "peak_heat": 89,
-          "braking_altitude_m": 72831.6
-        },
-        {
-          "passes": 6,
-          "ablation_pct": 10.5,
-          "peak_heat": 89,
-          "braking_altitude_m": 73614.8
-        }
-      ]
-    },
-    {
-      "band": "suborbital",
-      "load": "full hold",
-      "cargo_kg": 1040.9,
-      "landed": true,
-      "pass_counts_reachable": [
-        1,
-        2,
-        3,
-        4,
-        5,
         6,
         7
       ],
       "cheapest_pass_count": 1,
-      "cheapest_ablation_pct": 10,
-      "peak_heat": 98,
-      "touchdown_ms": 4.04,
+      "cheapest_ablation_pct": 5.2,
+      "peak_heat": 65,
+      "touchdown_ms": 3.25,
       "soft_landing": true,
       "plate_survives": true,
       "ablation_by_pass_count": [
         {
           "passes": 1,
-          "ablation_pct": 10,
-          "peak_heat": 98,
-          "braking_altitude_m": 51295.4
+          "ablation_pct": 5.2,
+          "peak_heat": 65,
+          "braking_altitude_m": 47711
         },
         {
           "passes": 2,
-          "ablation_pct": 11.6,
-          "peak_heat": 101,
-          "braking_altitude_m": 63042.4
+          "ablation_pct": 6,
+          "peak_heat": 68,
+          "braking_altitude_m": 57108.7
         },
         {
           "passes": 3,
-          "ablation_pct": 12.4,
-          "peak_heat": 102,
-          "braking_altitude_m": 68915.9
+          "ablation_pct": 6.3,
+          "peak_heat": 69,
+          "braking_altitude_m": 62530.4
         },
         {
           "passes": 4,
-          "ablation_pct": 13,
-          "peak_heat": 103,
-          "braking_altitude_m": 70482.2
+          "ablation_pct": 6.5,
+          "peak_heat": 69,
+          "braking_altitude_m": 63976.2
         },
         {
           "passes": 5,
-          "ablation_pct": 13.6,
-          "peak_heat": 103,
-          "braking_altitude_m": 71656.9
+          "ablation_pct": 6.7,
+          "peak_heat": 69,
+          "braking_altitude_m": 65060.5
         },
         {
           "passes": 6,
-          "ablation_pct": 14.2,
-          "peak_heat": 103,
-          "braking_altitude_m": 72440.1
+          "ablation_pct": 6.9,
+          "peak_heat": 69,
+          "braking_altitude_m": 65783.4
         },
         {
           "passes": 7,
-          "ablation_pct": 14.8,
-          "peak_heat": 103,
-          "braking_altitude_m": 73223.2
+          "ablation_pct": 7.1,
+          "peak_heat": 69,
+          "braking_altitude_m": 66506.3
+        }
+      ]
+    },
+    {
+      "band": "suborbital",
+      "load": "half hold",
+      "cargo_kg": 450.8,
+      "landed": true,
+      "pass_counts_reachable": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "cheapest_pass_count": 1,
+      "cheapest_ablation_pct": 9.8,
+      "peak_heat": 81,
+      "touchdown_ms": 3.99,
+      "soft_landing": true,
+      "plate_survives": true,
+      "ablation_by_pass_count": [
+        {
+          "passes": 1,
+          "ablation_pct": 9.8,
+          "peak_heat": 81,
+          "braking_altitude_m": 45180.9
+        },
+        {
+          "passes": 2,
+          "ablation_pct": 11.2,
+          "peak_heat": 84,
+          "braking_altitude_m": 54578.5
+        },
+        {
+          "passes": 3,
+          "ablation_pct": 11.8,
+          "peak_heat": 86,
+          "braking_altitude_m": 60000.2
+        },
+        {
+          "passes": 4,
+          "ablation_pct": 12,
+          "peak_heat": 86,
+          "braking_altitude_m": 61446
+        },
+        {
+          "passes": 5,
+          "ablation_pct": 12.3,
+          "peak_heat": 86,
+          "braking_altitude_m": 62530.4
+        },
+        {
+          "passes": 6,
+          "ablation_pct": 12.4,
+          "peak_heat": 86,
+          "braking_altitude_m": 63614.7
+        },
+        {
+          "passes": 7,
+          "ablation_pct": 12.6,
+          "peak_heat": 86,
+          "braking_altitude_m": 64699.1
+        },
+        {
+          "passes": 8,
+          "ablation_pct": 12.9,
+          "peak_heat": 86,
+          "braking_altitude_m": 65421.9
+        },
+        {
+          "passes": 9,
+          "ablation_pct": 13,
+          "peak_heat": 86,
+          "braking_altitude_m": 65783.4
+        }
+      ]
+    },
+    {
+      "band": "suborbital",
+      "load": "full hold",
+      "cargo_kg": 901.6,
+      "landed": true,
+      "pass_counts_reachable": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "cheapest_pass_count": 1,
+      "cheapest_ablation_pct": 15.6,
+      "peak_heat": 95,
+      "touchdown_ms": 4.6,
+      "soft_landing": true,
+      "plate_survives": true,
+      "ablation_by_pass_count": [
+        {
+          "passes": 1,
+          "ablation_pct": 15.6,
+          "peak_heat": 95,
+          "braking_altitude_m": 43373.7
+        },
+        {
+          "passes": 2,
+          "ablation_pct": 18,
+          "peak_heat": 99,
+          "braking_altitude_m": 53132.7
+        },
+        {
+          "passes": 3,
+          "ablation_pct": 18.5,
+          "peak_heat": 100,
+          "braking_altitude_m": 58193
+        },
+        {
+          "passes": 4,
+          "ablation_pct": 18.9,
+          "peak_heat": 100,
+          "braking_altitude_m": 59638.8
+        },
+        {
+          "passes": 5,
+          "ablation_pct": 19.1,
+          "peak_heat": 100,
+          "braking_altitude_m": 61807.5
+        },
+        {
+          "passes": 6,
+          "ablation_pct": 19.3,
+          "peak_heat": 101,
+          "braking_altitude_m": 62530.4
+        },
+        {
+          "passes": 7,
+          "ablation_pct": 19.6,
+          "peak_heat": 101,
+          "braking_altitude_m": 63253.3
+        },
+        {
+          "passes": 8,
+          "ablation_pct": 19.7,
+          "peak_heat": 101,
+          "braking_altitude_m": 63614.7
+        },
+        {
+          "passes": 9,
+          "ablation_pct": 19.9,
+          "peak_heat": 101,
+          "braking_altitude_m": 64337.6
+        },
+        {
+          "passes": 10,
+          "ablation_pct": 20.1,
+          "peak_heat": 101,
+          "braking_altitude_m": 64699.1
         }
       ]
     },
@@ -236,309 +285,109 @@
         7,
         8,
         9,
+        10,
         11,
-        12
+        13,
+        14,
+        16
       ],
       "cheapest_pass_count": 1,
-      "cheapest_ablation_pct": 3.6,
-      "peak_heat": 67,
-      "touchdown_ms": 2.96,
+      "cheapest_ablation_pct": 4.4,
+      "peak_heat": 62,
+      "touchdown_ms": 3.25,
       "soft_landing": true,
       "plate_survives": true,
       "ablation_by_pass_count": [
         {
           "passes": 1,
-          "ablation_pct": 3.6,
-          "peak_heat": 67,
-          "braking_altitude_m": 51687
+          "ablation_pct": 4.4,
+          "peak_heat": 62,
+          "braking_altitude_m": 43735.1
         },
         {
           "passes": 2,
-          "ablation_pct": 4.8,
-          "peak_heat": 71,
-          "braking_altitude_m": 59518.3
+          "ablation_pct": 5.8,
+          "peak_heat": 66,
+          "braking_altitude_m": 50241.2
         },
         {
           "passes": 3,
-          "ablation_pct": 5.5,
-          "peak_heat": 72,
-          "braking_altitude_m": 62650.9
+          "ablation_pct": 6.2,
+          "peak_heat": 67,
+          "braking_altitude_m": 53132.7
         },
         {
           "passes": 4,
-          "ablation_pct": 6.1,
-          "peak_heat": 72,
-          "braking_altitude_m": 64608.7
+          "ablation_pct": 6.5,
+          "peak_heat": 68,
+          "braking_altitude_m": 54940
         },
         {
           "passes": 5,
-          "ablation_pct": 6.8,
-          "peak_heat": 73,
-          "braking_altitude_m": 66175
+          "ablation_pct": 6.6,
+          "peak_heat": 68,
+          "braking_altitude_m": 56385.8
         },
         {
           "passes": 6,
-          "ablation_pct": 7.3,
-          "peak_heat": 73,
-          "braking_altitude_m": 67741.2
+          "ablation_pct": 6.9,
+          "peak_heat": 69,
+          "braking_altitude_m": 57470.1
         },
         {
           "passes": 7,
-          "ablation_pct": 8,
-          "peak_heat": 74,
-          "braking_altitude_m": 68132.8
+          "ablation_pct": 7.1,
+          "peak_heat": 69,
+          "braking_altitude_m": 58193
         },
         {
           "passes": 8,
-          "ablation_pct": 8.5,
-          "peak_heat": 74,
-          "braking_altitude_m": 68524.4
+          "ablation_pct": 7.2,
+          "peak_heat": 68,
+          "braking_altitude_m": 59277.3
         },
         {
           "passes": 9,
-          "ablation_pct": 9,
-          "peak_heat": 73,
-          "braking_altitude_m": 69307.5
+          "ablation_pct": 7.3,
+          "peak_heat": 69,
+          "braking_altitude_m": 59638.8
+        },
+        {
+          "passes": 10,
+          "ablation_pct": 7.5,
+          "peak_heat": 69,
+          "braking_altitude_m": 60000.2
         },
         {
           "passes": 11,
-          "ablation_pct": 10.2,
-          "peak_heat": 74,
-          "braking_altitude_m": 69699.1
+          "ablation_pct": 7.7,
+          "peak_heat": 69,
+          "braking_altitude_m": 60361.7
         },
         {
-          "passes": 12,
-          "ablation_pct": 10.7,
-          "peak_heat": 73,
-          "braking_altitude_m": 70090.6
+          "passes": 13,
+          "ablation_pct": 8.2,
+          "peak_heat": 69,
+          "braking_altitude_m": 60723.1
+        },
+        {
+          "passes": 14,
+          "ablation_pct": 8.3,
+          "peak_heat": 69,
+          "braking_altitude_m": 61084.6
+        },
+        {
+          "passes": 16,
+          "ablation_pct": 8.6,
+          "peak_heat": 69,
+          "braking_altitude_m": 61446
         }
       ]
     },
     {
       "band": "low",
       "load": "half hold",
-      "cargo_kg": 520.5,
-      "landed": true,
-      "pass_counts_reachable": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        14
-      ],
-      "cheapest_pass_count": 1,
-      "cheapest_ablation_pct": 5.9,
-      "peak_heat": 81,
-      "touchdown_ms": 3.54,
-      "soft_landing": true,
-      "plate_survives": true,
-      "ablation_by_pass_count": [
-        {
-          "passes": 1,
-          "ablation_pct": 5.9,
-          "peak_heat": 81,
-          "braking_altitude_m": 49337.5
-        },
-        {
-          "passes": 2,
-          "ablation_pct": 7.7,
-          "peak_heat": 86,
-          "braking_altitude_m": 57168.9
-        },
-        {
-          "passes": 3,
-          "ablation_pct": 8.5,
-          "peak_heat": 87,
-          "braking_altitude_m": 60301.4
-        },
-        {
-          "passes": 4,
-          "ablation_pct": 9.1,
-          "peak_heat": 88,
-          "braking_altitude_m": 62259.3
-        },
-        {
-          "passes": 5,
-          "ablation_pct": 9.8,
-          "peak_heat": 88,
-          "braking_altitude_m": 63825.6
-        },
-        {
-          "passes": 6,
-          "ablation_pct": 10.5,
-          "peak_heat": 89,
-          "braking_altitude_m": 65391.8
-        },
-        {
-          "passes": 7,
-          "ablation_pct": 10.9,
-          "peak_heat": 88,
-          "braking_altitude_m": 66175
-        },
-        {
-          "passes": 8,
-          "ablation_pct": 11.6,
-          "peak_heat": 89,
-          "braking_altitude_m": 66566.5
-        },
-        {
-          "passes": 9,
-          "ablation_pct": 12.3,
-          "peak_heat": 90,
-          "braking_altitude_m": 66958.1
-        },
-        {
-          "passes": 10,
-          "ablation_pct": 12.8,
-          "peak_heat": 89,
-          "braking_altitude_m": 67349.7
-        },
-        {
-          "passes": 11,
-          "ablation_pct": 13.3,
-          "peak_heat": 89,
-          "braking_altitude_m": 67741.2
-        },
-        {
-          "passes": 12,
-          "ablation_pct": 13.9,
-          "peak_heat": 89,
-          "braking_altitude_m": 68132.8
-        },
-        {
-          "passes": 14,
-          "ablation_pct": 15,
-          "peak_heat": 89,
-          "braking_altitude_m": 68524.4
-        }
-      ]
-    },
-    {
-      "band": "low",
-      "load": "full hold",
-      "cargo_kg": 1040.9,
-      "landed": true,
-      "pass_counts_reachable": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        14,
-        16
-      ],
-      "cheapest_pass_count": 1,
-      "cheapest_ablation_pct": 8.7,
-      "peak_heat": 93,
-      "touchdown_ms": 4.04,
-      "soft_landing": true,
-      "plate_survives": true,
-      "ablation_by_pass_count": [
-        {
-          "passes": 1,
-          "ablation_pct": 8.7,
-          "peak_heat": 93,
-          "braking_altitude_m": 47771.3
-        },
-        {
-          "passes": 2,
-          "ablation_pct": 11.1,
-          "peak_heat": 99,
-          "braking_altitude_m": 55211.1
-        },
-        {
-          "passes": 3,
-          "ablation_pct": 12.1,
-          "peak_heat": 100,
-          "braking_altitude_m": 58735.2
-        },
-        {
-          "passes": 4,
-          "ablation_pct": 12.8,
-          "peak_heat": 101,
-          "braking_altitude_m": 60693
-        },
-        {
-          "passes": 5,
-          "ablation_pct": 13.4,
-          "peak_heat": 102,
-          "braking_altitude_m": 63042.4
-        },
-        {
-          "passes": 6,
-          "ablation_pct": 14.1,
-          "peak_heat": 102,
-          "braking_altitude_m": 63825.6
-        },
-        {
-          "passes": 7,
-          "ablation_pct": 14.7,
-          "peak_heat": 102,
-          "braking_altitude_m": 64608.7
-        },
-        {
-          "passes": 8,
-          "ablation_pct": 15.3,
-          "peak_heat": 102,
-          "braking_altitude_m": 65000.3
-        },
-        {
-          "passes": 9,
-          "ablation_pct": 16.1,
-          "peak_heat": 103,
-          "braking_altitude_m": 65391.8
-        },
-        {
-          "passes": 10,
-          "ablation_pct": 16.6,
-          "peak_heat": 103,
-          "braking_altitude_m": 65783.4
-        },
-        {
-          "passes": 11,
-          "ablation_pct": 17.1,
-          "peak_heat": 103,
-          "braking_altitude_m": 66175
-        },
-        {
-          "passes": 12,
-          "ablation_pct": 17.7,
-          "peak_heat": 103,
-          "braking_altitude_m": 66566.5
-        },
-        {
-          "passes": 14,
-          "ablation_pct": 18.8,
-          "peak_heat": 103,
-          "braking_altitude_m": 66958.1
-        },
-        {
-          "passes": 16,
-          "ablation_pct": 19.9,
-          "peak_heat": 103,
-          "braking_altitude_m": 67349.7
-        }
-      ]
-    },
-    {
-      "band": "high",
-      "load": "empty",
-      "cargo_kg": 0,
+      "cargo_kg": 450.8,
       "landed": true,
       "pass_counts_reachable": [
         1,
@@ -554,112 +403,105 @@
         12,
         13,
         15,
-        17,
-        21
+        17
       ],
       "cheapest_pass_count": 1,
-      "cheapest_ablation_pct": 3.2,
-      "peak_heat": 64,
-      "touchdown_ms": 2.96,
+      "cheapest_ablation_pct": 8.3,
+      "peak_heat": 77,
+      "touchdown_ms": 3.99,
       "soft_landing": true,
       "plate_survives": true,
       "ablation_by_pass_count": [
         {
           "passes": 1,
-          "ablation_pct": 3.2,
-          "peak_heat": 64,
-          "braking_altitude_m": 48946
+          "ablation_pct": 8.3,
+          "peak_heat": 77,
+          "braking_altitude_m": 41566.4
         },
         {
           "passes": 2,
-          "ablation_pct": 4.8,
-          "peak_heat": 69,
-          "braking_altitude_m": 55602.6
+          "ablation_pct": 10.9,
+          "peak_heat": 82,
+          "braking_altitude_m": 48072.5
         },
         {
           "passes": 3,
-          "ablation_pct": 5.5,
-          "peak_heat": 70,
-          "braking_altitude_m": 58343.6
+          "ablation_pct": 11.5,
+          "peak_heat": 83,
+          "braking_altitude_m": 50964.1
         },
         {
           "passes": 4,
-          "ablation_pct": 6.2,
-          "peak_heat": 71,
-          "braking_altitude_m": 60301.4
+          "ablation_pct": 11.8,
+          "peak_heat": 84,
+          "braking_altitude_m": 52771.3
         },
         {
           "passes": 5,
-          "ablation_pct": 6.8,
-          "peak_heat": 72,
-          "braking_altitude_m": 61476.2
+          "ablation_pct": 12.1,
+          "peak_heat": 85,
+          "braking_altitude_m": 54940
         },
         {
           "passes": 6,
-          "ablation_pct": 7.4,
-          "peak_heat": 72,
-          "braking_altitude_m": 62650.9
+          "ablation_pct": 12.4,
+          "peak_heat": 85,
+          "braking_altitude_m": 55662.9
         },
         {
           "passes": 7,
-          "ablation_pct": 8,
-          "peak_heat": 72,
-          "braking_altitude_m": 63434
+          "ablation_pct": 12.5,
+          "peak_heat": 85,
+          "braking_altitude_m": 56385.8
         },
         {
           "passes": 8,
-          "ablation_pct": 8.7,
-          "peak_heat": 74,
-          "braking_altitude_m": 64217.1
+          "ablation_pct": 13.1,
+          "peak_heat": 86,
+          "braking_altitude_m": 56747.2
         },
         {
           "passes": 9,
-          "ablation_pct": 9.1,
-          "peak_heat": 73,
-          "braking_altitude_m": 65000.3
+          "ablation_pct": 13.5,
+          "peak_heat": 87,
+          "braking_altitude_m": 57108.7
         },
         {
           "passes": 10,
-          "ablation_pct": 9.6,
-          "peak_heat": 73,
-          "braking_altitude_m": 65391.8
+          "ablation_pct": 13.6,
+          "peak_heat": 87,
+          "braking_altitude_m": 57831.6
         },
         {
           "passes": 12,
-          "ablation_pct": 10.8,
-          "peak_heat": 73,
-          "braking_altitude_m": 65783.4
+          "ablation_pct": 13.7,
+          "peak_heat": 86,
+          "braking_altitude_m": 58193
         },
         {
           "passes": 13,
-          "ablation_pct": 11.4,
-          "peak_heat": 74,
-          "braking_altitude_m": 66175
+          "ablation_pct": 13.7,
+          "peak_heat": 86,
+          "braking_altitude_m": 58554.5
         },
         {
           "passes": 15,
-          "ablation_pct": 12.6,
-          "peak_heat": 74,
-          "braking_altitude_m": 66566.5
+          "ablation_pct": 14,
+          "peak_heat": 86,
+          "braking_altitude_m": 58915.9
         },
         {
           "passes": 17,
-          "ablation_pct": 13.6,
-          "peak_heat": 73,
-          "braking_altitude_m": 66958.1
-        },
-        {
-          "passes": 21,
-          "ablation_pct": 15.9,
-          "peak_heat": 73,
-          "braking_altitude_m": 67349.7
+          "ablation_pct": 14.5,
+          "peak_heat": 86,
+          "braking_altitude_m": 59277.3
         }
       ]
     },
     {
-      "band": "high",
-      "load": "half hold",
-      "cargo_kg": 520.5,
+      "band": "low",
+      "load": "full hold",
+      "cargo_kg": 901.6,
       "landed": true,
       "pass_counts_reachable": [
         1,
@@ -676,118 +518,118 @@
         12,
         14,
         16,
-        23,
-        24
+        18,
+        21
       ],
       "cheapest_pass_count": 1,
-      "cheapest_ablation_pct": 5.2,
-      "peak_heat": 78,
-      "touchdown_ms": 3.54,
+      "cheapest_ablation_pct": 13.1,
+      "peak_heat": 90,
+      "touchdown_ms": 4.6,
       "soft_landing": true,
       "plate_survives": true,
       "ablation_by_pass_count": [
         {
           "passes": 1,
-          "ablation_pct": 5.2,
-          "peak_heat": 78,
-          "braking_altitude_m": 46596.6
+          "ablation_pct": 13.1,
+          "peak_heat": 90,
+          "braking_altitude_m": 39759.2
         },
         {
           "passes": 2,
-          "ablation_pct": 7.7,
-          "peak_heat": 83,
-          "braking_altitude_m": 53253.2
+          "ablation_pct": 17.2,
+          "peak_heat": 95,
+          "braking_altitude_m": 46265.2
         },
         {
           "passes": 3,
-          "ablation_pct": 8.6,
-          "peak_heat": 85,
-          "braking_altitude_m": 55994.2
+          "ablation_pct": 18.1,
+          "peak_heat": 97,
+          "braking_altitude_m": 49156.8
         },
         {
           "passes": 4,
-          "ablation_pct": 9.3,
-          "peak_heat": 86,
-          "braking_altitude_m": 57952
+          "ablation_pct": 18.5,
+          "peak_heat": 98,
+          "braking_altitude_m": 50964.1
         },
         {
           "passes": 5,
-          "ablation_pct": 10,
-          "peak_heat": 88,
-          "braking_altitude_m": 59518.3
+          "ablation_pct": 18.9,
+          "peak_heat": 99,
+          "braking_altitude_m": 52409.8
         },
         {
           "passes": 6,
-          "ablation_pct": 10.5,
-          "peak_heat": 87,
-          "braking_altitude_m": 60301.4
+          "ablation_pct": 19.7,
+          "peak_heat": 100,
+          "braking_altitude_m": 53494.2
         },
         {
           "passes": 7,
-          "ablation_pct": 11.7,
-          "peak_heat": 90,
-          "braking_altitude_m": 61476.2
+          "ablation_pct": 19.7,
+          "peak_heat": 100,
+          "braking_altitude_m": 54578.5
         },
         {
           "passes": 8,
-          "ablation_pct": 11.7,
-          "peak_heat": 88,
-          "braking_altitude_m": 61867.7
+          "ablation_pct": 19.8,
+          "peak_heat": 100,
+          "braking_altitude_m": 55301.4
         },
         {
           "passes": 9,
-          "ablation_pct": 12.7,
-          "peak_heat": 90,
-          "braking_altitude_m": 62650.9
+          "ablation_pct": 19.8,
+          "peak_heat": 100,
+          "braking_altitude_m": 55662.9
         },
         {
           "passes": 10,
-          "ablation_pct": 13.2,
-          "peak_heat": 90,
-          "braking_altitude_m": 63042.4
+          "ablation_pct": 20,
+          "peak_heat": 100,
+          "braking_altitude_m": 56024.3
         },
         {
           "passes": 11,
-          "ablation_pct": 13.4,
-          "peak_heat": 88,
-          "braking_altitude_m": 61084.6
+          "ablation_pct": 20.4,
+          "peak_heat": 101,
+          "braking_altitude_m": 56385.8
         },
         {
           "passes": 12,
-          "ablation_pct": 13.9,
-          "peak_heat": 88,
-          "braking_altitude_m": 63825.6
+          "ablation_pct": 21,
+          "peak_heat": 101,
+          "braking_altitude_m": 56747.2
         },
         {
           "passes": 14,
-          "ablation_pct": 15.2,
-          "peak_heat": 89,
-          "braking_altitude_m": 64217.1
+          "ablation_pct": 21,
+          "peak_heat": 101,
+          "braking_altitude_m": 57108.7
         },
         {
           "passes": 16,
-          "ablation_pct": 16.3,
-          "peak_heat": 89,
-          "braking_altitude_m": 64608.7
+          "ablation_pct": 21.3,
+          "peak_heat": 101,
+          "braking_altitude_m": 57470.1
         },
         {
-          "passes": 23,
-          "ablation_pct": 20.2,
-          "peak_heat": 89,
-          "braking_altitude_m": 65391.8
+          "passes": 18,
+          "ablation_pct": 21.5,
+          "peak_heat": 101,
+          "braking_altitude_m": 57831.6
         },
         {
-          "passes": 24,
-          "ablation_pct": 20.8,
-          "peak_heat": 89,
-          "braking_altitude_m": 65000.3
+          "passes": 21,
+          "ablation_pct": 22,
+          "peak_heat": 101,
+          "braking_altitude_m": 58193
         }
       ]
     },
     {
       "band": "high",
-      "load": "full hold",
-      "cargo_kg": 1040.9,
+      "load": "empty",
+      "cargo_kg": 0,
       "landed": true,
       "pass_counts_reachable": [
         1,
@@ -801,114 +643,384 @@
         9,
         10,
         11,
-        13,
+        12,
         14,
-        16,
-        19,
-        23
+        17,
+        18,
+        21,
+        25
       ],
       "cheapest_pass_count": 1,
-      "cheapest_ablation_pct": 7.7,
-      "peak_heat": 89,
-      "touchdown_ms": 4.04,
+      "cheapest_ablation_pct": 4.5,
+      "peak_heat": 62,
+      "touchdown_ms": 3.25,
       "soft_landing": true,
       "plate_survives": true,
       "ablation_by_pass_count": [
         {
           "passes": 1,
-          "ablation_pct": 7.7,
-          "peak_heat": 89,
-          "braking_altitude_m": 45030.3
+          "ablation_pct": 4.5,
+          "peak_heat": 62,
+          "braking_altitude_m": 43012.2
         },
         {
           "passes": 2,
-          "ablation_pct": 11.3,
-          "peak_heat": 96,
+          "ablation_pct": 6.2,
+          "peak_heat": 63,
+          "braking_altitude_m": 47349.6
+        },
+        {
+          "passes": 3,
+          "ablation_pct": 6.6,
+          "peak_heat": 65,
+          "braking_altitude_m": 49879.7
+        },
+        {
+          "passes": 4,
+          "ablation_pct": 6.8,
+          "peak_heat": 66,
           "braking_altitude_m": 51687
+        },
+        {
+          "passes": 5,
+          "ablation_pct": 7.1,
+          "peak_heat": 67,
+          "braking_altitude_m": 52771.3
+        },
+        {
+          "passes": 6,
+          "ablation_pct": 7.1,
+          "peak_heat": 67,
+          "braking_altitude_m": 53855.6
+        },
+        {
+          "passes": 7,
+          "ablation_pct": 7.3,
+          "peak_heat": 68,
+          "braking_altitude_m": 54578.5
+        },
+        {
+          "passes": 8,
+          "ablation_pct": 7.5,
+          "peak_heat": 68,
+          "braking_altitude_m": 55662.9
+        },
+        {
+          "passes": 9,
+          "ablation_pct": 8,
+          "peak_heat": 70,
+          "braking_altitude_m": 56024.3
+        },
+        {
+          "passes": 10,
+          "ablation_pct": 8.2,
+          "peak_heat": 70,
+          "braking_altitude_m": 56385.8
+        },
+        {
+          "passes": 11,
+          "ablation_pct": 8.3,
+          "peak_heat": 70,
+          "braking_altitude_m": 56747.2
+        },
+        {
+          "passes": 12,
+          "ablation_pct": 8.1,
+          "peak_heat": 68,
+          "braking_altitude_m": 57108.7
+        },
+        {
+          "passes": 14,
+          "ablation_pct": 8.7,
+          "peak_heat": 70,
+          "braking_altitude_m": 57470.1
+        },
+        {
+          "passes": 17,
+          "ablation_pct": 9,
+          "peak_heat": 69,
+          "braking_altitude_m": 57831.6
+        },
+        {
+          "passes": 18,
+          "ablation_pct": 9.2,
+          "peak_heat": 69,
+          "braking_altitude_m": 58193
+        },
+        {
+          "passes": 21,
+          "ablation_pct": 9.6,
+          "peak_heat": 69,
+          "braking_altitude_m": 58554.5
+        },
+        {
+          "passes": 25,
+          "ablation_pct": 10.2,
+          "peak_heat": 69,
+          "braking_altitude_m": 58915.9
+        }
+      ]
+    },
+    {
+      "band": "high",
+      "load": "half hold",
+      "cargo_kg": 450.8,
+      "landed": true,
+      "pass_counts_reachable": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        12,
+        13,
+        14,
+        16,
+        19,
+        22
+      ],
+      "cheapest_pass_count": 1,
+      "cheapest_ablation_pct": 8.5,
+      "peak_heat": 77,
+      "touchdown_ms": 3.99,
+      "soft_landing": true,
+      "plate_survives": true,
+      "ablation_by_pass_count": [
+        {
+          "passes": 1,
+          "ablation_pct": 8.5,
+          "peak_heat": 77,
+          "braking_altitude_m": 40482.1
+        },
+        {
+          "passes": 2,
+          "ablation_pct": 11.8,
+          "peak_heat": 79,
+          "braking_altitude_m": 45180.9
         },
         {
           "passes": 3,
           "ablation_pct": 12.3,
-          "peak_heat": 98,
-          "braking_altitude_m": 54427.9
+          "peak_heat": 81,
+          "braking_altitude_m": 47711
         },
         {
           "passes": 4,
-          "ablation_pct": 13,
-          "peak_heat": 99,
-          "braking_altitude_m": 56385.8
+          "ablation_pct": 12.7,
+          "peak_heat": 83,
+          "braking_altitude_m": 49518.3
         },
         {
           "passes": 5,
-          "ablation_pct": 13.8,
-          "peak_heat": 100,
-          "braking_altitude_m": 57560.5
+          "ablation_pct": 12.7,
+          "peak_heat": 83,
+          "braking_altitude_m": 50602.6
         },
         {
           "passes": 6,
-          "ablation_pct": 14.3,
-          "peak_heat": 101,
-          "braking_altitude_m": 58735.2
+          "ablation_pct": 13.3,
+          "peak_heat": 85,
+          "braking_altitude_m": 51687
         },
         {
           "passes": 7,
-          "ablation_pct": 14.9,
-          "peak_heat": 101,
-          "braking_altitude_m": 59518.3
+          "ablation_pct": 13.4,
+          "peak_heat": 85,
+          "braking_altitude_m": 52409.8
         },
         {
           "passes": 8,
-          "ablation_pct": 15.4,
-          "peak_heat": 101,
-          "braking_altitude_m": 60693
+          "ablation_pct": 14.4,
+          "peak_heat": 88,
+          "braking_altitude_m": 53132.7
         },
         {
           "passes": 9,
-          "ablation_pct": 16.3,
-          "peak_heat": 102,
-          "braking_altitude_m": 61084.6
+          "ablation_pct": 13.3,
+          "peak_heat": 85,
+          "braking_altitude_m": 53855.6
         },
         {
           "passes": 10,
-          "ablation_pct": 16.9,
-          "peak_heat": 103,
-          "braking_altitude_m": 61476.2
+          "ablation_pct": 13.4,
+          "peak_heat": 85,
+          "braking_altitude_m": 54217.1
         },
         {
-          "passes": 11,
-          "ablation_pct": 17.2,
-          "peak_heat": 102,
-          "braking_altitude_m": 61867.7
+          "passes": 12,
+          "ablation_pct": 14,
+          "peak_heat": 86,
+          "braking_altitude_m": 54578.5
         },
         {
           "passes": 13,
-          "ablation_pct": 18.7,
-          "peak_heat": 103,
-          "braking_altitude_m": 62259.3
+          "ablation_pct": 14.7,
+          "peak_heat": 87,
+          "braking_altitude_m": 54940
         },
         {
           "passes": 14,
-          "ablation_pct": 18.9,
-          "peak_heat": 102,
-          "braking_altitude_m": 62650.9
+          "ablation_pct": 14.3,
+          "peak_heat": 86,
+          "braking_altitude_m": 55301.4
         },
         {
           "passes": 16,
-          "ablation_pct": 20.1,
-          "peak_heat": 103,
-          "braking_altitude_m": 63042.4
+          "ablation_pct": 14.8,
+          "peak_heat": 86,
+          "braking_altitude_m": 55662.9
         },
         {
           "passes": 19,
-          "ablation_pct": 21.8,
-          "peak_heat": 103,
-          "braking_altitude_m": 63434
+          "ablation_pct": 15,
+          "peak_heat": 86,
+          "braking_altitude_m": 56024.3
         },
         {
-          "passes": 23,
-          "ablation_pct": 24.1,
-          "peak_heat": 103,
-          "braking_altitude_m": 63825.6
+          "passes": 22,
+          "ablation_pct": 15.6,
+          "peak_heat": 86,
+          "braking_altitude_m": 56385.8
+        }
+      ]
+    },
+    {
+      "band": "high",
+      "load": "full hold",
+      "cargo_kg": 901.6,
+      "landed": true,
+      "pass_counts_reachable": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        14,
+        15,
+        18,
+        21,
+        25
+      ],
+      "cheapest_pass_count": 1,
+      "cheapest_ablation_pct": 13.6,
+      "peak_heat": 91,
+      "touchdown_ms": 4.6,
+      "soft_landing": true,
+      "plate_survives": true,
+      "ablation_by_pass_count": [
+        {
+          "passes": 1,
+          "ablation_pct": 13.6,
+          "peak_heat": 91,
+          "braking_altitude_m": 39036.3
+        },
+        {
+          "passes": 2,
+          "ablation_pct": 18.7,
+          "peak_heat": 92,
+          "braking_altitude_m": 43373.7
+        },
+        {
+          "passes": 3,
+          "ablation_pct": 19.5,
+          "peak_heat": 95,
+          "braking_altitude_m": 45903.8
+        },
+        {
+          "passes": 4,
+          "ablation_pct": 19.7,
+          "peak_heat": 96,
+          "braking_altitude_m": 47711
+        },
+        {
+          "passes": 5,
+          "ablation_pct": 20.3,
+          "peak_heat": 98,
+          "braking_altitude_m": 48795.4
+        },
+        {
+          "passes": 6,
+          "ablation_pct": 20.1,
+          "peak_heat": 98,
+          "braking_altitude_m": 49879.7
+        },
+        {
+          "passes": 7,
+          "ablation_pct": 20.2,
+          "peak_heat": 98,
+          "braking_altitude_m": 50602.6
+        },
+        {
+          "passes": 8,
+          "ablation_pct": 20.5,
+          "peak_heat": 99,
+          "braking_altitude_m": 51687
+        },
+        {
+          "passes": 9,
+          "ablation_pct": 21.8,
+          "peak_heat": 101,
+          "braking_altitude_m": 52048.4
+        },
+        {
+          "passes": 10,
+          "ablation_pct": 22.1,
+          "peak_heat": 102,
+          "braking_altitude_m": 52409.8
+        },
+        {
+          "passes": 11,
+          "ablation_pct": 21.7,
+          "peak_heat": 101,
+          "braking_altitude_m": 52771.3
+        },
+        {
+          "passes": 12,
+          "ablation_pct": 20.9,
+          "peak_heat": 100,
+          "braking_altitude_m": 53132.7
+        },
+        {
+          "passes": 14,
+          "ablation_pct": 22.4,
+          "peak_heat": 102,
+          "braking_altitude_m": 53494.2
+        },
+        {
+          "passes": 15,
+          "ablation_pct": 22.3,
+          "peak_heat": 102,
+          "braking_altitude_m": 53855.6
+        },
+        {
+          "passes": 18,
+          "ablation_pct": 22.1,
+          "peak_heat": 100,
+          "braking_altitude_m": 54217.1
+        },
+        {
+          "passes": 21,
+          "ablation_pct": 22.6,
+          "peak_heat": 101,
+          "braking_altitude_m": 54578.5
+        },
+        {
+          "passes": 25,
+          "ablation_pct": 23.2,
+          "peak_heat": 101,
+          "braking_altitude_m": 54940
         }
       ]
     }
@@ -918,9 +1030,9 @@
       "measured_at_entry_depth_m": 0,
       "skim_heat_multiplier_measured": [
         1,
-        0.898,
-        0.73,
-        0.73
+        0.951,
+        0.897,
+        0.684
       ],
       "by_entry_depth": [
         {
@@ -928,145 +1040,145 @@
           "series": [
             {
               "skims": 0,
-              "entry_peak_rate": 20.08,
+              "entry_peak_rate": 20.09,
               "entry_peak_heat": 100,
               "skim_peak_heat": 0,
-              "touchdown_ms": 2.96,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
               "commit_dv_ms": 0,
-              "hours": 1.27,
+              "hours": 1.08,
               "heat_vs_direct": 1
             },
             {
               "skims": 1,
-              "entry_peak_rate": 18.02,
-              "entry_peak_heat": 89.8,
-              "skim_peak_heat": 9.8,
-              "touchdown_ms": 2.96,
+              "entry_peak_rate": 19.12,
+              "entry_peak_heat": 95.2,
+              "skim_peak_heat": 7,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
               "commit_dv_ms": 53,
-              "hours": 1.88,
-              "heat_vs_direct": 0.898
+              "hours": 1.71,
+              "heat_vs_direct": 0.951
             },
             {
               "skims": 2,
-              "entry_peak_rate": 14.65,
-              "entry_peak_heat": 73.1,
-              "skim_peak_heat": 9.8,
-              "touchdown_ms": 2.96,
+              "entry_peak_rate": 18.02,
+              "entry_peak_heat": 89.7,
+              "skim_peak_heat": 7,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
-              "commit_dv_ms": 0,
-              "hours": 2.24,
-              "heat_vs_direct": 0.73
+              "commit_dv_ms": 54,
+              "hours": 2.32,
+              "heat_vs_direct": 0.897
             },
             {
               "skims": 3,
-              "entry_peak_rate": 14.65,
-              "entry_peak_heat": 73.1,
-              "skim_peak_heat": 9.8,
-              "touchdown_ms": 2.96,
+              "entry_peak_rate": 13.75,
+              "entry_peak_heat": 68.6,
+              "skim_peak_heat": 7,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
               "commit_dv_ms": 0,
-              "hours": 2.24,
-              "heat_vs_direct": 0.73
+              "hours": 3.13,
+              "heat_vs_direct": 0.684
             }
           ]
         },
         {
-          "entry_depth_m": 19500,
+          "entry_depth_m": 18000,
           "series": [
             {
               "skims": 0,
-              "entry_peak_rate": 18.33,
-              "entry_peak_heat": 91.4,
+              "entry_peak_rate": 18,
+              "entry_peak_heat": 89.7,
               "skim_peak_heat": 0,
-              "touchdown_ms": 2.96,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
               "commit_dv_ms": 0,
-              "hours": 1.31,
+              "hours": 1.12,
               "heat_vs_direct": 1
             },
             {
               "skims": 1,
-              "entry_peak_rate": 16.89,
-              "entry_peak_heat": 84.3,
-              "skim_peak_heat": 9.8,
-              "touchdown_ms": 2.96,
+              "entry_peak_rate": 17.29,
+              "entry_peak_heat": 86.2,
+              "skim_peak_heat": 7,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
               "commit_dv_ms": 36,
-              "hours": 1.91,
-              "heat_vs_direct": 0.921
+              "hours": 1.75,
+              "heat_vs_direct": 0.961
             },
             {
               "skims": 2,
-              "entry_peak_rate": 14.65,
-              "entry_peak_heat": 73.1,
-              "skim_peak_heat": 9.8,
-              "touchdown_ms": 2.96,
+              "entry_peak_rate": 16.53,
+              "entry_peak_heat": 82.4,
+              "skim_peak_heat": 7,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
-              "commit_dv_ms": 0,
-              "hours": 2.24,
-              "heat_vs_direct": 0.799
+              "commit_dv_ms": 37,
+              "hours": 2.36,
+              "heat_vs_direct": 0.918
             },
             {
               "skims": 3,
-              "entry_peak_rate": 14.65,
-              "entry_peak_heat": 73.1,
-              "skim_peak_heat": 9.8,
-              "touchdown_ms": 2.96,
+              "entry_peak_rate": 13.75,
+              "entry_peak_heat": 68.6,
+              "skim_peak_heat": 7,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
               "commit_dv_ms": 0,
-              "hours": 2.24,
-              "heat_vs_direct": 0.799
+              "hours": 3.13,
+              "heat_vs_direct": 0.764
             }
           ]
         },
         {
-          "entry_depth_m": 39000,
+          "entry_depth_m": 36000,
           "series": [
             {
               "skims": 0,
-              "entry_peak_rate": 15.86,
-              "entry_peak_heat": 79.2,
+              "entry_peak_rate": 14.82,
+              "entry_peak_heat": 74,
               "skim_peak_heat": 0,
-              "touchdown_ms": 2.96,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
               "commit_dv_ms": 0,
-              "hours": 1.38,
+              "hours": 1.19,
               "heat_vs_direct": 1
             },
             {
               "skims": 1,
-              "entry_peak_rate": 15.47,
-              "entry_peak_heat": 77.3,
-              "skim_peak_heat": 9.8,
-              "touchdown_ms": 2.96,
+              "entry_peak_rate": 14.66,
+              "entry_peak_heat": 73.2,
+              "skim_peak_heat": 7,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
-              "commit_dv_ms": 20,
-              "hours": 1.97,
-              "heat_vs_direct": 0.976
+              "commit_dv_ms": 21,
+              "hours": 1.82,
+              "heat_vs_direct": 0.989
             },
             {
               "skims": 2,
-              "entry_peak_rate": 14.65,
-              "entry_peak_heat": 73.1,
-              "skim_peak_heat": 9.8,
-              "touchdown_ms": 2.96,
+              "entry_peak_rate": 14.52,
+              "entry_peak_heat": 72.5,
+              "skim_peak_heat": 7,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
-              "commit_dv_ms": 0,
-              "hours": 2.24,
-              "heat_vs_direct": 0.924
+              "commit_dv_ms": 21,
+              "hours": 2.42,
+              "heat_vs_direct": 0.98
             },
             {
               "skims": 3,
-              "entry_peak_rate": 14.65,
-              "entry_peak_heat": 73.1,
-              "skim_peak_heat": 9.8,
-              "touchdown_ms": 2.96,
+              "entry_peak_rate": 13.75,
+              "entry_peak_heat": 68.6,
+              "skim_peak_heat": 7,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
               "commit_dv_ms": 0,
-              "hours": 2.24,
-              "heat_vs_direct": 0.924
+              "hours": 3.13,
+              "heat_vs_direct": 0.928
             }
           ]
         }
@@ -1076,9 +1188,9 @@
       "measured_at_entry_depth_m": 0,
       "skim_heat_multiplier_measured": [
         1,
-        0.956,
-        0.912,
-        0.867
+        0.977,
+        0.955,
+        0.934
       ],
       "by_entry_depth": [
         {
@@ -1086,145 +1198,145 @@
           "series": [
             {
               "skims": 0,
-              "entry_peak_rate": 25.48,
-              "entry_peak_heat": 126.6,
+              "entry_peak_rate": 26.51,
+              "entry_peak_heat": 131.5,
               "skim_peak_heat": 0,
-              "touchdown_ms": 2.96,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
               "commit_dv_ms": 0,
-              "hours": 1.33,
+              "hours": 1.15,
               "heat_vs_direct": 1
             },
             {
               "skims": 1,
-              "entry_peak_rate": 24.36,
-              "entry_peak_heat": 121.1,
-              "skim_peak_heat": 10.8,
-              "touchdown_ms": 2.96,
+              "entry_peak_rate": 25.9,
+              "entry_peak_heat": 128.5,
+              "skim_peak_heat": 8.2,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
-              "commit_dv_ms": 51,
-              "hours": 2.08,
-              "heat_vs_direct": 0.956
-            },
-            {
-              "skims": 2,
-              "entry_peak_rate": 23.24,
-              "entry_peak_heat": 115.6,
-              "skim_peak_heat": 10.8,
-              "touchdown_ms": 2.96,
-              "soft_landing": true,
-              "commit_dv_ms": 52,
-              "hours": 2.82,
-              "heat_vs_direct": 0.912
-            },
-            {
-              "skims": 3,
-              "entry_peak_rate": 22.1,
-              "entry_peak_heat": 110,
-              "skim_peak_heat": 10.8,
-              "touchdown_ms": 2.96,
-              "soft_landing": true,
-              "commit_dv_ms": 53,
-              "hours": 3.53,
-              "heat_vs_direct": 0.867
-            }
-          ]
-        },
-        {
-          "entry_depth_m": 19500,
-          "series": [
-            {
-              "skims": 0,
-              "entry_peak_rate": 22.49,
-              "entry_peak_heat": 112.1,
-              "skim_peak_heat": 0,
-              "touchdown_ms": 2.96,
-              "soft_landing": true,
-              "commit_dv_ms": 0,
-              "hours": 1.37,
-              "heat_vs_direct": 1
-            },
-            {
-              "skims": 1,
-              "entry_peak_rate": 21.61,
-              "entry_peak_heat": 107.7,
-              "skim_peak_heat": 10.8,
-              "touchdown_ms": 2.96,
-              "soft_landing": true,
-              "commit_dv_ms": 35,
-              "hours": 2.13,
-              "heat_vs_direct": 0.961
-            },
-            {
-              "skims": 2,
-              "entry_peak_rate": 20.74,
-              "entry_peak_heat": 103.4,
-              "skim_peak_heat": 10.8,
-              "touchdown_ms": 2.96,
-              "soft_landing": true,
-              "commit_dv_ms": 35,
-              "hours": 2.86,
-              "heat_vs_direct": 0.922
-            },
-            {
-              "skims": 3,
-              "entry_peak_rate": 19.86,
-              "entry_peak_heat": 99,
-              "skim_peak_heat": 10.8,
-              "touchdown_ms": 2.96,
-              "soft_landing": true,
-              "commit_dv_ms": 36,
-              "hours": 3.58,
-              "heat_vs_direct": 0.883
-            }
-          ]
-        },
-        {
-          "entry_depth_m": 39000,
-          "series": [
-            {
-              "skims": 0,
-              "entry_peak_rate": 17.56,
-              "entry_peak_heat": 87.7,
-              "skim_peak_heat": 0,
-              "touchdown_ms": 2.96,
-              "soft_landing": true,
-              "commit_dv_ms": 0,
-              "hours": 1.45,
-              "heat_vs_direct": 1
-            },
-            {
-              "skims": 1,
-              "entry_peak_rate": 17.15,
-              "entry_peak_heat": 85.7,
-              "skim_peak_heat": 10.8,
-              "touchdown_ms": 2.96,
-              "soft_landing": true,
-              "commit_dv_ms": 20,
-              "hours": 2.2,
+              "commit_dv_ms": 49,
+              "hours": 1.93,
               "heat_vs_direct": 0.977
             },
             {
               "skims": 2,
-              "entry_peak_rate": 16.77,
-              "entry_peak_heat": 83.8,
-              "skim_peak_heat": 10.8,
-              "touchdown_ms": 2.96,
+              "entry_peak_rate": 25.32,
+              "entry_peak_heat": 125.7,
+              "skim_peak_heat": 8.2,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
-              "commit_dv_ms": 21,
-              "hours": 2.94,
+              "commit_dv_ms": 49,
+              "hours": 2.69,
               "heat_vs_direct": 0.955
             },
             {
               "skims": 3,
+              "entry_peak_rate": 24.77,
+              "entry_peak_heat": 123,
+              "skim_peak_heat": 8.2,
+              "touchdown_ms": 3.25,
+              "soft_landing": true,
+              "commit_dv_ms": 50,
+              "hours": 3.44,
+              "heat_vs_direct": 0.934
+            }
+          ]
+        },
+        {
+          "entry_depth_m": 18000,
+          "series": [
+            {
+              "skims": 0,
+              "entry_peak_rate": 22.89,
+              "entry_peak_heat": 114,
+              "skim_peak_heat": 0,
+              "touchdown_ms": 3.25,
+              "soft_landing": true,
+              "commit_dv_ms": 0,
+              "hours": 1.2,
+              "heat_vs_direct": 1
+            },
+            {
+              "skims": 1,
+              "entry_peak_rate": 22.41,
+              "entry_peak_heat": 111.6,
+              "skim_peak_heat": 8.2,
+              "touchdown_ms": 3.25,
+              "soft_landing": true,
+              "commit_dv_ms": 33,
+              "hours": 1.98,
+              "heat_vs_direct": 0.979
+            },
+            {
+              "skims": 2,
+              "entry_peak_rate": 21.96,
+              "entry_peak_heat": 109.4,
+              "skim_peak_heat": 8.2,
+              "touchdown_ms": 3.25,
+              "soft_landing": true,
+              "commit_dv_ms": 34,
+              "hours": 2.74,
+              "heat_vs_direct": 0.959
+            },
+            {
+              "skims": 3,
+              "entry_peak_rate": 21.53,
+              "entry_peak_heat": 107.3,
+              "skim_peak_heat": 8.2,
+              "touchdown_ms": 3.25,
+              "soft_landing": true,
+              "commit_dv_ms": 34,
+              "hours": 3.49,
+              "heat_vs_direct": 0.941
+            }
+          ]
+        },
+        {
+          "entry_depth_m": 36000,
+          "series": [
+            {
+              "skims": 0,
               "entry_peak_rate": 16.41,
               "entry_peak_heat": 82,
-              "skim_peak_heat": 10.8,
-              "touchdown_ms": 2.96,
+              "skim_peak_heat": 0,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
-              "commit_dv_ms": 21,
-              "hours": 3.65,
-              "heat_vs_direct": 0.935
+              "commit_dv_ms": 0,
+              "hours": 1.28,
+              "heat_vs_direct": 1
+            },
+            {
+              "skims": 1,
+              "entry_peak_rate": 16.22,
+              "entry_peak_heat": 81.1,
+              "skim_peak_heat": 8.2,
+              "touchdown_ms": 3.25,
+              "soft_landing": true,
+              "commit_dv_ms": 19,
+              "hours": 2.06,
+              "heat_vs_direct": 0.988
+            },
+            {
+              "skims": 2,
+              "entry_peak_rate": 16.05,
+              "entry_peak_heat": 80.2,
+              "skim_peak_heat": 8.2,
+              "touchdown_ms": 3.25,
+              "soft_landing": true,
+              "commit_dv_ms": 20,
+              "hours": 2.83,
+              "heat_vs_direct": 0.978
+            },
+            {
+              "skims": 3,
+              "entry_peak_rate": 15.89,
+              "entry_peak_heat": 79.4,
+              "skim_peak_heat": 8.2,
+              "touchdown_ms": 3.25,
+              "soft_landing": true,
+              "commit_dv_ms": 20,
+              "hours": 3.58,
+              "heat_vs_direct": 0.968
             }
           ]
         }
@@ -1234,9 +1346,9 @@
       "measured_at_entry_depth_m": 0,
       "skim_heat_multiplier_measured": [
         1,
-        0.971,
-        0.944,
-        0.918
+        0.984,
+        0.968,
+        0.954
       ],
       "by_entry_depth": [
         {
@@ -1244,145 +1356,145 @@
           "series": [
             {
               "skims": 0,
-              "entry_peak_rate": 31.69,
-              "entry_peak_heat": 157.1,
+              "entry_peak_rate": 32.98,
+              "entry_peak_heat": 163.1,
               "skim_peak_heat": 0,
-              "touchdown_ms": 2.96,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
               "commit_dv_ms": 0,
-              "hours": 1.41,
+              "hours": 1.25,
               "heat_vs_direct": 1
             },
             {
               "skims": 1,
-              "entry_peak_rate": 30.78,
-              "entry_peak_heat": 152.6,
-              "skim_peak_heat": 12.4,
-              "touchdown_ms": 2.96,
+              "entry_peak_rate": 32.44,
+              "entry_peak_heat": 160.5,
+              "skim_peak_heat": 9.6,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
-              "commit_dv_ms": 46,
-              "hours": 2.34,
+              "commit_dv_ms": 43,
+              "hours": 2.25,
+              "heat_vs_direct": 0.984
+            },
+            {
+              "skims": 2,
+              "entry_peak_rate": 31.94,
+              "entry_peak_heat": 158.1,
+              "skim_peak_heat": 9.6,
+              "touchdown_ms": 3.25,
+              "soft_landing": true,
+              "commit_dv_ms": 43,
+              "hours": 3.22,
+              "heat_vs_direct": 0.968
+            },
+            {
+              "skims": 3,
+              "entry_peak_rate": 31.46,
+              "entry_peak_heat": 155.7,
+              "skim_peak_heat": 9.6,
+              "touchdown_ms": 3.25,
+              "soft_landing": true,
+              "commit_dv_ms": 44,
+              "hours": 4.18,
+              "heat_vs_direct": 0.954
+            }
+          ]
+        },
+        {
+          "entry_depth_m": 18000,
+          "series": [
+            {
+              "skims": 0,
+              "entry_peak_rate": 27.98,
+              "entry_peak_heat": 139.1,
+              "skim_peak_heat": 0,
+              "touchdown_ms": 3.25,
+              "soft_landing": true,
+              "commit_dv_ms": 0,
+              "hours": 1.31,
+              "heat_vs_direct": 1
+            },
+            {
+              "skims": 1,
+              "entry_peak_rate": 27.55,
+              "entry_peak_heat": 137,
+              "skim_peak_heat": 9.6,
+              "touchdown_ms": 3.25,
+              "soft_landing": true,
+              "commit_dv_ms": 29,
+              "hours": 2.3,
+              "heat_vs_direct": 0.985
+            },
+            {
+              "skims": 2,
+              "entry_peak_rate": 27.15,
+              "entry_peak_heat": 135.1,
+              "skim_peak_heat": 9.6,
+              "touchdown_ms": 3.25,
+              "soft_landing": true,
+              "commit_dv_ms": 30,
+              "hours": 3.28,
               "heat_vs_direct": 0.971
             },
             {
-              "skims": 2,
-              "entry_peak_rate": 29.92,
-              "entry_peak_heat": 148.4,
-              "skim_peak_heat": 12.4,
-              "touchdown_ms": 2.96,
-              "soft_landing": true,
-              "commit_dv_ms": 47,
-              "hours": 3.24,
-              "heat_vs_direct": 0.944
-            },
-            {
               "skims": 3,
-              "entry_peak_rate": 29.09,
-              "entry_peak_heat": 144.4,
-              "skim_peak_heat": 12.4,
-              "touchdown_ms": 2.96,
+              "entry_peak_rate": 26.78,
+              "entry_peak_heat": 133.2,
+              "skim_peak_heat": 9.6,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
-              "commit_dv_ms": 48,
-              "hours": 4.11,
-              "heat_vs_direct": 0.918
+              "commit_dv_ms": 30,
+              "hours": 4.24,
+              "heat_vs_direct": 0.957
             }
           ]
         },
         {
-          "entry_depth_m": 19500,
+          "entry_depth_m": 36000,
           "series": [
             {
               "skims": 0,
-              "entry_peak_rate": 27.46,
-              "entry_peak_heat": 136.6,
+              "entry_peak_rate": 18.77,
+              "entry_peak_heat": 93.8,
               "skim_peak_heat": 0,
-              "touchdown_ms": 2.96,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
               "commit_dv_ms": 0,
-              "hours": 1.46,
+              "hours": 1.4,
               "heat_vs_direct": 1
             },
             {
               "skims": 1,
-              "entry_peak_rate": 26.73,
-              "entry_peak_heat": 133,
-              "skim_peak_heat": 12.4,
-              "touchdown_ms": 2.96,
+              "entry_peak_rate": 18.56,
+              "entry_peak_heat": 92.7,
+              "skim_peak_heat": 9.6,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
-              "commit_dv_ms": 32,
-              "hours": 2.39,
-              "heat_vs_direct": 0.973
+              "commit_dv_ms": 17,
+              "hours": 2.4,
+              "heat_vs_direct": 0.989
             },
             {
               "skims": 2,
-              "entry_peak_rate": 26.03,
-              "entry_peak_heat": 129.6,
-              "skim_peak_heat": 12.4,
-              "touchdown_ms": 2.96,
+              "entry_peak_rate": 18.36,
+              "entry_peak_heat": 91.7,
+              "skim_peak_heat": 9.6,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
-              "commit_dv_ms": 32,
-              "hours": 3.29,
-              "heat_vs_direct": 0.948
+              "commit_dv_ms": 17,
+              "hours": 3.37,
+              "heat_vs_direct": 0.978
             },
             {
               "skims": 3,
-              "entry_peak_rate": 25.37,
-              "entry_peak_heat": 126.3,
-              "skim_peak_heat": 12.4,
-              "touchdown_ms": 2.96,
-              "soft_landing": true,
-              "commit_dv_ms": 33,
-              "hours": 4.16,
-              "heat_vs_direct": 0.924
-            }
-          ]
-        },
-        {
-          "entry_depth_m": 39000,
-          "series": [
-            {
-              "skims": 0,
-              "entry_peak_rate": 20.14,
-              "entry_peak_heat": 100.6,
-              "skim_peak_heat": 0,
-              "touchdown_ms": 2.96,
-              "soft_landing": true,
-              "commit_dv_ms": 0,
-              "hours": 1.54,
-              "heat_vs_direct": 1
-            },
-            {
-              "skims": 1,
-              "entry_peak_rate": 19.74,
-              "entry_peak_heat": 98.6,
-              "skim_peak_heat": 12.4,
-              "touchdown_ms": 2.96,
+              "entry_peak_rate": 18.17,
+              "entry_peak_heat": 90.8,
+              "skim_peak_heat": 9.6,
+              "touchdown_ms": 3.25,
               "soft_landing": true,
               "commit_dv_ms": 18,
-              "hours": 2.47,
-              "heat_vs_direct": 0.98
-            },
-            {
-              "skims": 2,
-              "entry_peak_rate": 19.36,
-              "entry_peak_heat": 96.7,
-              "skim_peak_heat": 12.4,
-              "touchdown_ms": 2.96,
-              "soft_landing": true,
-              "commit_dv_ms": 19,
-              "hours": 3.37,
-              "heat_vs_direct": 0.961
-            },
-            {
-              "skims": 3,
-              "entry_peak_rate": 19.01,
-              "entry_peak_heat": 94.9,
-              "skim_peak_heat": 12.4,
-              "touchdown_ms": 2.96,
-              "soft_landing": true,
-              "commit_dv_ms": 19,
-              "hours": 4.24,
-              "heat_vs_direct": 0.944
+              "hours": 4.33,
+              "heat_vs_direct": 0.968
             }
           ]
         }
@@ -1392,12 +1504,12 @@
   "unstaged_braking": [
     {
       "band": "suborbital",
-      "shallow_pass_peak_heat": 407,
-      "survivable": false
+      "shallow_pass_peak_heat": 62,
+      "survivable": true
     },
     {
       "band": "low",
-      "shallow_pass_peak_heat": 93,
+      "shallow_pass_peak_heat": 71,
       "survivable": true
     }
   ]
