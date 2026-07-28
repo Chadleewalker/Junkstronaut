@@ -1,3 +1,4 @@
 crew/out/logs/
+board/out/logs/
 node_modules/
 .env*

@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "The moderator's synthesis",
+  "description": "The one document a designer reads. Every claim in it must trace to a finding some reviewer actually raised: the orchestrator injects the real finding ids as an enum before validating, so a citation of something nobody said fails the schema and the moderator is asked again with the exact dangling id. The moderator ranks, connects and escalates. It does not review — it has no lens of its own and is not given one.",
+  "type": "object",
+  "required": ["agent", "headline", "top_issues", "unresolved", "themes"],
+  "additionalProperties": false,
+  "properties": {
+    "agent": { "const": "moderator" },
+    "headline": {
+      "description": "Two or three sentences a designer reads first. What is the state of this document, and what is the single most important thing to do about it.",
+      "type": "string",
+      "minLength": 100
+    },
+    "top_issues": {
+      "description": "Ranked by severity times confidence, where confidence rises when independent lenses converged. Between three and six.",
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["rank", "title", "finding_ids", "summary", "why_ranked_here"],
+        "additionalProperties": false,
+        "properties": {
+          "rank": { "type": "integer", "minimum": 1, "maximum": 6 },
+          "title": { "type": "string", "minLength": 15 },
+          "finding_ids": {
+            "description": "Every finding this issue is built from. At least one. This is the traceability that lets a reader check you rather than trust you.",
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" }
+          },
+          "summary": { "type": "string", "minLength": 100 },
+          "why_ranked_here": {
+            "description": "Why this sits above the one below it. Convergence across lenses, or a consequence that blocks the others.",
+            "type": "string",
+            "minLength": 40
+          }
+        }
+      }
+    },
+    "unresolved": {
+      "description": "Disagreements the board could not settle, escalated rather than averaged. A moderator that resolves a genuine disagreement by picking a side has thrown away the most useful thing the board produced.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["question", "positions", "decision_needed"],
+        "additionalProperties": false,
+        "properties": {
+          "question": { "type": "string", "minLength": 20 },
+          "positions": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "object",
+              "required": ["reviewers", "stance", "finding_ids"],
+              "additionalProperties": false,
+              "properties": {
+                "reviewers": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+                "stance": { "type": "string", "minLength": 40 },
+                "finding_ids": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          },
+          "decision_needed": {
+            "description": "What the design owner has to decide, phrased so it can be answered.",
+            "type": "string",
+            "minLength": 30
+          }
+        }
+      }
+    },
+    "themes": {
+      "description": "Patterns across findings that no single reviewer named, each still built from real findings.",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["theme", "finding_ids"],
+        "additionalProperties": false,
+        "properties": {
+          "theme": { "type": "string", "minLength": 40 },
+          "finding_ids": { "type": "array", "minItems": 1, "items": { "type": "string" } }
+        }
+      }
+    },
+    "what_the_document_does_well": {
+      "description": "Optional but wanted. A board that only finds fault gives the owner no way to tell which parts are safe to build on.",
+      "type": "array",
+      "maxItems": 5,
+      "items": { "type": "string", "minLength": 30 }
+    }
+  }
+}

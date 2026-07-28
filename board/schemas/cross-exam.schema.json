@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "One reviewer's round-two cross-examination",
+  "description": "What a reviewer returns after being shown every other reviewer's round-one findings. Two separate jobs: take a position on other people's findings, and revise the severity of your own now that you can see what else is on the table. The orchestrator injects the real finding ids as an enum before this schema is used, so a citation of a finding nobody raised fails validation and the agent is asked again with the exact error. That is what makes the traceability a gate rather than a promise.",
+  "type": "object",
+  "required": ["agent", "responses", "revisions"],
+  "additionalProperties": false,
+  "properties": {
+    "agent": { "type": "string", "pattern": "^[a-z][a-z-]+$" },
+    "responses": {
+      "description": "One entry per OTHER reviewer's finding you have a view on. You do not have to respond to all of them; silence is neutral and costs nothing.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["finding_id", "position", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "finding_id": { "type": "string" },
+          "position": {
+            "description": "supports: your lens independently reaches the same conclusion, or you can add evidence it lacks. contests: you think it is wrong, overstated, or unadjudicable as written. neutral: it is real but outside anything you can judge.",
+            "enum": ["supports", "contests", "neutral"]
+          },
+          "reason": {
+            "description": "What your lens adds. 'Agreed' is not a reason — if you have nothing to add, leave it out rather than inflating the tally.",
+            "type": "string",
+            "minLength": 40
+          }
+        }
+      }
+    },
+    "revisions": {
+      "description": "Severity changes to YOUR OWN findings, in light of what the others found. May be empty, and usually should be — a reviewer who revises everything was not confident in round one. The orchestrator discards a revision aimed at somebody else's finding.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["finding_id", "severity", "why"],
+        "additionalProperties": false,
+        "properties": {
+          "finding_id": { "type": "string" },
+          "severity": { "enum": ["BLOCKING", "MAJOR", "MINOR"] },
+          "why": {
+            "description": "Which other finding changed your mind, and how. Name it.",
+            "type": "string",
+            "minLength": 40
+          }
+        }
+      }
+    },
+    "connections": {
+      "description": "Optional. Pairs of findings that are worse together than apart — the composite risks a single lens cannot see.",
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["finding_ids", "compound_risk"],
+        "additionalProperties": false,
+        "properties": {
+          "finding_ids": { "type": "array", "minItems": 2, "items": { "type": "string" } },
+          "compound_risk": { "type": "string", "minLength": 40 }
+        }
+      }
+    }
+  }
+}
