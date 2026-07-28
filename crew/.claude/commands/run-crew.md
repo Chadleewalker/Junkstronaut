@@ -4,7 +4,7 @@ description: Run the Junkstronaut tuning crew and explain the result
 
 Run the Junkstronaut tuning crew.
 
-Use `node run-crew.js` from the repository root. If the user passed `stub`, `replay`, or
+Use `node run-crew.js` from the `crew/` directory, which is where this command lives. If the user passed `stub`, `replay`, or
 `fast` as an argument ($ARGUMENTS), use `node run-crew.js --stub` instead and say clearly
 that it is a replay of a recorded run rather than live agents.
 

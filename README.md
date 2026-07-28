@@ -1,21 +1,54 @@
 # Junkstronaut — agent crews
 
-> ### Grading Assignment #3? Start here.
->
-> **The submission is [`crew/`](crew/)** — five agents that write this game's config file.
-> Nothing to install — no dependencies, no `npm install`, no API key. Built and tested on Node 24.
->
-> ```bash
-> cd crew
-> node run-crew.js --stub        # replay a recorded run: full output in ~1 second, no API key
-> node --test "test/*.test.js"   # 95 tests, ~18 seconds
-> ```
->
-> Then open **`crew/out/report/dashboard.html`** in a browser for the charts, and
-> **`crew/out/config/game_params.tres`** for the artifact the game actually loads.
-> The Mermaid architecture diagram is **[`crew/DIAGRAM.md`](crew/DIAGRAM.md)**.
->
-> `board/` is a **different crew from Assignment #2** and is not part of this submission.
+## Quick start
+
+**Assignment #3 submission: the [`crew/`](crew/) folder.** Nothing to install — no
+dependencies, no `npm install`, no API key needed for the replay. Tested on Node 24.
+
+**1 · Get it**
+
+```bash
+git clone https://github.com/Chadleewalker/Junkstronaut
+cd Junkstronaut/crew
+```
+
+(Or use the green **Code → Download ZIP** button and unzip it.)
+
+**2 · Run it** — either way works:
+
+```bash
+claude              # then type:  /run-crew stub
+```
+
+```bash
+node run-crew.js --stub     # same thing without Claude Code
+```
+
+Takes about a second. It replays a recorded run of the five agents, so you see the real
+output without spending tokens. Drop `stub` / `--stub` to run the agents live instead
+(30–90 minutes, needs Claude Code signed in).
+
+**3 · Look at what it made** — everything lands in `crew/out/`:
+
+| open this | what it is |
+|---|---|
+| **`out/report/dashboard.html`** | **Start here.** The whole run as charts in a browser — what the agents decided, what the simulator measured, and a plain-English verdict at the top. |
+| `out/config/game_params.tres` | The point of the whole thing: the config file Godot loads at runtime. Every tunable in the game — gravity, thrust, heat, prices — in one file. |
+| `out/audit/audit_report.md` | Per-rule pass/fail against the design document, with the arithmetic. Read this before trusting the numbers. |
+| `out/data/debris_catalog.json` | The loot table — 25 junk types with mass, size and fragility. |
+| `out/playtest/playtest_report.json` | What the ship actually did when flown: claimed vs. measured, and proposed fixes. |
+| `out/run.json` | Run summary — which agents ran, how many retries, the final verdict. |
+
+The console prints a summary when it finishes. **A run ending in `AUDIT FAIL` is not a
+crash** — it means the crew measured the design's own numbers and found a rule they don't
+satisfy. That is the auditor doing its job; the failing rule and its evidence are in
+`audit_report.md`.
+
+**Also here:** the architecture diagram is [`crew/DIAGRAM.md`](crew/DIAGRAM.md) (rendered
+below too), the tests are `node --test "test/*.test.js"` from `crew/` (95 tests, ~18 s), and
+[`board/`](board/) is a **separate crew from Assignment #2** — not part of this submission.
+
+---
 
 **The game: Junkstronaut.** A 2D pixel-art game about salvaging space junk. A Kessler
 cascade has destroyed every satellite in orbit. You work at Mr. Armstrong's junkyard: fly a
@@ -42,7 +75,7 @@ report of what those numbers actually *do* when the ship is flown.
 | agent | reads → writes |
 |---|---|
 | **researcher** | GDD → `params/baseline.json` — orbital speeds, atmosphere, heating thresholds, drag |
-| **debris-designer** | baseline → `data/debris_catalog.json` — 28 junk types: mass, size class, fragility |
+| **debris-designer** | baseline → `data/debris_catalog.json` — the loot table: mass, size class, fragility |
 | **economy-balancer** | baseline + catalog → `config/game_params.json` — every tunable, solved against all design rules at once |
 | **playtester** | simulator output → `playtest/playtest_report.json` — claimed vs measured, proposed fixes |
 | **spec-auditor** | GDD + params + measurements → `audit/audit_report.md` — per-rule pass/fail with evidence |
@@ -96,20 +129,7 @@ and lands the ship thousands of times per round, then re-flies a grid of 5,184 w
 against 8 design targets. So when the crew says a full hold lands at 4.4 m/s, that is a
 measurement, not an argument.
 
-```bash
-cd crew
-node run-crew.js --stub    # replay a recorded run — ~1 second, no login, no model calls
-node run-crew.js           # live: 30–90 minutes
-node --test "test/*.test.js"
-```
-
-Architecture diagram: [`crew/DIAGRAM.md`](crew/DIAGRAM.md). Full detail:
-[`crew/README.md`](crew/README.md).
-
-> A run ending in **`AUDIT FAIL`** means the crew found that the design's numbers don't
-> satisfy the design document — the crew ran correctly. The last recorded run passes 18 of
-> 20 checks; the 2 that fail need a human design decision, not a retune. Reporting that
-> instead of hiding it is the point of having an auditor.
+Full detail on every agent, every schema and both gates: [`crew/README.md`](crew/README.md).
 
 ---
 
