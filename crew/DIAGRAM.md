@@ -9,15 +9,15 @@ history, so any stage can be re-run alone.
 
 ```mermaid
 flowchart TB
-  GDD["Junkstronaut GDD<br/><i>§2.3 rules, §2.3 Key values</i>"]
+  GDD["Junkstronaut GDD<br/><i>§2.2 reentry · §2.5 economy<br/>§2.6 value gradient</i>"]
 
   subgraph CREW["The crew — five agents"]
     direction TB
     R["<b>1 · RESEARCHER</b><br/>scales real orbital and reentry<br/>physics to a small planet"]
     D["<b>2 · DEBRIS DESIGNER</b><br/>authors the loot table:<br/>mass, size class, fragility"]
-    B["<b>3 · ECONOMY BALANCER</b><br/>prices the catalog against<br/>every rule in §2.3 at once"]
+    B["<b>3 · ECONOMY BALANCER</b><br/>prices the catalog against<br/>every rule in §2.2-§2.6 at once"]
     P["<b>4 · PLAYTESTER</b><br/>reads what the flights did;<br/>proposes a value set"]
-    A["<b>5 · SPEC AUDITOR</b><br/>recomputes each Key values<br/>bullet against the numbers"]
+    A["<b>5 · SPEC AUDITOR</b><br/>recomputes each design rule<br/>against the numbers"]
   end
 
   SIM[["<b>FLIGHT SIMULATOR</b><br/><i>deterministic, no model</i><br/>flies the config, then sweeps<br/>5,184 worlds against 8 targets"]]
@@ -30,16 +30,16 @@ flowchart TB
   AUD[/"audit/audit_report.md<br/><i>per-rule pass/fail + evidence</i>"/]
 
   TRES["<b>config/game_params.tres</b><br/>+ game_params.gd<br/><i>the resource Godot loads</i>"]
-  HUMAN{{"Chad flies the candidate<br/><i>GDD §3.3 Checkpoint 2</i>"}}
+  HUMAN{{"Chad flies the candidate<br/><i>value set</i>"}}
 
   GDD --> R
-  GDD -.->|"§2.3.4, §2.3.7"| D
-  GDD -.->|"every Key values list"| B
-  GDD -.->|"§2.3.1, §4.5 risks"| P
+  GDD -.->|"§2.6 mass and value<br/>rise with altitude"| D
+  GDD -.->|"every rule in §2.2-§2.6"| B
+  GDD -.->|"§2.2 reentry, §4.4 risks"| P
   GDD ==>|"the spec, never the<br/>other agents' reasoning"| A
 
   R -->|writes| BASE
-  BASE -->|"band names,<br/>speeds, drag"| D
+  BASE -->|"band envelope,<br/>speeds, drag"| D
   D -->|writes| CAT
   BASE --> B
   CAT -->|"masses to price"| B
@@ -56,7 +56,7 @@ flowchart TB
   A -->|writes| AUD
 
   A -->|"<b>fail · owner: economy-balancer</b><br/>prices, ablation, landing, tow fee"| B
-  A -->|"<b>fail · owner: debris-designer</b><br/>masses, spawn weights, band summaries"| D
+  A -->|"<b>fail · owner: debris-designer</b><br/>masses, spawn weights, altitude placement"| D
   B -.->|"catalog_concerns<br/><i>can't fix it, don't own it</i>"| D
 
   PAR --> TRES
@@ -84,12 +84,13 @@ thousands of flights mean anything (GDD §4.4, headless determinism). It keeps a
 between physics and game rules: gravity, drag, heating and orbital mechanics are simulated;
 how peak heat converts to shield ablation is a *design decision* and is taken from the
 Balancer's params rather than re-derived. Simulating the physics and applying the crew's
-rules is what lets the sweep answer "is the cheapest descent really 2–4 passes" by
-measurement instead of by restating the formula that claimed it.
+rules is what lets the sweep answer "can the endgame haul come home on a single pass" by measurement instead of by
+restating the formula that claimed it — which is how the cost rule it used to check was
+found to be unsatisfiable and replaced by a feasibility rule.
 
 **Why the Playtester sits between the simulator and the Auditor.** The sweep produces
 thousands of rows; somebody has to say what they mean. The Auditor could read them, but it
-answers a different question — *does the config obey the written rules* — and the GDD (§3.1)
+answers a different question — *does the config obey the written rules* — and the GDD (§3)
 draws that boundary explicitly: QA tests conformance, the Playtester measures behaviour and
 proposes numbers. Only the Playtester emits a candidate value set, which is the artifact
 Chad actually flies at Checkpoint 2, and only the Playtester distinguishes a **tuning**
@@ -104,7 +105,7 @@ nothing else.
 
 **Why there are two return edges and not one.** Every check the Auditor emits carries an
 `owner` — the agent whose artifact the rule is actually about — and failures go back to
-that agent. Catalog rules (piece masses, spawn weights, band summaries) return to the
+that agent. Catalog rules (piece masses, spawn weights, altitude placement) return to the
 Debris Designer; parameter rules (prices, ablation, landing, tow fee) return to the Economy
 Balancer.
 

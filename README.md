@@ -47,6 +47,45 @@ report of what those numbers actually *do* when the ship is flown.
 | **playtester** | simulator output → `playtest/playtest_report.json` — claimed vs measured, proposed fixes |
 | **spec-auditor** | GDD + params + measurements → `audit/audit_report.md` — per-rule pass/fail with evidence |
 
+```mermaid
+flowchart LR
+  GDD["<b>Junkstronaut GDD</b><br/>the design document"]
+
+  R["<b>1 · RESEARCHER</b><br/>scales orbital physics<br/>to the game planet"]
+  D["<b>2 · DEBRIS DESIGNER</b><br/>authors the loot table"]
+  B["<b>3 · ECONOMY BALANCER</b><br/>prices it against<br/>every design rule"]
+  P["<b>4 · PLAYTESTER</b><br/>reads what the<br/>flights did"]
+  A["<b>5 · SPEC AUDITOR</b><br/>checks the numbers<br/>against the spec"]
+
+  SIM[["<b>FLIGHT SIMULATOR</b><br/><i>deterministic, no model</i>"]]
+  TRES["<b>game_params.tres</b><br/><i>what Godot loads</i>"]
+
+  GDD --> R
+  R -->|"baseline.json"| D
+  D -->|"debris_catalog.json"| B
+  B -->|"game_params.json"| SIM
+  SIM -->|"thousands of flights"| P
+  P -->|"playtest_report.json"| A
+  GDD ==>|"the spec, never the<br/>other agents' reasoning"| A
+  A -->|"pass"| TRES
+
+  A -.->|"fail · prices, ablation, landing"| B
+  A -.->|"fail · masses, spawn weights"| D
+
+  classDef agent fill:#e8f0fb,stroke:#2c5aa0,stroke-width:2px,color:#14181d
+  classDef sim fill:#ece9f7,stroke:#4a3aa7,stroke-width:2px,color:#14181d
+  classDef ship fill:#e4f3e7,stroke:#2f7a41,stroke-width:2px,color:#14181d
+  classDef doc fill:#fdf4e3,stroke:#a86c17,stroke-width:1.5px,color:#14181d
+  class R,D,B,P,A agent
+  class SIM sim
+  class TRES ship
+  class GDD doc
+```
+
+The two dotted edges are the feedback loop: a failed audit goes back to the agent that owns
+the artifact the rule is about, and drives up to two revision rounds. Full diagram, including
+the orchestrator's control flow: [`crew/DIAGRAM.md`](crew/DIAGRAM.md).
+
 Every arrow is a schema-checked JSON file on disk, not chat history, so any stage re-runs
 alone. The auditor gets the spec and the numbers but never the other agents' reasoning, so
 it can't be talked into agreeing; when it fails a check it routes the failure to the agent
