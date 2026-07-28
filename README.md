@@ -48,7 +48,7 @@ report of what those numbers actually *do* when the ship is flown.
 | **spec-auditor** | GDD + params + measurements → `audit/audit_report.md` — per-rule pass/fail with evidence |
 
 ```mermaid
-flowchart LR
+flowchart TB
   GDD["<b>Junkstronaut GDD</b><br/>the design document"]
 
   R["<b>1 · RESEARCHER</b><br/>scales orbital physics<br/>to the game planet"]
