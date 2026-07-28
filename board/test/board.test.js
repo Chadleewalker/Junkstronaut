@@ -18,7 +18,10 @@ const { renderSynthesisMd, crossExamPacket, parseArgs, REVIEWERS } = require('..
 
 const RUNNER = path.join(__dirname, '..', 'run-board.js');
 const FAKE = path.join(__dirname, 'fixtures', 'fake-board.js');
-const GDD = path.join(__dirname, '..', '..', 'Junkstronaut GDD.txt');
+// The document of record. Passed explicitly rather than left to findGdd, so the test does
+// not quietly start reviewing a different file when the repository's documents change —
+// which is exactly what broke it once, when the long draft was withdrawn.
+const GDD = path.join(__dirname, '..', '..', 'Junkstronaut GDD Short.txt');
 
 // One run, shared by the assertions below — it takes about a second and re-running it per
 // test would be the slowest thing in either suite.

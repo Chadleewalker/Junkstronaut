@@ -113,7 +113,11 @@ function parseArgs(argv) {
 
 function findGdd(explicit) {
   if (explicit) return path.resolve(explicit);
+  // The short GDD at the repository root is the document of record. The copies under
+  // Short GDD Opus/ and Short GDD Fable/ are archives of what the earlier boards reviewed and
+  // are kept only as fallbacks; the long GDD is a withdrawn draft.
   const candidates = [
+    path.join(ROOT, '..', 'Junkstronaut GDD Short.txt'),
     path.join(ROOT, '..', 'Junkstronaut GDD.txt'),
     path.join(ROOT, '..', 'Short GDD Opus', 'Junkstronaut GDD Short.txt'),
     path.join(ROOT, 'gdd.txt'),

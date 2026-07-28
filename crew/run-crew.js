@@ -100,7 +100,17 @@ function writeJson(file, obj) {
 
 function findGdd(explicit) {
   if (explicit) return path.resolve(explicit);
+  // The short GDD is the document of record and is searched first. The long one is a
+  // withdrawn draft — it is what every recorded run in stubs/ was audited against, and it is
+  // recoverable with `git show HEAD:"Junkstronaut GDD.txt"` if its wording is ever wanted.
+  //
+  // Worth knowing before reading a live audit: the short document does not yet contain the
+  // skim, tow-fee or multi-pass rules the charters check for, and its sections are not
+  // numbered §2.3.1-2.3.7. Those rules are decided but unwritten — see
+  // docs/gdd-pending-changes.md — so checks that cite them will fail against the document
+  // rather than against the numbers.
   const candidates = [
+    path.join(ROOT, '..', 'Junkstronaut GDD Short.txt'),
     path.join(ROOT, '..', 'Junkstronaut GDD.txt'),
     path.join(ROOT, 'Junkstronaut GDD.txt'),
     path.join(ROOT, 'gdd.txt'),
