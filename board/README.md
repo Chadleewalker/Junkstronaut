@@ -177,9 +177,10 @@ is a large, reproducible-looking claim about how models behave under cross-exami
 it was previously unattributable, because nothing recorded what the reviewers had been told.
 
 Now it is a measurement: fix the document, fix the charters, change `JUNK_MODEL`, and the
-difference is the model. Those two earlier runs are kept as-is under `Short GDD Opus/` and
-`Short GDD Fable/` — read them as an archive of what the board found, not as a controlled
-comparison, because the prompts that produced them were never written down.
+difference is the model. Two earlier runs — one per model — were kept in the tree for a
+while as an archive of what the board found, and have been removed: they were never a
+controlled comparison, because the prompts that produced them were never written down. They
+remain in the repository history if the findings are ever wanted.
 
 ## What you get
 

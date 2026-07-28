@@ -8,8 +8,8 @@ Use `node run-board.js` from this folder. If the user passed `stub`, `replay` or
 argument ($ARGUMENTS), use `node run-board.js --stub` instead and say clearly that it is a
 replay of a recorded run rather than live agents.
 
-If they named a document, pass it with `--gdd <file>`. The default is the full
-`Junkstronaut GDD.txt` at the repository root; the short version is under `Short GDD Opus/`.
+If they named a document, pass it with `--gdd <file>`. The default is
+`Junkstronaut GDD Short.txt` at the repository root, which is the document of record.
 
 Let the script print its own progress — do not summarise while it runs.
 

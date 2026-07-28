@@ -16,9 +16,8 @@ node run-board.js
 It takes about ten minutes and prints its own progress. Do not wrap it, summarise it while
 it runs, or re-implement any part of it — the script is the board.
 
-To review a different document, pass `--gdd <file>`. The default is the full
-`Junkstronaut GDD.txt` at the repository root; the short version lives under
-`Short GDD Opus/`.
+To review a different document, pass `--gdd <file>`. The default is
+`Junkstronaut GDD Short.txt` at the repository root, which is the document of record.
 
 If they want it quick, are not signed in, or do not want to spend tokens:
 
