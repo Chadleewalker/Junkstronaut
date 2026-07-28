@@ -27,11 +27,15 @@
       "maxItems": 30,
       "items": {
         "type": "object",
-        "required": ["id", "display_name", "band", "size_class", "fragile", "mass_kg", "spawn_weight"],
+        "required": ["id", "display_name", "altitude_m", "size_class", "fragile", "mass_kg", "spawn_weight"],
         "properties": {
           "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
           "display_name": { "type": "string", "minLength": 3 },
-          "band": { "enum": ["suborbital", "low", "high"] },
+          "altitude_m": {
+            "description": "Where in the envelope this piece spawns. Replaces the old band enum: there is one band now, and a piece's altitude is what sets both its value (the gradient rises with height) and the cost of bringing it home. Must lie inside the band's altitude_min_m .. altitude_max_m.",
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
           "size_class": { "enum": ["small", "medium", "oversized"] },
           "fragile": { "type": "boolean" },
           "mass_kg": { "type": "number", "exclusiveMinimum": 0 },
@@ -41,14 +45,16 @@
       }
     },
     "band_summary": {
+      "description": "The catalog described at the three sample altitudes, so the Auditor can recompute it without re-reading every piece. A summary of one continuous band, cut into thirds for reporting — the thirds are not tiers, and nothing may key game behaviour off them. Each piece counts in the third its altitude_m falls in.",
       "type": "array",
       "minItems": 3,
       "maxItems": 3,
       "items": {
         "type": "object",
-        "required": ["band", "piece_count", "fragile_fraction", "mean_mass_kg"],
+        "required": ["sample", "altitude_m", "piece_count", "fragile_fraction", "mean_mass_kg"],
         "properties": {
-          "band": { "enum": ["suborbital", "low", "high"] },
+          "sample": { "enum": ["bottom", "middle", "top"] },
+          "altitude_m": { "type": "number", "exclusiveMinimum": 0 },
           "piece_count": { "type": "integer", "minimum": 1 },
           "fragile_fraction": { "type": "number", "minimum": 0, "maximum": 1 },
           "mean_mass_kg": { "type": "number", "exclusiveMinimum": 0 }

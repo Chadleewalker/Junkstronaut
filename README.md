@@ -1,5 +1,22 @@
 # Junkstronaut — agent crews
 
+> ### Grading Assignment #3? Start here.
+>
+> **The submission is [`crew/`](crew/)** — five agents that write this game's config file.
+> Nothing to install — no dependencies, no `npm install`, no API key. Built and tested on Node 24.
+>
+> ```bash
+> cd crew
+> node run-crew.js --stub        # replay a recorded run: full output in ~1 second, no API key
+> node --test "test/*.test.js"   # 95 tests, ~18 seconds
+> ```
+>
+> Then open **`crew/out/report/dashboard.html`** in a browser for the charts, and
+> **`crew/out/config/game_params.tres`** for the artifact the game actually loads.
+> The Mermaid architecture diagram is **[`crew/DIAGRAM.md`](crew/DIAGRAM.md)**.
+>
+> `board/` is a **different crew from Assignment #2** and is not part of this submission.
+
 **The game: Junkstronaut.** A 2D pixel-art game about salvaging space junk. A Kessler
 cascade has destroyed every satellite in orbit. You work at Mr. Armstrong's junkyard: fly a
 rocket built out of scrap up to the debris field, get out and drag junk home on magnetic

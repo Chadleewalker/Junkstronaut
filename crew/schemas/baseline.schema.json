@@ -24,18 +24,33 @@
       }
     },
     "bands": {
+      "description": "ONE band, per GDD 2.6 — a single continuous envelope with a value gradient, not three tiers. The array survives as an array of one because everything downstream indexes it, and because a second band is a design change that should have to edit this schema. Junk gets more valuable with altitude; the player picks their own altitude inside the envelope, and whether to circularise or throw a ballistic arc at it.",
       "type": "array",
-      "minItems": 3,
-      "maxItems": 3,
+      "minItems": 1,
+      "maxItems": 1,
       "items": {
         "type": "object",
-        "required": ["name", "altitude_min_m", "altitude_max_m", "orbital_speed_ms", "period_s"],
+        "required": ["name", "altitude_min_m", "altitude_max_m", "samples"],
         "properties": {
-          "name": { "enum": ["suborbital", "low", "high"] },
+          "name": { "const": "orbit" },
           "altitude_min_m": { "type": "number", "exclusiveMinimum": 0 },
           "altitude_max_m": { "type": "number", "exclusiveMinimum": 0 },
-          "orbital_speed_ms": { "type": "number", "exclusiveMinimum": 0 },
-          "period_s": { "type": "number", "exclusiveMinimum": 0 }
+          "samples": {
+            "description": "Altitudes the sweep flies to measure the gradient. These are MEASUREMENT SAMPLES, not design tiers — nothing in the game is allowed to treat them as discrete bands, and moving one changes what was measured, not what the game is. Three of them, bottom to top.",
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "required": ["name", "altitude_m", "orbital_speed_ms", "period_s"],
+              "properties": {
+                "name": { "enum": ["bottom", "middle", "top"] },
+                "altitude_m": { "type": "number", "exclusiveMinimum": 0 },
+                "orbital_speed_ms": { "type": "number", "exclusiveMinimum": 0 },
+                "period_s": { "type": "number", "exclusiveMinimum": 0 }
+              }
+            }
+          }
         }
       }
     },

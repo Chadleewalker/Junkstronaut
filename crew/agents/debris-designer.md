@@ -17,15 +17,18 @@ next agent decide what it is worth relative to everything else.
 
 What is actually floating up there, and what does each piece cost the player to take?
 Every piece of debris must be a decision — a reason to reach for it and a reason not to —
-and the catalog as a whole must make the higher bands feel richer and heavier than the
-lower ones without any single piece being strictly the best choice.
+and the catalog as a whole must make the top of the envelope feel richer and heavier than
+the bottom without any single piece being strictly the best choice.
 
 ## Inputs
 
-- The full game design document. Sections 2.3.4 (the two magnets, size classes, the
-  fragile flag, the compactor) and 2.3.7 (junk value and altitude) are your remit.
-- The Researcher's `baseline.json`, in particular the band names and altitudes. Use the
-  same three band names; anything else breaks the downstream handoff.
+- The full game design document. Sections 2.4 (the hand magnet, towing, size classes and
+  the fragile flag) and 2.6 (junk value and altitude) are your remit.
+- The Researcher's `baseline.json`, in particular `bands[0].altitude_min_m` and
+  `altitude_max_m`. **There is ONE band** (GDD §2.6) — a single envelope with a value
+  gradient, not three tiers. Every piece carries an `altitude_m` somewhere inside that
+  range; there are no band names to match any more. The three `samples` in the baseline are
+  where the sweep measures, not places to file pieces under.
 - On a revision pass only: findings routed back to you, from one or both of two places —
   the Spec Auditor's failing checks whose subject is the catalog, and the Economy
   Balancer's `catalog_concerns`. Both name a property of the loot table that blocks a rule.
@@ -43,7 +46,7 @@ lower ones without any single piece being strictly the best choice.
 
 ## Method
 
-- Author between 18 and 30 distinct debris types. Fewer and the bands feel thin; more and
+- Author between 18 and 30 distinct debris types. Fewer and the envelope feels thin; more and
   the player never learns to recognise anything.
 - Every piece carries a size class and a fragile flag, and the GDD is explicit that these
   are authored per debris type and independent of sprite dimensions. Do not derive either
@@ -53,30 +56,34 @@ lower ones without any single piece being strictly the best choice.
   as given; you are not tuning them.
 - Oversized pieces are crane-cable only and reject the hand magnet. The GDD's semester
   scope cuts the crane magnet and the oversized class, so author **one or two oversized
-  pieces per band at most**, mark them clearly, and expect them to be unreachable in the
-  shipping slice. They exist so the catalog is complete, not so the slice uses them.
+  pieces per third of the envelope at most**, mark them clearly, and expect them to be
+  unreachable in the shipping slice. They exist so the catalog is complete, not so the
+  slice uses them.
 - Fragile is a cross-cutting flag, not a size class. A fragile piece has half durability,
   can never be crushed at any compactor tier, and takes double damage from reentry heat
-  and hard landings. Fragile spawn rate is band-weighted: roughly 1 in 10 pieces in
-  suborbital rising to 1 in 4 in the high band.
+  and hard landings. Fragile spawn rate rises with altitude: roughly 1 in 10 pieces near the
+  floor of the band rising to 1 in 4 near the ceiling.
 
   **That gradient is measured by spawn weight, not by piece count**, because spawn weight
   is what decides how often the player actually meets one. Compute it before you return:
-  for each band, sum the `spawn_weight` of the fragile pieces and divide by the sum of all
-  spawn weights in that band. Suborbital should land near 0.10 and the high band near 0.25.
-  Counting pieces instead of weighting them is the single most common way this check fails —
-  five fragile types out of twenty is not a 1-in-4 spawn rate if those five are the heaviest
-  weighted pieces in the band.
-- Mass scales with the band. The GDD's central bet is that the valuable stuff physically
-  fights you: high-band junk is denser and heavier, so a better haul is a harder ride home.
-  Make that visible in the numbers — the mean mass of a high-band piece should be clearly
-  above a suborbital one, and say by roughly what factor in your `design_notes`.
+  cut the envelope into thirds by altitude, and within each third sum the `spawn_weight` of
+  the fragile pieces and divide by the sum of all spawn weights there. The bottom third
+  should land near 0.10 and the top third near 0.25. Counting pieces instead of weighting
+  them is the single most common way this check fails — five fragile types out of twenty is
+  not a 1-in-4 spawn rate if those five are the heaviest weighted pieces.
+- Mass rises with altitude, and it must rise smoothly rather than in three steps. The GDD's
+  central bet is that the valuable stuff physically fights you: junk near the ceiling is
+  denser and heavier, so a better haul is a harder ride home. Make that visible in the
+  numbers — the mean mass of a top-third piece should be clearly above a bottom-third one,
+  and say by roughly what factor in your `design_notes`. Because value is now a continuous
+  function of altitude, two pieces at similar altitudes should have similar mass; a heavy
+  piece parked just above a light one reads to the player as an arbitrary cliff.
 - Name pieces like salvage, not like inventory. "Bent truss section", "cracked solar
   array", "reaction wheel housing". The theme is blue-collar scrapyard spaceflight; a piece
   called "Debris Type 14" is a failure of this charter.
-- Higher bands skew toward medium and toward fragile. Do not put your whole medium
-  population in the top band, though — the player must meet every size class and the
-  fragile flag inside the shipping slice, which is suborbital and low only.
+- Higher altitudes skew toward medium and toward fragile. Do not put your whole medium
+  population in the top third, though — the player must meet every size class and the
+  fragile flag inside the shipping slice, which is the bottom two thirds of the envelope.
 
 ## Output
 
@@ -95,7 +102,7 @@ commentary after it.
     {
       "id": "bent_truss_section",
       "display_name": "Bent Truss Section",
-      "band": "suborbital",
+      "altitude_m": 18000,
       "size_class": "medium",
       "fragile": false,
       "mass_kg": 34.0,
@@ -105,7 +112,8 @@ commentary after it.
   ],
   "band_summary": [
     {
-      "band": "suborbital",
+      "sample": "bottom",
+      "altitude_m": 18000,
       "piece_count": 8,
       "fragile_fraction": 0.1,
       "mean_mass_kg": 22.5
@@ -124,13 +132,17 @@ Rules for filling it in:
 
 - `id` is lower_snake_case, unique across the whole catalog, and stable — the Godot
   resource keys off it.
-- `band` is exactly one of `suborbital`, `low`, `high`.
+- `altitude_m` is a positive number inside the band's `altitude_min_m .. altitude_max_m`.
+  It replaces the old band enum. Spread pieces across the envelope rather than stacking them
+  at the three sample altitudes — the samples are where the sweep measures, and a catalog
+  that clusters on them is describing three tiers again by the back door.
 - `size_class` is exactly one of `small`, `medium`, `oversized`.
 - `mass_kg` is a positive number. `spawn_weight` is a positive integer; weights are
-  relative within a band, not across bands.
-- `band_summary` has exactly three entries, one per band, and its numbers must agree with
-  the `debris` array — this is the first thing the Spec Auditor recomputes. `mean_mass_kg`
-  is the plain average of the band's `mass_kg` values; `fragile_fraction` is the
+  relative across the whole catalog.
+- `band_summary` has exactly three entries — the envelope cut into thirds, named `bottom`,
+  `middle` and `top`, each with the altitude it is summarising. Its numbers must agree with
+  the `debris` array; this is the first thing the Spec Auditor recomputes. `mean_mass_kg`
+  is the plain average of that third's `mass_kg` values; `fragile_fraction` is the
   spawn-weighted share described above, not the share of piece count. Do the arithmetic
   rather than estimating it: these two numbers have failed audit more than anything else in
   the catalog, and they fail for the same reason every time — they were written down before

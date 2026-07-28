@@ -21,8 +21,14 @@
 const sim = require('./sim');
 const simDescent = sim.simulateDescent;
 
-const BANDS = ['suborbital', 'low', 'high'];
-const SLICE_BANDS = ['suborbital', 'low'];   // what actually ships this semester (§4.1)
+// There is ONE band (GDD §2.6) — a single envelope with a value gradient. These are the
+// three altitudes the sweep flies to measure that gradient, bottom to top. They are sample
+// points, not tiers: nothing in the game may branch on them, and moving one changes what was
+// measured rather than what the game is.
+const SAMPLES = ['bottom', 'middle', 'top'];
+// The part of the envelope that ships this semester (§4.1) — the top of the band is the
+// endgame's altitude and is not part of the shipping slice.
+const SLICE_SAMPLES = ['bottom', 'middle'];
 
 // How many braking depths a scored world's descent is scanned at. Three of these scans are
 // 98.5% of what it costs to score a cell — 1412 ms of 1433 ms — so this number, and not the
@@ -37,7 +43,7 @@ const SLICE_BANDS = ['suborbital', 'low'];   // what actually ships this semeste
 //   32 samples  10 changed (0.27%)
 //   24 samples  16 changed (0.42%)
 //
-// Nearly every flip is difficulty_rises_with_band, which compares two scans' cheapest
+// Nearly every flip is difficulty_rises_with_altitude, which compares two scans' cheapest
 // ablation against a 1.1x threshold — a coarse scan misses one minimum by a hair and the
 // ratio crosses. That target is already one of the scarce ones and is load-bearing for a live
 // design finding, so corrupting it to save a few minutes would be a bad trade.
@@ -47,23 +53,82 @@ const SLICE_BANDS = ['suborbital', 'low'];   // what actually ships this semeste
 // few hundred cells spread across the grid, not against a handful of interesting ones.
 const SCAN_SAMPLES = Number(process.env.JUNK_SCAN_SAMPLES) || 50;
 
+// Skim altitudes tried per committed-descent cell. Twelve cells x four skim counts, so this
+// is the cost driver of the whole verification sweep. The tests turn it down: they check the
+// SHAPE of the result — that a skimmed row flew more passes than its skim count — which does
+// not need a fine search.
+const COMMIT_SKIM_SAMPLES = Number(process.env.JUNK_COMMIT_SKIM_SAMPLES) || 24;
+
 // ---------------------------------------------------------------- helpers
 
-function bandAlt(baseline, name) {
-  const b = baseline.bands.find((x) => x.name === name);
-  return b ? (b.altitude_min_m + b.altitude_max_m) / 2 : null;
+// The altitude of a named sample point inside the one band.
+function sampleAlt(baseline, name) {
+  const band = baseline.bands[0];
+  if (!band || !band.samples) return null;
+  const s = band.samples.find((x) => x.name === name);
+  return s ? s.altitude_m : null;
+}
+
+// Which third of the envelope a piece sits in. Used only for reporting and for the shipping
+// slice — a piece's value comes from its altitude on the gradient, never from its third.
+function sampleFor(baseline, altitude_m) {
+  const band = baseline.bands[0];
+  const span = band.altitude_max_m - band.altitude_min_m;
+  const f = span > 0 ? (altitude_m - band.altitude_min_m) / span : 0;
+  return f < 1 / 3 ? 'bottom' : f < 2 / 3 ? 'middle' : 'top';
+}
+
+// GDD §2.6's value gradient: a piece's multiplier interpolates on its altitude between the
+// floor and the ceiling of the band. This replaces the old band_value_multiplier map, and
+// with it the assumption that value came in three steps.
+function valueMultiplier(baseline, params, altitude_m) {
+  const band = baseline.bands[0];
+  const g = params.economy.value_gradient;
+  const span = band.altitude_max_m - band.altitude_min_m;
+  const f = span > 0
+    ? Math.min(1, Math.max(0, (altitude_m - band.altitude_min_m) / span))
+    : 0;
+  return g.at_bottom + (g.at_top - g.at_bottom) * f;
 }
 
 // Spawn-weighted mass of a full hold, from the catalog the crew actually authored. Only
 // hand-tetherable classes count: the slice has no crane, so oversized junk cannot be taken.
-function fullHoldMass(catalog, params) {
+// `baseline` is optional so existing callers keep working. Without it the envelope is taken
+// from the catalog's own spread of altitudes, which is the same cut whenever the catalog
+// actually populates the band it was authored against.
+function fullHoldMass(catalog, params, baseline) {
   const slots = params.cargo.base_slots;
   const tier = params.cargo.compactor_tier;
+  const alts = catalog.debris.map((d) => d.altitude_m);
+  // REFUSE A LEGACY CATALOG RATHER THAN GUESSING AT IT. A catalog written against the old
+  // three-band contract has no altitudes, and every altitude arrives undefined. An earlier
+  // version of this function let that through: the envelope came out NaN, the span was not
+  // greater than zero, the fraction fell back to 0, every piece read as 'bottom', and the
+  // shipping-slice filter stopped excluding anything. It returned 2,277.7 kg where the
+  // truth was 1,397.8 — a plausible number, silently 63% wrong, feeding the hold mass into
+  // every descent the sweep flies. Loud is the only safe behaviour here.
+  const missing = alts.filter((a) => !Number.isFinite(a)).length;
+  if (missing) {
+    throw new Error(
+      `debris catalog has ${missing} of ${alts.length} pieces without a finite altitude_m. ` +
+      `This is the pre-one-band contract, where pieces carried a band name instead. ` +
+      `Re-record the crew, or map band names to altitudes before calling this.`
+    );
+  }
+  const envelope = baseline && baseline.bands && baseline.bands[0]
+    ? baseline.bands[0]
+    : { altitude_min_m: Math.min(...alts), altitude_max_m: Math.max(...alts) };
+  const span = envelope.altitude_max_m - envelope.altitude_min_m;
+  if (!(span > 0)) throw new Error('the band has no altitude span, so no piece can be placed in it');
+  const thirdOf = (alt) => {
+    const f = (alt - envelope.altitude_min_m) / span;
+    return f < 1 / 3 ? 'bottom' : f < 2 / 3 ? 'middle' : 'top';
+  };
   let wMass = 0, wSlots = 0;
   for (const d of catalog.debris) {
     const cls = catalog.size_classes[d.size_class];
     if (!cls.hand_tetherable) continue;
-    if (!SLICE_BANDS.includes(d.band)) continue;
+    if (!SLICE_SAMPLES.includes(thirdOf(d.altitude_m))) continue;
     // Fragile pieces never crush; everything else crushes at or below the compactor tier.
     const crushable = !d.fragile && (tier >= 1);
     const cost = crushable ? cls.slots_crushed : cls.slots_uncrushed;
@@ -199,7 +264,11 @@ function flySkimSeries(world, cfg, startAlt, params, cargoMass, skimAlt, entry, 
 // reads 159.9 on the bar at both 0.87x and 0.60x.
 function skimStudy(world, cfg, startAlt, params, band, cargoMass, opts = {}) {
   const altSamples = Math.max(2, opts.altSamples || SKIM_ALT_SAMPLES);
-  const entryDepths = [0, 0.25, 0.5].map((f) => f * world.atmTop);
+  // Entry depths are capped at the commit floor for the same reason descentScan is: a study
+  // that lets the entry float above the floor is measuring a manoeuvre the player cannot fly.
+  const floor = params.reentry && params.reentry.commit_floor_m;
+  const cap = Number.isFinite(floor) && floor > 0 ? Math.min(floor, world.atmTop) : world.atmTop;
+  const entryDepths = [0, 0.25, 0.5].map((f) => f * cap);
   const byDepth = [];
 
   for (const entry of entryDepths) {
@@ -311,34 +380,65 @@ function parachuteCheck(world, cfg, params, hold, descents) {
 
 function verificationSweep(baseline, params, catalog) {
   const { world, cfg, inferred } = sim.buildConfig(baseline, params);
-  cfg.heatScale = sim.calibrateHeatScale(world, cfg, bandAlt(baseline, 'suborbital'));
+  cfg.heatScale = sim.calibrateHeatScale(world, cfg, sampleAlt(baseline, 'bottom'));
 
-  const hold = fullHoldMass(catalog, params);
+  const hold = fullHoldMass(catalog, params, baseline);
+  // THE ENDGAME HAUL IS A LOAD, and it was missing for the whole life of this crew. Loads
+  // ran empty / half / full hold, so the heaviest object in the game — the win condition,
+  // which roughly doubles a fully upgraded ship on its own — was never flown. That is why
+  // "the satellite cannot come home at any pass count" took a hand-written probe to find.
+  // The rule `heavy_descent_requires_multi_pass` is about exactly this piece, so the audit
+  // cannot judge it unless the sweep flies it.
+  const heaviest = catalog.debris.reduce((a, d) => (d.mass_kg > a.mass_kg ? d : a));
   const loads = [
     { name: 'empty', cargoMass: 0 },
     { name: 'half hold', cargoMass: hold.fullHold / 2 },
     { name: 'full hold', cargoMass: hold.fullHold },
+    { name: 'endgame haul', cargoMass: heaviest.mass_kg, piece: heaviest.id },
   ];
 
   // -- ascent: can the ship reach each band, and with what margin
+  // BOTH ROUTES UP. GDD §1 offers "a suborbital arc or orbit" and both are legal play, so
+  // both are flown and reported. Only the circularised one used to exist, which is why every
+  // run failed reachability: a ship that could throw a perfectly good arc to the junk read as
+  // unable to get there, because it could not afford a burn the arc never pays.
+  //
+  // The arc is judged on its EVA window — seconds at or above the target — because an apex
+  // that clears the altitude for two seconds is not a place you can salvage from.
+  //
+  // The climb's own peak heat is reported too. It was accumulated all along and nobody looked;
+  // with the unstaged penalty applied to the ascent the base ship peaked at 1.4x the heat
+  // capacity, i.e. it burned up on the way to its first pickup and still passed reachability.
   const ascents = [];
-  for (const band of BANDS) {
-    const alt = bandAlt(baseline, band);
-    const r = sim.simulateAscent(world, { ...cfg, cargoMass: 0 }, alt);
+  const bandFloor = baseline.bands[0].altitude_min_m;
+  for (const band of SAMPLES) {
+    const alt = sampleAlt(baseline, band);
+    const orb = sim.simulateAscent(world, { ...cfg, cargoMass: 0 }, alt);
+    const arc = sim.simulateAscent(world, { ...cfg, cargoMass: 0 }, alt * 1.15,
+      { circularise: false, hangAltitude: alt });
     ascents.push({
       band,
       altitude_m: alt,
-      reached: !!r.reached,
-      why: r.why || null,
-      fuel_remaining_kg: Number((r.fuelRemaining || 0).toFixed(2)),
-      fuel_margin_pct: Number((((r.fuelRemaining || 0) / cfg.fuel) * 100).toFixed(1)),
+      // Reaching the altitude by EITHER route counts as reaching it.
+      reached: !!(orb.reached || arc.reached),
+      route: orb.reached ? 'orbit' : (arc.reached ? 'arc' : null),
+      orbit_reached: !!orb.reached,
+      arc_reached: !!arc.reached,
+      why: orb.reached ? null : (orb.why || null),
+      arc_apex_m: Number((arc.apoapsisAlt || 0).toFixed(0)),
+      arc_eva_window_s: Number((arc.timeAbove || 0).toFixed(1)),
+      arc_fuel_margin_pct: Number((((arc.fuelRemaining || 0) / cfg.fuel) * 100).toFixed(1)),
+      climb_peak_heat: Number((arc.peakHeat || orb.peakHeat || 0).toFixed(1)),
+      climb_survivable: (arc.peakHeat || orb.peakHeat || 0) < params.reentry.heat_capacity,
+      fuel_remaining_kg: Number((orb.fuelRemaining || 0).toFixed(2)),
+      fuel_margin_pct: Number((((orb.fuelRemaining || 0) / cfg.fuel) * 100).toFixed(1)),
     });
   }
 
   // -- descent: every band x load, scanned across braking depths
   const descents = [];
-  for (const band of BANDS) {
-    const alt = bandAlt(baseline, band);
+  for (const band of SAMPLES) {
+    const alt = sampleAlt(baseline, band);
     for (const load of loads) {
       const c = { ...cfg, cargoMass: load.cargoMass };
       const scan = sim.descentScan(world, c, alt, params, band, 200);
@@ -373,15 +473,15 @@ function verificationSweep(baseline, params, catalog) {
 
   // -- skims: does bleeding speed high up cool the committed entry, and where does it stop
   const skims = {};
-  for (const band of BANDS) {
-    const st = skimStudy(world, cfg, bandAlt(baseline, band), params, band, 0);
+  for (const band of SAMPLES) {
+    const st = skimStudy(world, cfg, sampleAlt(baseline, band), params, band, 0);
     if (st) skims[band] = st;
   }
 
   // -- the unstaged braking pass the GDD's descent depends on
   const unstaged = [];
-  for (const band of SLICE_BANDS) {
-    const alt = bandAlt(baseline, band);
+  for (const band of SLICE_SAMPLES) {
+    const alt = sampleAlt(baseline, band);
     // A deliberately shallow braking pass, flown unstaged as §2.3.1 describes.
     const r = sim.simulateDescent(world, { ...cfg, cargoMass: 0 }, alt, world.atmTop * 0.72, 3);
     const peak = r.passes.length ? r.passes[0].peakHeat : null;
@@ -392,11 +492,63 @@ function verificationSweep(baseline, params, catalog) {
     });
   }
 
+  // COMMITTED DESCENTS — the manoeuvre the design actually rests on, and the one the audit
+  // could not see. descentScan flies a single periapsis for the whole descent, so it cannot
+  // express 'skim high, then commit below the commit floor' at all; a rule about that
+  // manoeuvre judged on its output failed as unsatisfiable while the manoeuvre worked — the
+  // endgame haul plunges at 222.2 and comes home on one skim at 134.9.
+  //
+  // Here the two depths are separate: the entry is pinned at the floor (the shallowest the
+  // rule allows, and therefore the coolest legal commit) and the skim altitude is searched
+  // above it. A descent only counts if it flew all its skims AND a committed entry — a skim
+  // shallow enough to land on its own never uses the entry depth, so it evades the floor and
+  // is the very plunge the floor exists to forbid.
+  const committed = [];
+  const floorM = (params.reentry && params.reentry.commit_floor_m) || 0;
+  for (const band of SAMPLES) {
+    const alt = sampleAlt(baseline, band);
+    for (const load of loads) {
+      const row = { band, load: load.name, cargo_kg: Number(load.cargoMass.toFixed(1)),
+                    commit_floor_m: floorM, by_skims: [] };
+      for (const k of [0, 1, 2, 3]) {
+        let best = Infinity, bestAlt = null, bestPasses = null, bestTd = null;
+        const alts = k === 0 ? [world.atmTop * 0.5]
+          : Array.from({ length: COMMIT_SKIM_SAMPLES }, (_, j) =>
+              world.atmTop * (0.25 + 0.74 * (j / (COMMIT_SKIM_SAMPLES - 1))));
+        for (const sa of alts) {
+          if (k > 0 && sa <= floorM) continue;
+          let r;
+          try {
+            r = simDescent(world, { ...cfg, cargoMass: load.cargoMass }, alt, sa, 0,
+              { skims: k, entryPeriapsis: floorM });
+          } catch (e) { continue; }
+          if (!r.landed || r.passes.length < k + 1) continue;
+          const p = Math.max(...r.passes.map((x) => x.peakHeat));
+          if (p < best) { best = p; bestAlt = sa; bestPasses = r.passes.length; bestTd = r.touchdownSpeed; }
+        }
+        row.by_skims.push(Number.isFinite(best)
+          ? { skims: k, passes: bestPasses, peak_heat: Number(best.toFixed(1)),
+              skim_altitude_m: Number(bestAlt.toFixed(0)),
+              touchdown_ms: Number(bestTd.toFixed(2)),
+              survives: best < params.reentry.heat_capacity }
+          : { skims: k, passes: null, peak_heat: null, why: 'no legal descent at this skim count' });
+      }
+      const plunge = row.by_skims[0];
+      const skimmed = row.by_skims.slice(1).filter((x) => x.peak_heat !== null);
+      row.plunge_peak_heat = plunge.peak_heat;
+      row.best_skimmed_peak_heat = skimmed.length ? Math.min(...skimmed.map((x) => x.peak_heat)) : null;
+      row.must_skim = plunge.peak_heat !== null && plunge.peak_heat >= params.reentry.heat_capacity;
+      row.skim_saves_it = row.best_skimmed_peak_heat !== null &&
+        row.best_skimmed_peak_heat < params.reentry.heat_capacity;
+      committed.push(row);
+    }
+  }
+
   return {
     inferred,
     heat_scale_calibration:
       'Heat is reported on the 0-100 bar. The scale is fixed once so that an empty ship ' +
-      'making a single-pass descent from the suborbital band peaks at 100, which is the ' +
+      'making a single-pass descent from the bottom sample altitude peaks at 100, which is the ' +
       "crew's own normalisation. Every other figure is measured relative to that.",
     ballistic_coefficient: {
       staged_kg_m2: Number((cfg.dryMass / (cfg.cdShield * cfg.area)).toFixed(1)),
@@ -413,6 +565,7 @@ function verificationSweep(baseline, params, catalog) {
     parachute: parachuteCheck(world, cfg, params, hold, descents),
     ascents,
     descents,
+    committed_descents: committed,
     skims,
     unstaged_braking: unstaged,
   };
@@ -426,28 +579,40 @@ function verificationSweep(baseline, params, catalog) {
 function scoreWorld(baseline, params, catalog, opts = {}) {
   const skimAltSamples = opts.skimAltSamples || SKIM_ALT_SAMPLES_GRID;
   const { world, cfg } = sim.buildConfig(baseline, params);
-  cfg.heatScale = sim.calibrateHeatScale(world, cfg, bandAlt(baseline, 'suborbital'));
+  cfg.heatScale = sim.calibrateHeatScale(world, cfg, sampleAlt(baseline, 'bottom'));
   const hold = fullHoldMass(catalog, params);
 
   const targets = {};
 
   // 1. Every shipping-slice band is reachable, with margin but not a silly amount.
   let allReached = true, minMargin = 1, maxMargin = 0;
-  for (const band of SLICE_BANDS) {
-    const r = sim.simulateAscent(world, { ...cfg, cargoMass: 0 }, bandAlt(baseline, band));
+  for (const band of SLICE_SAMPLES) {
+    const r = sim.simulateAscent(world, { ...cfg, cargoMass: 0 }, sampleAlt(baseline, band));
     if (!r.reached) { allReached = false; break; }
     const m = r.fuelRemaining / cfg.fuel;
     minMargin = Math.min(minMargin, m);
     maxMargin = Math.max(maxMargin, m);
   }
   targets.bands_reachable = allReached && minMargin > 0.08;
+
+  // 1b. The launch survives itself. The climb heats the ship on the way up as surely as the
+  //     return heats it on the way down, and nothing used to read it — a config whose first
+  //     flight burned up passed reachability without comment.
+  const climbs = [];
+  for (const band of SLICE_SAMPLES) {
+    const a = sim.simulateAscent(world, { ...cfg, cargoMass: 0 }, sampleAlt(baseline, band) * 1.15,
+      { circularise: false, hangAltitude: sampleAlt(baseline, band) });
+    climbs.push(a.peakHeat || 0);
+  }
+  const hottestClimb = climbs.length ? Math.max(...climbs) : 0;
+  targets.launch_survives_itself = hottestClimb > 0 && hottestClimb < params.reentry.heat_capacity;
   targets.fuel_margin_sane = allReached && minMargin > 0.08 && maxMargin < 0.6;
 
   // 2 & 3. Skimming: does bleeding speed high up actually cool the committed entry, and does
   //        the benefit saturate? Both are properties of the world, and both have to hold for
   //        the design's descent to be a decision rather than a formality. Measured from the
   //        high band, where skims are supposed to matter most.
-  const skimStudyHigh = skimStudy(world, cfg, bandAlt(baseline, 'high'), params, 'high', 0,
+  const skimStudyHigh = skimStudy(world, cfg, sampleAlt(baseline, 'top'), params, 'top', 0,
     { altSamples: skimAltSamples });
   const mults = skimStudyHigh ? skimStudyHigh.skim_heat_multiplier_measured : [];
   // A skim is worth flying if two of them cut the entry's peak by at least 15%.
@@ -458,13 +623,13 @@ function scoreWorld(baseline, params, catalog, opts = {}) {
 
   // 4. An unstaged shallow braking pass is survivable — the GDD's descent begins with them.
   const un = sim.simulateDescent(world, { ...cfg, cargoMass: 0 },
-    bandAlt(baseline, 'suborbital'), world.atmTop * 0.72, 3);
+    sampleAlt(baseline, 'bottom'), world.atmTop * 0.72, 3);
   const unPeak = un.passes.length ? un.passes[0].peakHeat : Infinity;
   targets.unstaged_pass_survivable = unPeak < params.reentry.heat_capacity;
 
   // 5. A full hold lands soft, but only just — the margin is what the Parachute upgrade buys.
   const fullScan = sim.descentScan(world, { ...cfg, cargoMass: hold.fullHold },
-    bandAlt(baseline, 'low'), params, 'low', SCAN_SAMPLES);
+    sampleAlt(baseline, 'middle'), params, 'middle', SCAN_SAMPLES);
   const fullBest = fullScan.length
     ? fullScan.reduce((a, x) => (x.totalAblation < a.totalAblation ? x : a)) : null;
   targets.full_hold_lands_soft = !!fullBest
@@ -473,7 +638,7 @@ function scoreWorld(baseline, params, catalog, opts = {}) {
 
   // 6. Greed costs something: a full hold is measurably harder to bring home than an empty one.
   const emptyLow = sim.descentScan(world, { ...cfg, cargoMass: 0 },
-    bandAlt(baseline, 'low'), params, 'low', SCAN_SAMPLES);
+    sampleAlt(baseline, 'middle'), params, 'middle', SCAN_SAMPLES);
   const emptyBest = emptyLow.length
     ? emptyLow.reduce((a, x) => (x.totalAblation < a.totalAblation ? x : a)) : null;
   targets.greed_costs_something = !!(fullBest && emptyBest)
@@ -481,10 +646,10 @@ function scoreWorld(baseline, params, catalog, opts = {}) {
 
   // 7. The return leg gets harder with altitude.
   const highScan = sim.descentScan(world, { ...cfg, cargoMass: 0 },
-    bandAlt(baseline, 'high'), params, 'high', SCAN_SAMPLES);
+    sampleAlt(baseline, 'top'), params, 'top', SCAN_SAMPLES);
   const highBest = highScan.length
     ? highScan.reduce((a, x) => (x.totalAblation < a.totalAblation ? x : a)) : null;
-  targets.difficulty_rises_with_band = !!(highBest && emptyBest)
+  targets.difficulty_rises_with_altitude = !!(highBest && emptyBest)
     && highBest.totalAblation > emptyBest.totalAblation * 1.1;
 
   const met = Object.values(targets).filter(Boolean).length;
@@ -496,6 +661,8 @@ function scoreWorld(baseline, params, catalog, opts = {}) {
       skim_heat_multipliers: mults,
       unstaged_peak_heat: Number.isFinite(unPeak) ? Number(unPeak.toFixed(0)) : null,
       full_hold_touchdown_ms: fullBest ? Number(fullBest.touchdownSpeed.toFixed(2)) : null,
+      hottest_climb_peak_heat: Number(hottestClimb.toFixed(1)),
+      commit_floor_m: (params.reentry && params.reentry.commit_floor_m) || null,
       ballistic_coefficient_staged: Number((cfg.dryMass / (cfg.cdShield * cfg.area)).toFixed(1)),
     },
   };
@@ -570,13 +737,21 @@ function scoreCell(baseline, params, catalog, cell) {
   b.planet.atmosphere_top_m = atmTop;
   b.planet.scale_height_m = atmTop * 0.1;
   b.reentry.reference_area_m2 = area;
-  const bandAlts = [atmTop * 1.6, atmTop * 2.6, atmTop * 4.2];
-  b.bands.forEach((band, i) => {
-    band.altitude_min_m = bandAlts[i] * 0.9;
-    band.altitude_max_m = bandAlts[i] * 1.1;
-    const r = R + bandAlts[i];
-    band.orbital_speed_ms = Math.sqrt(mu / r);
-    band.period_s = (2 * Math.PI * r) / band.orbital_speed_ms;
+  // STILL HARDCODED, AND STILL THE OUTSTANDING ONE. These multiples of the atmosphere's
+  // depth place the three sample altitudes, and the spread between them is what decides
+  // whether multi-pass aerobraking can ever be optimal — measured at roughly apoapsis 9.5x
+  // periapsis before it wins unaided. Every false finding this crew has produced came from a
+  // constant the grid never varied (the tank, the engine, the skim altitude); this is the
+  // last one, and it is not swept. Read any multi-pass result from the grid with that in mind.
+  const sampleAlts = [atmTop * 1.6, atmTop * 2.6, atmTop * 4.2];
+  const band = b.bands[0];
+  band.altitude_min_m = sampleAlts[0] * 0.9;
+  band.altitude_max_m = sampleAlts[2] * 1.1;
+  band.samples.forEach((s, i) => {
+    s.altitude_m = sampleAlts[i];
+    const r = R + sampleAlts[i];
+    s.orbital_speed_ms = Math.sqrt(mu / r);
+    s.period_s = (2 * Math.PI * r) / s.orbital_speed_ms;
   });
 
   const p = JSON.parse(JSON.stringify(params));
@@ -695,6 +870,7 @@ async function explorationSweep(baseline, params, catalog, opts = {}) {
 
 module.exports = {
   verificationSweep, explorationSweep, scoreWorld, fullHoldMass, GRID,
+  sampleAlt, sampleFor, valueMultiplier, SAMPLES, SLICE_SAMPLES,
   enumerateCells, scoreCell, sweepIndices, skimStudy, parachuteCheck,
   SKIM_ALT_SAMPLES, SKIM_ALT_SAMPLES_GRID,
 };

@@ -15,9 +15,9 @@ const assert = require('node:assert');
 const sim = require('../lib/sim');
 const { fullHoldMass } = require('../lib/sweep');
 
-const { BASELINE, PARAMS, bandAlt } = require('./fixtures/world');
+const { BASELINE, PARAMS, sampleAlt } = require('./fixtures/world');
 
-const suborbitalAlt = bandAlt('suborbital');   // mid-band, the way lib/sweep.js picks it
+const suborbitalAlt = sampleAlt('bottom');   // mid-band, the way lib/sweep.js picks it
 
 // ---------------------------------------------------------------- the ablation rule
 
@@ -76,18 +76,21 @@ test('a full hold counts only what the slice can actually carry', () => {
       small: { slots_crushed: 1, slots_uncrushed: 2, hand_tetherable: true },
       oversized: { slots_crushed: 6, slots_uncrushed: 12, hand_tetherable: false },
     },
+    // One band spanning 0..300,000 m, so the shipping slice is everything below 200,000 m
+    // — the bottom two thirds. Pieces carry an altitude, not a band name.
     debris: [
       // crushable: 1 slot each, 100 kg, weight 3  -> 300 kg over 3 slots
-      { band: 'suborbital', size_class: 'small', fragile: false, mass_kg: 100, spawn_weight: 3 },
+      { altitude_m: 30000, size_class: 'small', fragile: false, mass_kg: 100, spawn_weight: 3 },
       // fragile never crushes: 2 slots, 200 kg, weight 1 -> 200 kg over 2 slots
-      { band: 'low', size_class: 'small', fragile: true, mass_kg: 200, spawn_weight: 1 },
-      // excluded: outside the shipping slice
-      { band: 'high', size_class: 'small', fragile: false, mass_kg: 9999, spawn_weight: 5 },
+      { altitude_m: 150000, size_class: 'small', fragile: true, mass_kg: 200, spawn_weight: 1 },
+      // excluded: in the top third, above the shipping slice
+      { altitude_m: 280000, size_class: 'small', fragile: false, mass_kg: 9999, spawn_weight: 5 },
       // excluded: the slice has no crane, so oversized junk cannot be taken
-      { band: 'low', size_class: 'oversized', fragile: false, mass_kg: 9999, spawn_weight: 5 },
+      { altitude_m: 150000, size_class: 'oversized', fragile: false, mass_kg: 9999, spawn_weight: 5 },
     ],
   };
-  const hold = fullHoldMass(catalog, { cargo: { base_slots: 6, compactor_tier: 1 } });
+  const baseline = { bands: [{ altitude_min_m: 0, altitude_max_m: 300000 }] };
+  const hold = fullHoldMass(catalog, { cargo: { base_slots: 6, compactor_tier: 1 } }, baseline);
   assert.equal(hold.perSlot, 100);   // 500 kg over 5 slot-weights
   assert.equal(hold.fullHold, 600);  // times 6 base slots
 });
@@ -193,4 +196,131 @@ test('descentScan finds every reachable pass count instead of bisecting past the
     const same = scan.filter((s) => s.passes === row.passes);
     assert.equal(row.totalAblation, Math.min(...same.map((s) => s.totalAblation)));
   }
+});
+
+// ---------------------------------------------------------------- the two routes up
+
+test('the ballistic arc reaches altitude the circularised route cannot afford', () => {
+  // GDD §1 offers "a suborbital arc or orbit" and both are legal play. simulateAscent used to
+  // circularise unconditionally, so a ship that could throw a perfectly good arc reported
+  // `reached: false` — which is what shipping_slice_bands_reachable failed on for every run
+  // this crew has ever produced.
+  const { world, cfg } = sim.buildConfig(BASELINE, PARAMS);
+  const floor = BASELINE.bands[0].altitude_min_m;
+  const arc = sim.simulateAscent(world, cfg, floor * 1.15,
+    { circularise: false, hangAltitude: floor });
+  assert.equal(arc.reached, true, `the arc should reach the floor: ${arc.why}`);
+  assert.equal(arc.mode, 'arc');
+  assert.ok(arc.apoapsisAlt > floor, 'the apex must clear the altitude being reached for');
+  assert.ok(arc.timeAbove > 0, 'an arc with no time above the floor is not an EVA window');
+  assert.ok(arc.fuelRemaining > 0, 'the arc must leave fuel — it never paid to circularise');
+});
+
+test('the arc is cheaper than the orbit, which is the whole reason to offer both', () => {
+  const { world, cfg } = sim.buildConfig(BASELINE, PARAMS);
+  const floor = BASELINE.bands[0].altitude_min_m;
+  const arc = sim.simulateAscent(world, cfg, floor * 1.15,
+    { circularise: false, hangAltitude: floor });
+  const orbit = sim.simulateAscent(world, cfg, floor);
+  if (orbit.reached) {
+    assert.ok(arc.fuelRemaining > orbit.fuelRemaining,
+      `the arc should be the cheaper route: arc left ${arc.fuelRemaining.toFixed(0)} kg, ` +
+      `orbit left ${orbit.fuelRemaining.toFixed(0)} kg`);
+  }
+});
+
+test('circularising is still the default, so nothing silently changed route', () => {
+  // The arc is opt-in. A caller that does not ask for it must get exactly the old behaviour.
+  const { world, cfg } = sim.buildConfig(BASELINE, PARAMS);
+  const floor = BASELINE.bands[0].altitude_min_m;
+  const a = sim.simulateAscent(world, cfg, floor);
+  const b = sim.simulateAscent(world, cfg, floor, {});
+  assert.deepEqual(a, b);
+  if (a.reached) assert.equal(a.mode, 'orbit');
+});
+
+test('the climb reports its own heat, because a ship can burn up on the way up', () => {
+  // step() has always accumulated the bar during ascent — the unstaged 3x multiplier
+  // included, since the ship has not staged — and simulateAscent never looked at it. On the
+  // shipped numbers the climb peaks at 142 against a capacity of 100, so "reachable" was
+  // being reported for a launch that would not survive itself. Reporting it is not the same
+  // as enforcing it; that is a design decision (see gdd-change-proposal.md §13). This test
+  // only pins that the number reaches the caller.
+  const { world, cfg } = sim.buildConfig(BASELINE, PARAMS);
+  const floor = BASELINE.bands[0].altitude_min_m;
+  const arc = sim.simulateAscent(world, cfg, floor * 1.15,
+    { circularise: false, hangAltitude: floor });
+  assert.ok(Number.isFinite(arc.peakHeat), 'the arc must report the heat it took getting up');
+  assert.ok(arc.peakHeat > 0, 'a climb through real air cannot be perfectly cool');
+});
+
+test('the climb does not pay the unstaged heat penalty, but a braking pass still does', () => {
+  // §2.2 puts the shield behind the thruster and tank, so an unstaged ship taking a braking
+  // pass has only hull between it and the airflow and pays the 3x. A climbing rocket is
+  // unstaged too and used to pay the same, which had the base ship peaking at 142.5 against a
+  // capacity of 100 — it burned up before reaching the junk, and nothing looked.
+  //
+  // The exemption is a PHASE rule, not a change to unstaged_heat_multiplier. Turning that
+  // param down would have taken the penalty off braking passes as well, which is the one
+  // place the design wants it. This pins both halves.
+  const { world, cfg } = sim.buildConfig(BASELINE, PARAMS);
+  const mid = sampleAlt('bottom');
+  // The bar is meaningless uncalibrated — raw heat runs to 1e8 — so anchor it the way the
+  // sweep does before comparing anything to a capacity.
+  cfg.heatScale = sim.calibrateHeatScale(world, cfg, mid);
+  const floor = BASELINE.bands[0].altitude_min_m;
+
+  // The invariant is that the ascent IGNORES the multiplier, and that is world-independent.
+  // "The launch survives" is not: it is a property of the shipped planet's numbers (47.5 on
+  // a 100 bar), and on this synthetic fixture world the exempt climb still reads 157. Testing
+  // survival here would be pinning the fixture's planet, not the rule.
+  const opts = { circularise: false, hangAltitude: floor };
+  const arcHot = sim.simulateAscent(world, cfg, floor * 1.15, opts);
+  const arcCool = sim.simulateAscent(world, { ...cfg, unstagedHeatMultiplier: 1 },
+    floor * 1.15, opts);
+  assert.equal(arcHot.peakHeat, arcCool.peakHeat,
+    'the climb must not feel the unstaged penalty at all, whatever it is set to');
+
+  // The braking half, isolated properly. Comparing an unstaged descent against a staged one
+  // does NOT work: staging changes the drag coefficient too, so the two fly different
+  // trajectories and take a different number of passes — the peaks are not comparable and
+  // the ratio comes out below 1. Vary only the multiplier instead. Drag is untouched by it,
+  // so the trajectory is identical and the difference is purely the penalty.
+  const hot = sim.simulateDescent(world, { ...cfg, cargoMass: 0 }, mid, world.atmTop * 0.72, 3);
+  const cool = sim.simulateDescent(world,
+    { ...cfg, cargoMass: 0, unstagedHeatMultiplier: 1 }, mid, world.atmTop * 0.72, 3);
+  assert.equal(hot.passes.length, cool.passes.length,
+    'the multiplier must not change the trajectory, only the heat');
+  const ratio = hot.passes[0].peakHeat / cool.passes[0].peakHeat;
+  assert.ok(ratio > 1.5,
+    `an unstaged braking pass must still pay the penalty, got ${ratio.toFixed(2)}x`);
+});
+
+test('the commit floor does NOT bound the descent scan, and this cost a live run', () => {
+  // An earlier version of this test asserted the opposite, and the code obeyed it. That was
+  // the bug.
+  //
+  // descentScan flies ONE periapsis for the whole descent — a decay. That single periapsis is
+  // both where the ship brakes and where it comes down, and the commit floor constrains only
+  // the second. Capping the scan at the floor therefore forbids the shallow braking altitudes
+  // that are the only way this model reaches a second pass at all, so every cell came back
+  // `pass_counts_reachable [1]`. The audit read that as "no two-pass descent is reachable at
+  // any load or altitude", failed heavy_descent_requires_multi_pass as unsatisfiable by any
+  // numbers, and burned a 100-minute live run — while the real manoeuvre was working: the
+  // endgame haul plunged at 222.2 and came home on one skim at 134.9.
+  //
+  // The floor belongs where the entry is a separate variable: skimStudy, and the committed
+  // descents in verificationSweep.
+  const { world, cfg } = sim.buildConfig(BASELINE, PARAMS);
+  const alt = sampleAlt('top');
+  const floored = { ...PARAMS, reentry: { ...PARAMS.reentry, commit_floor_m: 8000 } };
+
+  const free = sim.descentScan(world, { ...cfg, cargoMass: 0 }, alt, PARAMS, 'top', 60);
+  const bounded = sim.descentScan(world, { ...cfg, cargoMass: 0 }, alt, floored, 'top', 60);
+
+  assert.ok(free.length && bounded.length, 'both scans must produce landings');
+  assert.deepEqual(bounded.map((r) => r.periapsisAlt), free.map((r) => r.periapsisAlt),
+    'a commit floor in the params must not change which depths this scan visits');
+  assert.ok(Math.max(...bounded.map((r) => r.periapsisAlt)) > 8000,
+    'the scan must still reach past the floor — those depths are braking, not committing');
 });

@@ -1,0 +1,42 @@
+{
+  "_comment": [
+    "THE PLANET IS DECIDED. This file is the decision, and the orchestrator enforces it.",
+    "",
+    "The Researcher used to invent a planet every run. That is why re-flying the exploration",
+    "grid against each revision round moved 73% of cells' scores and the twenty best cells had",
+    "zero overlap between round 0 and round 1 — every round reported 'best 7/8' and they were",
+    "different sevens. It also meant every measurement in docs/gdd-change-proposal.md was about",
+    "a planet the next run might not produce.",
+    "",
+    "These are the numbers every measurement in that document was taken against. The commit",
+    "floor, the heat capacity, the 97-second EVA window, the satellite's 268.8 plunge — all of",
+    "them are properties of THIS planet. Change a value here and every one of them is void.",
+    "",
+    "The Researcher still owns the reentry coefficients: drag, heating exponent, plasma onset,",
+    "reference area. It is told the planet as a constraint and the orchestrator overwrites the",
+    "planet and band blocks with these after it returns, so a Researcher that ignores the",
+    "constraint cannot silently move the ground under the rest of the crew.",
+    "",
+    "The sample orbital speeds and periods are derived from the locked radius and gravity:",
+    "  mu = g * R^2 = 9 * 200000^2 = 3.6e11",
+    "  v  = sqrt(mu / (R + h)),  T = 2*pi*(R + h) / v",
+    "They are recomputed by the orchestrator rather than trusted from this file."
+  ],
+  "planet": {
+    "radius_m": 200000,
+    "surface_gravity_ms2": 9,
+    "atmosphere_top_m": 43000,
+    "scale_height_m": 3100,
+    "sea_level_density_kgm3": 1.5
+  },
+  "band": {
+    "name": "orbit",
+    "altitude_min_m": 50000,
+    "altitude_max_m": 280000,
+    "sample_altitudes_m": {
+      "bottom": 65000,
+      "middle": 115000,
+      "top": 215000
+    }
+  }
+}

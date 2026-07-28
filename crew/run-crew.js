@@ -98,6 +98,50 @@ function writeJson(file, obj) {
   fs.writeFileSync(file, JSON.stringify(obj, null, 2) + '\n');
 }
 
+// The planet is a decision, not a hypothesis (see planet.lock.json). Whatever the
+// Researcher returned, the planet and band blocks are replaced with the locked ones and the
+// sample orbital speeds are recomputed from the locked radius and gravity — so they cannot
+// drift out of agreement with each other, which is a way this has gone wrong before.
+//
+// Returns the baseline with a note in `notes` saying it happened, because a silent
+// overwrite is how you end up debugging numbers nobody chose.
+function applyPlanetLock(baseline, lock) {
+  const b = JSON.parse(JSON.stringify(baseline));
+  const before = JSON.stringify(b.planet);
+  b.planet = JSON.parse(JSON.stringify(lock.planet));
+  const R = lock.planet.radius_m;
+  const mu = lock.planet.surface_gravity_ms2 * R * R;
+  const samples = ['bottom', 'middle', 'top'].map((name) => {
+    const alt = lock.band.sample_altitudes_m[name];
+    const r = R + alt;
+    const v = Math.sqrt(mu / r);
+    return {
+      name,
+      altitude_m: alt,
+      orbital_speed_ms: Number(v.toFixed(1)),
+      period_s: Number(((2 * Math.PI * r) / v).toFixed(1)),
+    };
+  });
+  b.bands = [{
+    name: lock.band.name,
+    altitude_min_m: lock.band.altitude_min_m,
+    altitude_max_m: lock.band.altitude_max_m,
+    samples,
+  }];
+  b.notes = b.notes || [];
+  if (before !== JSON.stringify(b.planet)) {
+    b.notes.push(
+      'The Researcher proposed a different planet and it was overwritten from ' +
+      'planet.lock.json. Proposed: ' + before
+    );
+  }
+  b.notes.push(
+    'Planet and band are locked by planet.lock.json; sample orbital speeds and periods were ' +
+    'recomputed from the locked radius and gravity rather than taken from the Researcher.'
+  );
+  return b;
+}
+
 function findGdd(explicit) {
   if (explicit) return path.resolve(explicit);
   // The short GDD is the document of record and is searched first. The long one is a
@@ -231,9 +275,19 @@ async function main() {
 
   // -- 1. Researcher ------------------------------------------------------------
   log('1/5  Researcher — scaling real orbital physics to the game planet');
-  const research = track(call('researcher', { 'GAME DESIGN DOCUMENT': gdd }, 'baseline'));
-  const baseline = research.object;
-  log(`     ok — ${baseline.bands.length} bands, ` +
+  const lock = readJson(path.join(ROOT, 'planet.lock.json'));
+  const research = track(call('researcher', {
+    'GAME DESIGN DOCUMENT': gdd,
+    'THE PLANET IS DECIDED — USE THESE EXACT VALUES':
+      JSON.stringify({ planet: lock.planet, band: lock.band }, null, 2) +
+      '\n\nThese are not a suggestion. The planet and the band are fixed design decisions and ' +
+      'every measurement the design rests on was taken against them. Emit them unchanged. ' +
+      'Your remaining job is the reentry block — drag coefficients, heating exponent, plasma ' +
+      'onset, reference area — plus the derivation and sources.',
+  }, 'baseline'));
+  const baseline = applyPlanetLock(research.object, lock);
+  log(`     ok — band ${baseline.bands[0].name} ` +
+      `${baseline.bands[0].altitude_min_m.toLocaleString()}-${baseline.bands[0].altitude_max_m.toLocaleString()} m, ` +
       `planet radius ${baseline.planet.radius_m.toLocaleString()} m, ` +
       `${baseline.derivation.length} derivation steps`);
 
@@ -412,7 +466,7 @@ async function main() {
   writeJson(path.join(outDir, 'playtest', 'sweep_exploration.json'), sweeps.exploration);
 
   const configDir = path.join(outDir, 'config');
-  fs.writeFileSync(path.join(configDir, 'game_params.tres'), emitResource(params, catalog));
+  fs.writeFileSync(path.join(configDir, 'game_params.tres'), emitResource(params, catalog, baseline));
   fs.writeFileSync(path.join(configDir, 'game_params.gd'), emitScript());
   fs.writeFileSync(path.join(outDir, 'audit', 'audit_report.md'), renderAudit(audit));
 

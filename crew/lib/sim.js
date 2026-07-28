@@ -119,7 +119,21 @@ function step(world, s, dt, cfg) {
 
   // Heat is a bar that fills and bleeds off, exactly as GDD §2.3.1 describes it, rather
   // than a running total — which is why a shallow pass can be long and still stay cool.
-  const shielding = s.staged ? 1 : cfg.unstagedHeatMultiplier;
+  // The unstaged penalty is about ORIENTATION, not about the stage being attached. §2.2 puts
+  // the heat shield behind the thruster and tank, exposed only by staging — so an unstaged
+  // ship taking a braking pass has nothing but hull between it and the airflow, and pays 3x.
+  //
+  // A climbing rocket is unstaged too, and used to pay the same 3x. It should not: it is
+  // flying pointy end first, under thrust, in the configuration it was built for. With the
+  // penalty applied the base ship's launch peaked at 142.5 against a capacity of 100 — it
+  // burned up before it ever reached the junk, and nothing checked. Exempting the ascent
+  // brings it to 47.5, about half the bar: the player feels the mechanic on their first
+  // flight and learns to read it, and reentry stays the place it is dangerous.
+  //
+  // `s.ascending` is set only by simulateAscent, and for its whole duration including the
+  // unpowered coast to apoapsis — the ship is still nose-first up there. Descent never sets
+  // it, so every braking-pass number is unchanged.
+  const shielding = (s.staged || s.ascending) ? 1 : cfg.unstagedHeatMultiplier;
   const qdot = heatRate(world, h, speed, cfg.heatExponent) * cfg.heatScale * shielding;
   s.heat += (qdot - s.heat / cfg.heatDissipation) * dt;
   if (s.heat < 0) s.heat = 0;
@@ -154,11 +168,40 @@ const DT_VAC_REF = 0.05;
 // Integrated gravity turn: vertical off the pad, pitch over on a fixed program, burn until
 // apoapsis reaches the target, coast, then circularise. Fuel is measured, not assumed —
 // "can this ship even get there" is the first thing a sweep should answer.
-function simulateAscent(world, cfg, targetAlt) {
+//
+// TWO ROUTES UP, AND ONLY ONE OF THEM USED TO EXIST HERE. GDD §1 offers "a suborbital arc or
+// orbit" and both are legal play. This function circularised unconditionally and reported
+// `reached: false` when it could not afford to — so a ship perfectly able to throw a
+// ballistic arc up to the junk, hang there long enough to EVA, and fall back read as unable
+// to reach the band at all. That is what `shipping_slice_bands_reachable` has been failing
+// on: not the altitude, the circularisation burn, which the arc never pays.
+//
+// opts.circularise  false flies the arc: burn to apoapsis, coast, come back down. Default
+//                   true, which is the old behaviour exactly.
+// opts.hangAltitude the altitude that counts as "up among the junk". The result carries
+//                   `timeAbove`, the seconds spent at or above it — on an arc that is the
+//                   entire EVA window, and it is the number that decides whether the first
+//                   launch is a game or a formality. Defaults to 90% of the target.
+function simulateAscent(world, cfg, targetAlt, opts = {}) {
+  const circularise = opts.circularise !== false;
+  const hangAlt = opts.hangAltitude === undefined ? targetAlt * 0.9 : opts.hangAltitude;
+  let timeAbove = 0;
+  let apexAlt = 0;
+  // opts.traceEvery samples the climb every N seconds into `trace`. Off by default and free
+  // when off. It exists because "the ship overheats on the way up" is not answerable from a
+  // single peak — you have to see where the speed, the dynamic pressure and the bar each top
+  // out, and they do not top out together.
+  const traceEvery = opts.traceEvery || 0;
+  const trace = [];
+  let nextTrace = 0;
+  let maxQ = 0, maxQalt = 0, maxQspeed = 0, maxSpeed = 0, maxSpeedAlt = 0;
+  let peakHeatAlt = 0, peakHeatSpeed = 0, lastPeak = 0;
   const s = {
     x: 0, y: world.R, vx: 0, vy: 0,
     mass: cfg.dryMass + cfg.fuel, fuel: cfg.fuel,
     heat: 0, peakHeat: 0, heatLoad: 0, peakRate: 0, t: 0, chuteOpen: false,
+    // Marks the whole climb, powered and coasting, as nose-first flight. See step().
+    ascending: true,
   };
   const targetR = world.R + targetAlt;
   let burning = true;
@@ -193,10 +236,49 @@ function simulateAscent(world, cfg, targetAlt) {
     step(world, s, dt, cfg);
 
     const rr = Math.hypot(s.x, s.y);
-    if (rr <= world.R) return { reached: false, why: 'crashed on ascent', fuelRemaining: s.fuel };
+    const hh = rr - world.R;
+
+    // Where each quantity actually peaks. Sampled after the step so speed and altitude are
+    // the post-step state the heat term was integrated with.
+    {
+      const sp = Math.hypot(s.vx, s.vy);
+      const rho = world.rhoAt(hh);
+      const q = 0.5 * rho * sp * sp;
+      if (q > maxQ) { maxQ = q; maxQalt = hh; maxQspeed = sp; }
+      if (sp > maxSpeed) { maxSpeed = sp; maxSpeedAlt = hh; }
+      if (s.peakHeat > lastPeak) { lastPeak = s.peakHeat; peakHeatAlt = hh; peakHeatSpeed = sp; }
+      if (traceEvery && s.t >= nextTrace) {
+        trace.push({ t: s.t, alt: hh, speed: sp, rho, q, heat: s.heat, mass: s.mass, fuel: s.fuel });
+        nextTrace = s.t + traceEvery;
+      }
+    }
+    if (hh > apexAlt) apexAlt = hh;
+    if (hh >= hangAlt) timeAbove += dt;
+    if (rr <= world.R) {
+      // On an arc, coming back to the ground is the expected end of the flight, not a crash.
+      if (!circularise && apexAlt >= hangAlt) {
+        return { reached: true, mode: 'arc', apoapsisAlt: apexAlt, timeAbove,
+                 fuelRemaining: s.fuel, fuelUsed: cfg.fuel - s.fuel, ascentTime: s.t,
+                 peakHeat: s.peakHeat, maxQ_pa: maxQ, maxQ_alt_m: maxQalt, maxQ_speed_ms: maxQspeed,
+                 maxSpeed_ms: maxSpeed, maxSpeed_alt_m: maxSpeedAlt,
+                 peakHeat_alt_m: peakHeatAlt, peakHeat_speed_ms: peakHeatSpeed, trace };
+      }
+      return { reached: false, why: 'crashed on ascent', fuelRemaining: s.fuel, apoapsisAlt: apexAlt };
+    }
 
     const o = orbit(world, s.x, s.y, s.vx, s.vy);
-    if (!burning && o.bound && Math.abs(rr - o.apoapsis) < 1.5 && rr > world.R + world.atmTop) {
+
+    // The arc never circularises: it is finished once it has been up and come back down
+    // through the hang altitude, and what it is judged on is how long it spent above it.
+    if (!circularise && !burning && hh < hangAlt && apexAlt >= hangAlt && timeAbove > 0) {
+      return { reached: true, mode: 'arc', apoapsisAlt: apexAlt, timeAbove,
+               fuelRemaining: s.fuel, fuelUsed: cfg.fuel - s.fuel, ascentTime: s.t,
+               peakHeat: s.peakHeat, maxQ_pa: maxQ, maxQ_alt_m: maxQalt, maxQ_speed_ms: maxQspeed,
+               maxSpeed_ms: maxSpeed, maxSpeed_alt_m: maxSpeedAlt,
+               peakHeat_alt_m: peakHeatAlt, peakHeat_speed_ms: peakHeatSpeed, trace };
+    }
+
+    if (circularise && !burning && o.bound && Math.abs(rr - o.apoapsis) < 1.5 && rr > world.R + world.atmTop) {
       // At apoapsis above the atmosphere: circularise with an impulsive prograde burn and
       // charge the fuel it would have cost.
       const vCirc = Math.sqrt(world.mu / rr);
@@ -210,14 +292,23 @@ function simulateAscent(world, cfg, targetAlt) {
       s.fuel -= fuelNeeded;
       return {
         reached: true,
+        mode: 'orbit',
         apoapsisAlt: rr - world.R,
+        timeAbove,
         fuelRemaining: s.fuel,
         fuelUsed: cfg.fuel - s.fuel,
         ascentTime: s.t,
+        // The climb heats the ship too, and nothing used to look. Reported so a config that
+        // burns through on the way UP cannot pass as reachable.
+        peakHeat: s.peakHeat,
+        maxQ_pa: maxQ, maxQ_alt_m: maxQalt, maxQ_speed_ms: maxQspeed,
+        maxSpeed_ms: maxSpeed, maxSpeed_alt_m: maxSpeedAlt,
+        peakHeat_alt_m: peakHeatAlt, peakHeat_speed_ms: peakHeatSpeed,
+        trace,
       };
     }
     if (!burning && !o.bound) return { reached: false, why: 'escaped', fuelRemaining: s.fuel };
-    if (!burning && s.fuel <= 0 && o.apoapsis < targetR) {
+    if (circularise && !burning && s.fuel <= 0 && o.apoapsis < targetR) {
       return { reached: false, why: 'out of fuel below target altitude', fuelRemaining: 0,
                apoapsisAlt: o.apoapsis - world.R };
     }
@@ -266,6 +357,14 @@ function simulateDescent(world, cfg, startAlt, periapsisAlt, stageAfter = 0, opt
     staged: stageAfter === 0,
   };
 
+  // opts.traceEvery samples the flight path every N seconds into `trace` as {x, y, h, speed,
+  // heat, staged}. Off by default and free when off. The numbers say a skim cuts the entry
+  // peak by half; the trail is what shows you WHY — the shallow graze that clips the top of
+  // the air, exits, and comes back round on a smaller ellipse.
+  const traceEvery = opts.traceEvery || 0;
+  const trace = [];
+  let nextTrace = 0;
+
   const passes = [];
   let inAtm = false;
   let passPeak = 0;
@@ -292,6 +391,10 @@ function simulateDescent(world, cfg, startAlt, periapsisAlt, stageAfter = 0, opt
 
     const { h, speed } = step(world, s, dt, cfg);
     if (speed > maxSpeed) maxSpeed = speed;
+    if (traceEvery && s.t >= nextTrace) {
+      trace.push({ x: s.x, y: s.y, h, speed, heat: s.heat, staged: !!s.staged });
+      nextTrace = s.t + traceEvery;
+    }
 
     const inside = h < world.atmTop;
     if (inside && !inAtm) { inAtm = true; passPeak = 0; passLoadStart = s.heatLoad; passRate = 0; s.peakRate = 0; }
@@ -308,6 +411,7 @@ function simulateDescent(world, cfg, startAlt, periapsisAlt, stageAfter = 0, opt
       if (inAtm) passes.push({ peakHeat: passPeak, heatLoad: s.heatLoad - passLoadStart, peakRate: passRate, staged: s.staged });
       return {
         landed: true,
+        trace,
         passes,
         touchdownSpeed: Math.abs(vr),
         touchdownTotalSpeed: Math.hypot(s.vx, s.vy),
@@ -360,14 +464,14 @@ function simulateDescent(world, cfg, startAlt, periapsisAlt, stageAfter = 0, opt
 // ---------------------------------------------------------------- calibration
 
 // Heat is reported on the 0-100 bar the GDD uses, and the crew's own convention is that a
-// single-pass descent from the suborbital band with an empty hold reads about 100. So the
+// single-pass descent from the bottom sample altitude with an empty hold reads about 100. So the
 // scale factor is measured once against exactly that case and then held fixed for every
 // other run — which makes every cross-band and cross-load comparison a genuine measurement
 // rather than a restatement of the normalisation.
-function calibrateHeatScale(world, baseCfg, suborbitalAlt) {
+function calibrateHeatScale(world, baseCfg, referenceAlt) {
   const cfg = { ...baseCfg, heatScale: 1, cargoMass: 0 };
   // A single pass means committing straight in: periapsis at the surface.
-  const probe = simulateDescent(world, cfg, suborbitalAlt, 0);
+  const probe = simulateDescent(world, cfg, referenceAlt, 0);
   const peak = probe.passes.length ? Math.max(...probe.passes.map((p) => p.peakHeat)) : 0;
   return peak > 0 ? 100 / peak : 1;
 }
@@ -454,10 +558,27 @@ function buildConfig(baseline, params, overrides = {}) {
 //
 // Bisecting for a target pass count was the obvious approach and it was wrong: pass count
 // is a step function of depth, so a bisection converges on a boundary and can skip whole
-// values entirely. It reported "2 passes is impossible from the suborbital band", which is
+// values entirely. It reported "2 passes is impossible from the bottom of the band", which is
 // not a physical fact — it is what happens when the only depths you sample land either side
 // of the step. Scanning is a few hundred more integrations and cannot miss a step.
 function descentScan(world, cfg, startAlt, params, band, samples = 240) {
+  // THE COMMIT FLOOR MUST NOT BOUND THIS SCAN, and an earlier version of this line bounding
+  // it cost a live run.
+  //
+  // This function flies ONE periapsis for the whole descent — a decay, not a skim-then-commit.
+  // That single periapsis is doing two jobs at once: it is where the ship brakes AND where it
+  // finally comes down. The commit floor constrains only the second of those. Capping the scan
+  // at the floor therefore forbids the shallow braking altitudes that are the only way this
+  // model reaches a second pass at all, and every cell comes back `pass_counts_reachable [1]`.
+  //
+  // The audit then read that as "no two-pass descent is reachable at any load or altitude" and
+  // failed `heavy_descent_requires_multi_pass` as unsatisfiable — while the real manoeuvre,
+  // skim high then commit below the floor, was sitting there working: the endgame haul plunges
+  // at 222.2 and comes home on one skim at 134.9. The rule was fine, the config was fine, and
+  // the instrument was blind.
+  //
+  // The floor belongs where the entry is a SEPARATE variable — skimStudy, and the committed
+  // descents in verificationSweep. Not here.
   const maxDepth = world.atmTop * 0.999;
   const out = [];
   for (let i = 0; i < samples; i++) {

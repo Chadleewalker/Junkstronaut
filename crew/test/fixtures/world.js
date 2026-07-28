@@ -22,10 +22,21 @@ const BASELINE = {
     heating_velocity_exponent: 3,
     plasma_onset_speed_ms: 600,
   },
+  // ONE band, per GDD §2.6 — a single envelope with a value gradient. The three altitudes
+  // inside it are the sample points the sweep flies to measure that gradient, bottom to top.
+  // They are not tiers: nothing may branch on them, and they sit where the old three bands'
+  // midpoints did so the numbers these tests assert stay comparable across the change.
   bands: [
-    { name: 'suborbital', altitude_min_m: 80000, altitude_max_m: 120000 },
-    { name: 'low', altitude_min_m: 140000, altitude_max_m: 220000 },
-    { name: 'high', altitude_min_m: 250000, altitude_max_m: 340000 },
+    {
+      name: 'orbit',
+      altitude_min_m: 80000,
+      altitude_max_m: 340000,
+      samples: [
+        { name: 'bottom', altitude_m: 100000, orbital_speed_ms: 730.3, period_s: 2580.6 },
+        { name: 'middle', altitude_m: 180000, orbital_speed_ms: 648.9, period_s: 3679.5 },
+        { name: 'top', altitude_m: 295000, orbital_speed_ms: 568.5, period_s: 5470.4 },
+      ],
+    },
   ],
 };
 
@@ -48,9 +59,11 @@ const PARAMS = {
   cargo: { base_slots: 6, compactor_tier: 1 },
 };
 
-const bandAlt = (name) => {
-  const b = BASELINE.bands.find((x) => x.name === name);
-  return (b.altitude_min_m + b.altitude_max_m) / 2;
+// The altitude of a named sample point. Mirrors lib/sweep.js's sampleAlt deliberately: the
+// tests should break if the two ever disagree about where a sample sits.
+const sampleAlt = (name) => {
+  const s = BASELINE.bands[0].samples.find((x) => x.name === name);
+  return s.altitude_m;
 };
 
-module.exports = { BASELINE, PARAMS, bandAlt };
+module.exports = { BASELINE, PARAMS, sampleAlt };

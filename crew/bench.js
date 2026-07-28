@@ -10,7 +10,7 @@
 //
 // Nearly all of that is scanning braking depths. For a rough first pass over many candidates,
 // JUNK_SCAN_SAMPLES=24 is about three times quicker and flips roughly one verdict in 250 —
-// almost always difficulty_rises_with_band. Sort with it, then confirm anything you like at
+// almost always difficulty_rises_with_altitude. Sort with it, then confirm anything you like at
 // the default. See the note on SCAN_SAMPLES in lib/sweep.js for the measurements.
 //
 // It reads the crew's own output as the starting point — the Researcher's planet, the
@@ -58,13 +58,16 @@ const TARGETS = {
     '    upgrade is for.',
   greed_costs_something: 'A full hold is at least 15% more expensive to bring home than an\n' +
     '    empty one.',
-  difficulty_rises_with_band: 'The return leg gets harder with altitude.',
+  difficulty_rises_with_altitude: 'The return leg gets harder with altitude.',
+  launch_survives_itself: 'The climb does not exceed the heat bar. The ascent heats the ship
+    too, and a config whose first flight burns up used to pass reachability.',
 };
 const SHORT = {
   bands_reachable: 'reach', fuel_margin_sane: 'margin',
   skimming_cools_the_entry: 'skimCool', skim_benefit_saturates: 'skimSat',
   unstaged_pass_survivable: 'unstaged', full_hold_lands_soft: 'softLand',
-  greed_costs_something: 'greed', difficulty_rises_with_band: 'altRisk',
+  greed_costs_something: 'greed', difficulty_rises_with_altitude: 'altRisk',
+  launch_survives_itself: 'climb',
 };
 
 function read(file) { return JSON.parse(fs.readFileSync(file, 'utf8')); }

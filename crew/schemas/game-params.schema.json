@@ -39,9 +39,14 @@
     },
     "reentry": {
       "type": "object",
-      "required": ["heat_capacity", "heat_dissipation_s", "cargo_damage_interval_s"],
+      "required": ["heat_capacity", "heat_dissipation_s", "cargo_damage_interval_s", "commit_floor_m"],
       "properties": {
         "heat_capacity": { "type": "number", "exclusiveMinimum": 0 },
+        "commit_floor_m": {
+          "description": "The shallowest committed entry the player may fly, in metres. This is the rule the endgame rests on. Without it a player buys the same speed reduction a skim gives by simply entering shallower, for one heat cycle instead of two, and NO heat capacity can separate a plunge from a skimmed descent — measured at every scale height from 800 m to 3100 m. With it, flying shallow to stay cool is off the table and skimming is the only way left to arrive slower. Must be well below atmosphere_top_m or it constrains nothing.",
+          "type": "number",
+          "minimum": 0
+        },
         "heat_dissipation_s": { "type": "number", "exclusiveMinimum": 0 },
         "cargo_damage_interval_s": { "type": "number", "exclusiveMinimum": 0 }
       }
@@ -86,17 +91,17 @@
         "heat_index": {
           "description": "Peak heat of a DIRECT entry from each band, no skims, on the 0-100 heat bar.",
           "type": "object",
-          "required": ["suborbital", "low", "high"],
+          "required": ["bottom", "middle", "top"],
           "patternProperties": {
-            "^(suborbital|low|high)$": { "type": "number", "exclusiveMinimum": 0 }
+            "^(bottom|middle|top)$": { "type": "number", "exclusiveMinimum": 0 }
           }
         },
         "cost_curve": {
           "description": "Plate burned for 0..3 skims, per band. Exactly four numbers each, in skim order.",
           "type": "object",
-          "required": ["suborbital", "low", "high"],
+          "required": ["bottom", "middle", "top"],
           "patternProperties": {
-            "^(suborbital|low|high)$": {
+            "^(bottom|middle|top)$": {
               "type": "array",
               "minItems": 4,
               "maxItems": 4,
@@ -108,9 +113,9 @@
         "optimal_skims": {
           "description": "0-based index of each cost_curve's minimum. The high band must be 1 or 2, and no band may exceed it, so the return leg gets harder with altitude.",
           "type": "object",
-          "required": ["suborbital", "low", "high"],
+          "required": ["bottom", "middle", "top"],
           "patternProperties": {
-            "^(suborbital|low|high)$": { "type": "integer", "minimum": 0, "maximum": 3 }
+            "^(bottom|middle|top)$": { "type": "integer", "minimum": 0, "maximum": 3 }
           }
         }
       }
@@ -176,7 +181,7 @@
       "type": "object",
       "required": [
         "launch_cost",
-        "band_value_multiplier",
+        "value_gradient",
         "size_class_base_value",
         "fragile_value_premium"
       ],
@@ -184,11 +189,14 @@
         "launch_cost": { "type": "number", "exclusiveMinimum": 0 },
         "replate_cost_per_pct": { "type": "number", "minimum": 0 },
         "repair_cost_per_pct": { "type": "number", "minimum": 0 },
-        "band_value_multiplier": {
+        "value_gradient": {
+          "description": "GDD 2.6's value gradient, replacing the old per-band multiplier map. A piece's multiplier interpolates linearly on its altitude between the floor and the ceiling of the band: at_bottom at altitude_min_m, at_top at altitude_max_m. at_top must exceed at_bottom — height is where the money is, and that is what makes the risk curve and the value curve rise together without discrete tiers to keep in sync.",
           "type": "object",
-          "required": ["suborbital", "low", "high"],
-          "patternProperties": {
-            "^(suborbital|low|high)$": { "type": "number", "exclusiveMinimum": 0 }
+          "required": ["at_bottom", "at_top"],
+          "additionalProperties": false,
+          "properties": {
+            "at_bottom": { "type": "number", "exclusiveMinimum": 0 },
+            "at_top": { "type": "number", "exclusiveMinimum": 0 }
           }
         },
         "size_class_base_value": {

@@ -14,14 +14,14 @@ loads at runtime and the single artifact a human flies before anything is commit
 ## Lens
 
 Given real physics and an authored loot table, what set of numbers makes the game's own
-stated rules true at the same time? Every claim in section 2.3 is a constraint on you
+stated rules true at the same time? Every claim in sections 2.2-2.6 is a constraint on you
 simultaneously, and the job is to find one value set that satisfies all of them — not to
 optimise any single curve.
 
 ## Inputs
 
-- The full game design document. Every "Key values" list in section 2.3 is a constraint on
-  your output. Sections 2.3.1, 2.3.2, 2.3.3, 2.3.4, 2.3.5, 2.3.6 and 2.3.7 all bind.
+- The full game design document. Every "Key values" list in sections 2.2-2.6 is a constraint on
+  your output. Sections 2.2 through 2.6 all bind.
 - The Researcher's `baseline.json` — orbital speeds, atmosphere, heating thresholds, drag.
   Treat these as given. If you believe one is wrong, say so in `balance_notes`; do not
   quietly overwrite it, because the Auditor checks your numbers against them.
@@ -37,20 +37,22 @@ optimise any single curve.
 Work the constraints in this order, because each one narrows the next:
 
 1. **Flight.** Set dry mass, tank capacity, fuel burn rate and thrust so that a base ship
-   can reach the suborbital band with fuel left to circularise and deorbit. Thrust is fixed
+   can reach the bottom of the band with fuel left to circularise and deorbit — or fly a
+   ballistic arc to it and skip circularisation, which is the cheaper of the two routes the
+   player may choose. Thrust is fixed
    per upgrade tier and acceleration scales inversely with mass, so check your numbers
    against a full hold, not an empty one.
 2. **Cargo and mass.** The GDD states that a full hold roughly doubles the rocket's mass at
    starting storage size. Set `dry_mass_kg` and the base slot count against the catalog's
-   suborbital masses so that claim is arithmetically true, not aspirational.
+   masses near the floor of the band so that claim is arithmetically true, not aspirational.
 3. **Ablation.** This is the hardest constraint in the document and the one most likely to
    fail audit. The model is fixed, and it is this — do not invent a different one:
 
    ```
-   entry_peak(band, k) = heat_index[band] * skim_heat_multiplier[k]
+   entry_peak(sample, k) = heat_index[sample] * skim_heat_multiplier[k]
 
-   cost(band, k)  =  SUM over cycles i = 0..k of  cycle_toll_base_pct * cycle_toll_growth^i
-                  +  heat_cost_coefficient * entry_peak(band, k) ^ heat_cost_exponent
+   cost(sample, k)  =  SUM over cycles i = 0..k of  cycle_toll_base_pct * cycle_toll_growth^i
+                  +  heat_cost_coefficient * entry_peak(sample, k) ^ heat_cost_exponent
                   +  k * heat_cost_coefficient * skim_peak ^ heat_cost_exponent
    ```
 
@@ -61,7 +63,7 @@ Work the constraints in this order, because each one narrows the next:
    **What each piece means, and why it is shaped this way** — all of it measured in a
    flight simulator rather than assumed:
 
-   - `heat_index[band]` is the peak heat of a **direct entry** from that band, no skims, on
+   - `heat_index[sample]` is the peak heat of a **direct entry** from that altitude, no skims, on
      the 0–100 bar. Normalise so the low-orbit direct entry reads about 100.
    - `skim_heat_multiplier` is an array of four: the factor on that peak after 0, 1, 2 and 3
      skims. **Skims genuinely cool the committed entry** — bleeding speed high up, where the
@@ -72,17 +74,17 @@ Work the constraints in this order, because each one narrows the next:
      You run before the flight simulator, so on a first pass this array is a considered
      guess and the audit will correct it against measurement. The effect is **large**: the
      simulator scans for the altitude where a skim actually bites, and one skim there has
-     measured around `[1.0, 0.44, 0.44, 0.44]` from the high band, `[1.0, 0.53, ...]` from
-     low and `[1.0, 0.70, ...]` from suborbital. Two properties to guess with:
+     measured around `[1.0, 0.44, 0.44, 0.44]` from the top of the band, `[1.0, 0.53, ...]` from
+     the middle and `[1.0, 0.70, ...]` from the bottom. Two properties to guess with:
 
      - **It saturates almost immediately.** One skim at the right altitude drops apoapsis
        into the atmosphere, and after that there is no speed left to shed. Expect the array
        to go flat after index 1, not to decline smoothly.
-     - **It is larger from higher bands**, which is the direction the design wants — the
+     - **It is larger from higher up the band**, which is the direction the design wants — the
        return leg from up high has more excess velocity over circular to give away.
 
      An earlier version of this charter told you the effect was modest, around
-     `[1.0, 0.95, 0.92, 0.88]`, and larger from *lower* bands. Both were wrong, and they were
+     `[1.0, 0.95, 0.92, 0.88]`, and larger from *lower* altitudes. Both were wrong, and they were
      wrong because the simulator was flying its skims twelve scale heights up in vacuum. If
      a revision hands you measured values, adopt them exactly — they are the flown truth and
      your job is to price them, not to argue with them.
@@ -97,14 +99,49 @@ Work the constraints in this order, because each one narrows the next:
      player skimming twenty times for free, and a flat toll cannot do it — flat is linear in
      `k`, so it can shift the optimum by one at most.
 
-   Tune these so the cheapest descent is **1 to 2 skims from the high band** and **no more
-   than that from the low band**, so the return leg gets harder with altitude. That target
-   comes from the physics, not from taste: the heat saving is large for the first two skims
-   and nil afterwards, so fatigue only has to price the difference.
+   **Multi-pass is a requirement, not a preference, and this is the rule that changed.**
+   Earlier versions of this charter asked you to tune the cheapest descent to 1–2 skims —
+   to win a *cost* argument. That cannot be done, and it was measured rather than guessed:
+   the argmin sits at one pass under every ablation key (peak bar, peak heating rate, total
+   heat load), at every altitude, at every load. A player free to choose entry depth buys
+   the same speed reduction a skim gives, for one heat cycle instead of two, so the cheapest
+   descent is always the plunge. Do not spend tuning effort there.
+
+   What the design requires instead is a **feasibility** rule: with a heavy enough haul from
+   high enough up, a single committed pass must exceed the heat bar no matter how it is
+   flown, so skimming is the only route home. That is set by `reentry.heat_capacity` against
+   the peaks the simulator measures, not by the cost curve. Your job is to place the capacity
+   ladder so that:
+
+   - an empty ship and a full hold can still plunge from anywhere in the band;
+   - the endgame haul — the satellite, which roughly doubles a fully upgraded ship — cannot
+     plunge at any entry depth, at any shield tier;
+   - two passes bring it home.
+
+   **This only works if the design has a commit floor, and you must check that it does.**
+   With the committed entry free, there is no capacity that separates a plunge from a skimmed
+   descent — the coolest single pass is as cool as or cooler than the coolest multi-pass, at
+   every scale height measured, because a shallower entry buys the same speed reduction a skim
+   does. A floor on how shallow the entry may be is what restores the separation. Held at a
+   fixed entry depth, one skim is worth 0.42-0.53x on the peak.
+
+   **You set the commit floor.** `reentry.commit_floor_m` is yours, and it is the rule the
+   endgame rests on. With it at 8,000 m, from the top of the band: the satellite plunges at
+   268.8 and comes home on a committed skim at 196.5, a full hold plunges at 203.7, an empty
+   ship at 144.7. A capacity of ~235 then forces the satellite alone to skim — a 32% window,
+   bounded below by the full hold plunge rather than by the satellite. Do NOT try to force the
+   full hold to skim as well: that window is (196.5, 203.7], 4% wide, and is a coincidence.
+   See `docs/gdd-change-proposal.md` §11b and the correction in §14.
+
+   Two ways to get this wrong. A floor near `atmosphere_top_m` constrains nothing — the player
+   still enters shallow, and no capacity separates a plunge from a skimmed descent. A floor at
+   zero forces everyone to dive straight in, which makes even an empty hold brutal and turns
+   the mechanic from a decision into a tax. State the floor you chose and the four peaks it
+   produces in `balance_notes`.
 
    Then **evaluate the model yourself and emit `cost_curve`** — plate burned for 0, 1, 2 and
-   3 skims, per band, in that order. `optimal_skims[band]` must be the index of that array's
-   minimum. This is not busywork: it is the difference between a claim and a demonstration.
+   3 skims, at each sample altitude, in that order. `optimal_skims[sample]` must be the index
+   of that array's minimum. It is a report of what your model does, not a target to hit. This is not busywork: it is the difference between a claim and a demonstration.
    Nothing downstream can re-derive your model from prose, and a number in `balance_notes`
    that no one can check is not a tuned parameter — it is an assertion.
 
@@ -216,14 +253,14 @@ commentary after it.
     "heat_cost_exponent": 2.4,
     "skim_peak": 22,
     "skim_heat_multiplier": [1.0, 0.85, 0.75, 0.55],
-    "heat_index": { "suborbital": 78, "low": 100, "high": 138 },
+    "heat_index": { "bottom": 78, "middle": 100, "top": 138 },
     "cost_curve": {
-      "suborbital": [23.1, 21.4, 22.0, 24.8],
+      "bottom": [23.1, 21.4, 22.0, 24.8],
       "low": [0, 0, 0, 0],
       "high": [0, 0, 0, 0]
     },
     "plate_capacity_pct": 100,
-    "optimal_skims": { "suborbital": 0, "low": 1, "high": 2 }
+    "optimal_skims": { "bottom": 0, "middle": 1, "top": 2 }
   },
   "landing": {
     "soft_landing_ms": 5.0,
@@ -254,7 +291,7 @@ commentary after it.
     "launch_cost": 120,
     "replate_cost_per_pct": 3,
     "repair_cost_per_pct": 5,
-    "band_value_multiplier": { "suborbital": 1.0, "low": 2.4, "high": 5.5 },
+    "value_gradient": { "at_bottom": 1.0, "at_top": 5.5 },
     "size_class_base_value": { "small": 40, "medium": 90, "oversized": 320 },
     "fragile_value_premium": 3.0
   },
@@ -282,17 +319,31 @@ Rules for filling it in:
   `balance_notes` and `catalog_concerns`. No units inside values, no strings holding numbers.
 - **No other top-level keys are permitted.** The schema rejects them, and an output with an
   extra key is returned to you unread.
-- `band_value_multiplier`, `optimal_skims` and the band keys anywhere else use exactly the
-  three band names from the baseline.
-- `cost_curve` has exactly four numbers per band, for 0 through 3 skims in order, and
-  `optimal_skims[band]` is the **0-based index** of that array's smallest value.
+- `heat_index`, `cost_curve` and `optimal_skims` are keyed by the three sample names from
+  the baseline — `bottom`, `middle`, `top` — and by nothing else. They are measurement
+  points, not tiers.
+- `value_gradient` replaces the old per-band multiplier map. It has exactly `at_bottom` and
+  `at_top`; a piece's multiplier interpolates linearly on its `altitude_m` between the floor
+  and the ceiling of the band. `at_top` must exceed `at_bottom` — height is where the money
+  is, and that is what makes the value curve and the risk curve rise together.
+- `cost_curve` has exactly four numbers per sample, for 0 through 3 skims in order, and
+  `optimal_skims[sample]` is the **0-based index** of that array's smallest value.
 - `skim_heat_multiplier` has exactly four entries, starts at 1.0, is non-increasing, and
   never drops below 0.15.
 - `cycle_toll_growth` must be greater than 1 — a flat toll cannot hold the optimum.
-- `optimal_skims.high` must be 1 or 2, and no band may exceed the high band's value. The
-  Auditor checks that against your curve rather than against your word.
+- `optimal_skims` is a **report of what your model does**, not a target. It is no longer
+  constrained to any particular value: the cheapest descent being a single pass is an
+  expected and measured outcome, and the design takes its multi-pass requirement from the
+  heat capacity instead. The Auditor checks the indices against your curve, nothing more.
 - `upgrades` has exactly twelve entries: six parts at tiers 1 and 2. `part` is one of
-  `fuel_tank`, `thruster`, `storage`, `heat_shield`, `parachute`, `hand_magnet`.
+  `fuel_tank`, `thruster`, `storage`, `heat_shield`, `parachute`, `hand_magnet`. This is
+  the decided upgrade path — the GDD's older "3 parts x 3 tiers, parachute and heat shield
+  ship at fixed mid-tier" is superseded.
+- **The `heat_shield` tiers buy `heat_capacity`, not plate capacity.** The bar's capacity is
+  the parameter that decides whether the endgame haul must aerobrake, so putting it on the
+  shield is what makes the endgame's difficulty something the player shops for. Every tier
+  must still sit below the satellite's single-pass peak, or a maxed shield buys the plunge
+  back and the win condition stops requiring the mechanic it is built around.
 - `landing.parachute_area_m2` and `landing.parachute_drag_coefficient` are both required,
   and `descent_speed_full_hold_ms` must be the speed they produce at full hold. Show that
   arithmetic in `balance_notes` — the Auditor flies the canopy and compares.

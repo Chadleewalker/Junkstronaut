@@ -15,8 +15,26 @@
 // Three bands, three categorical slots. Scatter plots compare every pair at once, and only
 // the first three slots of this palette clear the colour-blind separation floors under an
 // all-pairs comparison — which is exactly how many altitude bands the game has.
-const BANDS = ['suborbital', 'low', 'high'];
-const BAND_LABEL = { suborbital: 'Suborbital', low: 'Low orbit', high: 'High orbit' };
+const SAMPLES = ['bottom', 'middle', 'top'];
+const BAND_LABEL = { bottom: 'Lower band', middle: 'Mid band', top: 'Upper band' };
+
+// GDD 2.6 is ONE band with a value gradient. These three are where the sweep measures it,
+// and the charts group by the third of the envelope a piece falls in — a reporting cut, not
+// a tier. Nothing here may be read as the game having three bands again.
+function thirdOf(altitude_m, baseline) {
+  const b = baseline.bands[0];
+  const span = b.altitude_max_m - b.altitude_min_m;
+  const fr = span > 0 ? (altitude_m - b.altitude_min_m) / span : 0;
+  return fr < 1 / 3 ? 'bottom' : fr < 2 / 3 ? 'middle' : 'top';
+}
+
+function gradientMultiplier(altitude_m, baseline, params) {
+  const b = baseline.bands[0];
+  const g = params.economy.value_gradient;
+  const span = b.altitude_max_m - b.altitude_min_m;
+  const fr = span > 0 ? Math.min(1, Math.max(0, (altitude_m - b.altitude_min_m) / span)) : 0;
+  return g.at_bottom + (g.at_top - g.at_bottom) * fr;
+}
 const SEQ = ['#cde2fb', '#b7d3f6', '#9ec5f4', '#86b6ef', '#6da7ec', '#5598e7', '#3987e5',
   '#2a78d6', '#256abf', '#1c5cab', '#184f95', '#104281', '#0d366b'];
 
@@ -75,10 +93,12 @@ function niceTicks(min, max, count = 5) {
 // are not new design decisions — if one disagrees with the shipped GDScript, the GDScript
 // is what the player meets and this page is what needs fixing.
 
-// Value of one piece: size-class base, scaled by band, with the fragile premium on top.
+// Value of one piece: size-class base, scaled by where it sits on the altitude gradient,
+// with the fragile premium on top. The multiplier is decorated onto each piece once in
+// renderDashboard, because every chart below wants it and only the top level has the band.
 function pieceValue(entry, params) {
   const base = params.economy.size_class_base_value[entry.size_class] || 0;
-  const mult = params.economy.band_value_multiplier[entry.band] || 1;
+  const mult = entry.value_multiplier || 1;
   const prem = entry.fragile ? (params.economy.fragile_value_premium || 1) : 1;
   return base * mult * prem;
 }
@@ -138,7 +158,7 @@ function chartDebris(catalog, params) {
   // Solid pieces read as filled dots; fragile pieces as hollow rings. Fragility is the
   // property that changes how a piece must be flown, so it gets a shape and not a shade —
   // shape survives greyscale, print and every kind of colour blindness.
-  const marks = BANDS.map((band) => pts.filter((p) => p.band === band).map((p) => {
+  const marks = SAMPLES.map((band) => pts.filter((p) => p.band === band).map((p) => {
     const cx = x(p.mass_kg).toFixed(1), cy = y(p.value).toFixed(1);
     const tip = `${p.display_name} · ${BAND_LABEL[band]} · ${p.size_class}${p.fragile ? ' · fragile' : ''} · ${fmt(p.mass_kg, 1)} kg · ${fmt(p.value)} credits`;
     return p.fragile
@@ -168,7 +188,7 @@ function chartAblation(params) {
   // this chart plotted passes, from a model that assumed peak heat divides across them;
   // flying it showed a committed entry's peak is set by its own depth and by the ballistic
   // coefficient, so pass count was the wrong variable entirely.
-  const series = BANDS.map((band) => {
+  const series = SAMPLES.map((band) => {
     const curve = params.ablation.cost_curve[band];
     const pts = passes.map((n) => ({ n, cost: curve[n] })).filter((p) => p.cost !== undefined);
     const best = pts.reduce((a, b) => (b.cost < a.cost ? b : a));
@@ -188,9 +208,11 @@ function chartAblation(params) {
   const xticks = passes.map((n) =>
     `<text class="tick" x="${x(n).toFixed(1)}" y="${H - M.b + 20}" text-anchor="middle">${n}</text>`).join('');
 
-  // The target window: the cheapest descent from the high band should sit at 1–2 skims.
-  const bandRect = `<rect class="target" x="${x(1)}" y="${M.t}" width="${x(2) - x(1)}" height="${H - M.b - M.t}"/>
-    <text class="target-label" x="${(x(1) + x(2)) / 2}" y="${M.t + 14}" text-anchor="middle">target: 1–2 skims</text>`;
+  // No target window. The rule that put one here — "the cheapest descent should sit at 1-2
+  // skims" — was retired once it was measured to be unsatisfiable at every altitude and
+  // load. The curve is now a report of what the model does, and the design takes its
+  // multi-pass requirement from the heat capacity instead. See gdd-change-proposal.md 11.
+  const bandRect = '';
 
   // Direct labels sit at each line's right-hand end, so two lines that finish close
   // together produce overlapping text. Push them apart to a minimum spacing, working from
@@ -227,12 +249,12 @@ function chartAblation(params) {
   }).join('');
 
   const verdicts = series.map((s) => {
-    // Only the high band has to land inside the window; lower bands should need no more.
-    const inWindow = s.band !== 'high' || (s.best.n >= 1 && s.best.n <= 2);
+    // Every minimum is admissible now; the chart reports where each curve bottoms out.
+    const inWindow = true;
     const agrees = s.best.n === s.claimed;
     const note = !agrees
       ? `<span class="verdict bad">curve bottoms at ${s.best.n}, params claim ${s.claimed}</span>`
-      : `<span class="verdict ${inWindow ? 'good' : 'bad'}">${inWindow ? 'as designed' : 'outside the 1–2 skim target'}</span>`;
+      : '<span class="verdict good">curve agrees with params</span>';
     return `<li><span class="swatch" style="background:var(--band-${s.band})"></span>
       <b>${BAND_LABEL[s.band]}</b> — cheapest at <b>${s.best.n} skim${s.best.n === 1 ? '' : 's'}</b> ${note}</li>`;
   }).join('');
@@ -257,7 +279,7 @@ function chartValuePerSlot(catalog, params) {
 
   const cells = [];
   for (const cls of classes) {
-    for (const band of BANDS) {
+    for (const band of SAMPLES) {
       const group = catalog.debris.filter((d) => d.size_class === cls && d.band === band);
       if (!group.length) { cells.push({ cls, band, v: 0, n: 0 }); continue; }
       const slots = catalog.size_classes[cls].slots_crushed || 1;
@@ -269,15 +291,15 @@ function chartValuePerSlot(catalog, params) {
   const yMax = Math.max(...cells.map((c) => c.v)) * 1.12 || 1;
   const y = linear(0, yMax, H - M.b, M.t);
   const groupW = (W - M.l - M.r) / classes.length;
-  const barW = Math.min(46, (groupW - 28) / BANDS.length - 2); // 2px surface gap between bars
+  const barW = Math.min(46, (groupW - 28) / SAMPLES.length - 2); // 2px surface gap between bars
 
   const grid = niceTicks(0, yMax, 5).map((t) =>
     `<line class="grid" x1="${M.l}" x2="${W - M.r}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}"/>` +
     `<text class="tick" x="${M.l - 10}" y="${(y(t) + 4).toFixed(1)}" text-anchor="end">${fmt(t)}</text>`).join('');
 
   const bars = classes.map((cls, gi) => {
-    const gx = M.l + gi * groupW + (groupW - (barW + 2) * BANDS.length) / 2;
-    const inner = BANDS.map((band, bi) => {
+    const gx = M.l + gi * groupW + (groupW - (barW + 2) * SAMPLES.length) / 2;
+    const inner = SAMPLES.map((band, bi) => {
       const c = cells.find((k) => k.cls === cls && k.band === band);
       if (!c.n) return '';
       const bx = gx + bi * (barW + 2);
@@ -289,7 +311,7 @@ function chartValuePerSlot(catalog, params) {
         L${(bx + barW).toFixed(1)},${(H - M.b).toFixed(1)} Z"
         fill="var(--band-${band})" data-tip="${esc(tip)}"/>`;
     }).join('');
-    const label = `<text class="tick" x="${(gx + ((barW + 2) * BANDS.length) / 2).toFixed(1)}" y="${H - M.b + 22}" text-anchor="middle">${cls}</text>`;
+    const label = `<text class="tick" x="${(gx + ((barW + 2) * SAMPLES.length) / 2).toFixed(1)}" y="${H - M.b + 22}" text-anchor="middle">${cls}</text>`;
     return inner + label;
   }).join('');
 
@@ -313,7 +335,7 @@ function chartSurface(params) {
   // is the quantity the model is actually written in terms of. Interpolating between the
   // three bands' own values keeps every point on this surface a value the crew's formula
   // produces, rather than one the renderer invented.
-  const idx = BANDS.map((b) => a.heat_index[b]);
+  const idx = SAMPLES.map((b) => a.heat_index[b]);
   const hMin = Math.min(...idx) * 0.85, hMax = Math.max(...idx) * 1.15;
   const NI = 16, NJ = 4;                       // heat steps, skim counts 0..3
   const hAt = (i) => hMin + (hMax - hMin) * (i / (NI - 1));
@@ -385,7 +407,7 @@ function chartSurface(params) {
   // heat axis, so the callout stems are staggered in length rather than all drawn at once
   // — three labels at the same height overlap exactly when the bands are most similar,
   // which is the case a reader most wants to distinguish.
-  const marks = BANDS.map((band, k) => {
+  const marks = SAMPLES.map((band, k) => {
     const i = Math.round(((a.heat_index[band] - hMin) / ((hMax - hMin) || 1)) * (NI - 1));
     const ii = Math.max(0, Math.min(NI - 1, i));
     let bj = 0;
@@ -417,7 +439,7 @@ function chartSurface(params) {
 </svg>
 <p class="caption">The dark line is the valley floor — the cheapest pass count at every entry
 speed. It is the answer to the hardest question in §2.3.1, and it should stay inside 2–4
-across the whole span. Where it climbs toward the back, higher bands are demanding more
+across the whole span. Where it climbs toward the back, higher altitudes are demanding more
 passes; where it runs flat, a single strategy covers every altitude.</p>`;
 }
 
@@ -474,7 +496,7 @@ function claimRows(verification, params) {
 
   // Does skimming cool the committed entry, and by how much? This is the row the whole
   // simulator exists for: the params claim a multiplier, the flights measure one.
-  for (const band of BANDS) {
+  for (const band of SAMPLES) {
     // Each band is an object, not the flat series array this used to index. A descent is
     // flown at more than one periapsis depth now, so the per-skim numbers live under
     // by_entry_depth and the headline row is the deepest entry that flew — which is what
@@ -495,7 +517,7 @@ function claimRows(verification, params) {
     });
   }
 
-  const full = verification.descents.find((x) => x.band === 'low' && x.load === 'full hold');
+  const full = verification.descents.find((x) => x.band === 'middle' && x.load === 'full hold');
   if (full && full.landed) {
     rows.push({
       what: 'Full-hold touchdown speed',
@@ -581,7 +603,7 @@ function playtestCard(playtest, verification, exploration, params, t) {
   return `
   ${card('flights', 'What the flights measured', t && t.flights,
     `Every other agent reasons about these numbers. The simulator flew them — launch, aerobrake,
-     land — across every band and cargo load. Where a row says <i>does not hold</i>, an agent
+     land — across every sample altitude and cargo load. Where a row says <i>does not hold</i>, an agent
      asserted something the physics disagreed with.`,
     claimedVsMeasured(verification, params))}
 
@@ -628,7 +650,7 @@ function statTiles({ catalog, params, audit, manifest }) {
 function debrisTable(catalog, params) {
   const rows = catalog.debris
     .map((d) => ({ ...d, value: pieceValue(d, params) }))
-    .sort((a, b) => BANDS.indexOf(a.band) - BANDS.indexOf(b.band) || b.value - a.value)
+    .sort((a, b) => SAMPLES.indexOf(a.band) - SAMPLES.indexOf(b.band) || b.value - a.value)
     .map((d) => `<tr>
       <td>${esc(d.display_name)}</td>
       <td><span class="swatch" style="background:var(--band-${d.band})"></span>${BAND_LABEL[d.band]}</td>
@@ -647,7 +669,7 @@ function debrisTable(catalog, params) {
 
 function legend() {
   return `<div class="legend">
-    ${BANDS.map((b) => `<span class="key"><span class="swatch" style="background:var(--band-${b})"></span>${BAND_LABEL[b]}</span>`).join('')}
+    ${SAMPLES.map((b) => `<span class="key"><span class="swatch" style="background:var(--band-${b})"></span>${BAND_LABEL[b]}</span>`).join('')}
     <span class="key"><span class="swatch ring"></span>fragile (hollow)</span>
   </div>`;
 }
@@ -677,7 +699,7 @@ function pearson(xs, ys) {
 function valuePerSlotByBand(catalog, params) {
   const tier = params.cargo.compactor_tier;
   const out = {};
-  for (const band of BANDS) {
+  for (const band of SAMPLES) {
     const byClass = {};
     for (const d of catalog.debris) {
       if (d.band !== band) continue;
@@ -746,34 +768,32 @@ function takeaways({ catalog, params, audit, playtest, sweeps }) {
           : `Value barely tracks mass (r = ${r.toFixed(2)}). The heavy pieces are not the valuable ones, so upgrades will outrun difficulty.` };
 
   // --- the ablation optimum
+  // The skim optimum is a REPORT, not a target. The rule that made it one — "the cheapest
+  // descent should sit at 1-2 skims" — was retired after it was measured to be unsatisfiable
+  // at every altitude and load: a player free to choose entry depth buys the same speed
+  // reduction a skim gives, for one heat cycle instead of two. The design now takes its
+  // multi-pass requirement from the heat capacity, which is a feasibility question and lives
+  // on the pass axis. See gdd-change-proposal.md §11.
   const os = params.ablation.optimal_skims || {};
-  const high = os.high;
-  const inWindow = high === 1 || high === 2;
-  const noneExceed = BANDS.every((b) => os[b] === undefined || os[b] <= high);
-  // A skim and a pass are different quantities, and this chart plots skims. Saying "as
-  // designed" here while the audit fails the PASS-count rule reads as the page contradicting
-  // itself, so the caveat is carried explicitly. Conflating the two axes is the mistake that
-  // produced three runs of a wrong answer; the report should not reintroduce it.
-  const passRule = audit.checks.find((c) => c.rule_id === 'cheapest_descent_is_multi_pass');
-  const passFailed = passRule && passRule.result === 'fail';
+  const feasRule = audit.checks.find((c) => c.rule_id === 'heavy_descent_requires_multi_pass');
+  const feasFailed = feasRule && feasRule.result === 'fail';
   t.ablation = {
-    state: inWindow && noneExceed ? (passFailed ? 'warn' : 'good') : 'bad',
-    label: inWindow && noneExceed ? (passFailed ? 'curve ok, rule fails' : 'as designed') : 'off target',
-    text: `Cheapest descent is ${BANDS.map((b) => `${os[b]} skim${os[b] === 1 ? '' : 's'} from ${BAND_LABEL[b].toLowerCase()}`).join(', ')}. ` +
-      (inWindow
-        ? (noneExceed ? 'The high band sits in the 1–2 skim window and no band exceeds it, as §2.3.1 asks.'
-                      : 'The high band is in the 1–2 window, but a lower band needs more skims than it — the return leg gets easier with altitude, which inverts the design.')
-        : 'The high band should bottom out at 1 or 2 skims and does not.') +
-      (passFailed
-        ? ' This is the SKIM axis and it passes. The separate rule about how many atmospheric' +
-          ' PASSES the cheapest descent takes fails — see the audit. The two are different' +
-          ' manoeuvres and neither is evidence about the other.'
-        : ''),
+    state: feasFailed ? 'warn' : 'info',
+    label: feasFailed ? 'curve ok, requirement fails' : 'where the curve bottoms out',
+    text: `Cheapest descent is ${SAMPLES.map((b) => `${os[b]} skim${os[b] === 1 ? '' : 's'} from the ${BAND_LABEL[b].toLowerCase()}`).join(', ')}. ` +
+      'A single-pass optimum here is expected and is not a defect — the plunge is always the ' +
+      'cheapest way down, and the design does not try to out-price it. ' +
+      (feasFailed
+        ? 'What fails is the separate rule that a heavy haul from high up must be UNABLE to ' +
+          'plunge — see the audit. That is a question about survivable peak heat, not about ' +
+          'cost, and this chart is not evidence either way.'
+        : 'The requirement that a heavy haul cannot plunge is checked on the pass axis, ' +
+          'against the heat capacity, and it holds.'),
   };
   t.surface = {
     state: 'info', label: 'read the valley',
     text: 'The dark line along the floor is the cheapest strategy at every entry speed. ' +
-      `It should stay in the 1–2 skim band across the whole span; here it sits at ${os.high}.`,
+      `It reports where the model bottoms out; here it sits at ${os.top} from the upper band.`,
   };
 
   // --- is any size class strictly best
@@ -801,7 +821,7 @@ function takeaways({ catalog, params, audit, playtest, sweeps }) {
 
   t.catalog = {
     state: 'info', label: `${catalog.debris.length} pieces`,
-    text: `${catalog.debris.length} debris types, ${catalog.debris.filter((d) => d.fragile).length} fragile, priced across three bands.`,
+    text: `${catalog.debris.length} debris types, ${catalog.debris.filter((d) => d.fragile).length} fragile, priced across one band with a value gradient.`,
   };
   return t;
 }
@@ -871,6 +891,20 @@ function card(id, title, take, explain, body) {
 
 function renderDashboard({ baseline, catalog, params, audit, manifest, playtest, sweeps }) {
   const failed = audit.checks.filter((c) => c.result === 'fail');
+
+  // Decorate every piece once, here, with the two things derived from the one band: which
+  // third of the envelope it falls in (for grouping and colour) and its value multiplier off
+  // the gradient. Only this function is handed the baseline, and threading it through nine
+  // chart functions to recompute the same two numbers would be worse than doing it once.
+  catalog = {
+    ...catalog,
+    debris: catalog.debris.map((d) => ({
+      ...d,
+      band: thirdOf(d.altitude_m, baseline),
+      value_multiplier: gradientMultiplier(d.altitude_m, baseline, params),
+    })),
+  };
+
   const t = takeaways({ catalog, params, audit, playtest, sweeps });
 
   return `<!doctype html>
@@ -886,7 +920,7 @@ function renderDashboard({ baseline, catalog, params, audit, manifest, playtest,
     --plane:#f9f9f7; --surface-1:#fcfcfb;
     --text-primary:#0b0b0b; --text-secondary:#52514e; --muted:#898781;
     --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
-    --band-suborbital:#2a78d6; --band-low:#eb6834; --band-high:#1baf7a;
+    --band-bottom:#2a78d6; --band-middle:#eb6834; --band-top:#1baf7a;
     --accent:#2a78d6;
     --good:#0ca30c; --bad:#d03b3b; --warn:#fab219; --serious:#ec835a;
     --target:rgba(42,120,214,.07);
@@ -895,7 +929,7 @@ function renderDashboard({ baseline, catalog, params, audit, manifest, playtest,
     --plane:#0d0d0d; --surface-1:#1a1a19;
     --text-primary:#fff; --text-secondary:#c3c2b7; --muted:#898781;
     --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
-    --band-suborbital:#3987e5; --band-low:#d95926; --band-high:#199e70;
+    --band-bottom:#3987e5; --band-middle:#d95926; --band-top:#199e70;
     --accent:#3987e5;
     --target:rgba(57,135,229,.10);
   }}
@@ -903,7 +937,7 @@ function renderDashboard({ baseline, catalog, params, audit, manifest, playtest,
     --plane:#0d0d0d; --surface-1:#1a1a19;
     --text-primary:#fff; --text-secondary:#c3c2b7; --muted:#898781;
     --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
-    --band-suborbital:#3987e5; --band-low:#d95926; --band-high:#199e70;
+    --band-bottom:#3987e5; --band-middle:#d95926; --band-top:#199e70;
     --accent:#3987e5;
     --target:rgba(57,135,229,.10);
   }
@@ -1042,7 +1076,7 @@ function renderDashboard({ baseline, catalog, params, audit, manifest, playtest,
   </div>
 
   ${card('catalog', 'The catalog', t.catalog,
-    'Every piece the crew authored and priced. Sorted by band, then by value.',
+    'Every piece the crew authored and priced. Sorted by altitude, then by value.',
     debrisTable(catalog, params))}
 
 </div></div>

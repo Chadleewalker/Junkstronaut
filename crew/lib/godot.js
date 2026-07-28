@@ -70,17 +70,27 @@ extends Resource
 ${exports}
 @export var upgrades: Array = []
 @export var debris: Array = []
+## The one altitude band (GDD 2.6). Its floor and ceiling are what the value gradient
+## interpolates between, so the game needs them alongside the economy block.
+@export var band: Dictionary = {}
 
 ## Value of one piece of debris, before landing grade and tow fee.
+## GDD 2.6: one band with a value gradient, so the multiplier interpolates on the piece's
+## altitude between the floor and the ceiling of the envelope. There are no band tiers to
+## look up — height is where the money is, continuously.
 func debris_value(entry: Dictionary) -> float:
 \tvar base: float = economy["size_class_base_value"][entry["size_class"]]
-\tvar band_mult: float = economy["band_value_multiplier"][entry["band"]]
-\tvar value: float = base * band_mult
+\tvar span: float = float(band["altitude_max_m"]) - float(band["altitude_min_m"])
+\tvar f: float = 0.0
+\tif span > 0.0:
+\t\tf = clampf((float(entry["altitude_m"]) - float(band["altitude_min_m"])) / span, 0.0, 1.0)
+\tvar g: Dictionary = economy["value_gradient"]
+\tvar value: float = base * lerpf(float(g["at_bottom"]), float(g["at_top"]), f)
 \tif entry.get("fragile", false):
 \t\tvalue *= float(economy["fragile_value_premium"])
 \treturn value
 
-## Tow fee as a fraction of haul value. GDD §2.3.3: zero inside the free radius, linear
+## Tow fee as a fraction of haul value. GDD §2.5: zero inside the free radius, linear
 ## beyond it, clamped at max_fee_fraction, never negative.
 func tow_fee_fraction(distance_m: float, half_circumference_m: float) -> float:
 \tvar free: float = tow_fee["free_radius_m"]
@@ -92,7 +102,7 @@ func tow_fee_fraction(distance_m: float, half_circumference_m: float) -> float:
 `;
 }
 
-function emitResource(params, catalog) {
+function emitResource(params, catalog, baseline) {
   const lines = [
     '[gd_resource type="Resource" script_class="GameParams" load_steps=2 format=3]',
     '',
@@ -107,12 +117,19 @@ function emitResource(params, catalog) {
   }
   lines.push(`upgrades = ${lit(params.upgrades || [])}`);
 
+  // The band travels with the params because debris_value() cannot interpolate the value
+  // gradient without the envelope it is measured across.
+  const band = baseline && baseline.bands && baseline.bands[0];
+  if (band) {
+    lines.push(`band = ${lit({ name: band.name, altitude_min_m: band.altitude_min_m, altitude_max_m: band.altitude_max_m })}`);
+  }
+
   // The catalog rides in the same resource on purpose: the game needs debris and their
   // prices together, and one file is the whole point of §4.4.
   const debris = (catalog && catalog.debris ? catalog.debris : []).map((d) => ({
     id: d.id,
     display_name: d.display_name,
-    band: d.band,
+    altitude_m: d.altitude_m,
     size_class: d.size_class,
     fragile: d.fragile,
     mass_kg: d.mass_kg,

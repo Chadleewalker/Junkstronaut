@@ -42,7 +42,13 @@ Read `out/audit/audit_report.md` and tell them:
 
 ## Tests
 
-`node --test "test/*.test.js"` from this folder. No credentials, about a second.
+`node --test "test/*.test.js"` from this folder. No credentials, about two seconds.
+
+Most of that is one file. `sweep.test.js` flies real skim studies at ~340 ms each, and it
+memoises them by band and scan resolution — the default study at the top of the band was
+being recomputed seven times, 2.5 s of a 4.5 s suite. If you add a test there that varies
+anything beyond those two inputs, extend the cache key or it will silently hand you the
+wrong study.
 
 Use that exact form. `node --test test/` does not resolve, and a bare `node --test` picks up
 `test/fixtures/fake-agent.js` — which is a stand-in for the CLI, not a test — and blocks

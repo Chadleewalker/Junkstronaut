@@ -2,3 +2,6 @@ crew/out/logs/
 board/out/logs/
 node_modules/
 .env*
+
+# Course material — ELVTR assignment briefs, not mine to redistribute
+Assignment #*.txt
