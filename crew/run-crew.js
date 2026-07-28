@@ -66,7 +66,10 @@ Junkstronaut tuning crew — five agents that produce the game's config file.
                                   (e.g. --reuse researcher, while iterating downstream).
                                   Names are labels, so revisions are addressable too:
                                   --reuse researcher,economy-balancer.rev1 — which is how
-                                  you resume a run that died partway through.
+                                  you resume a run that died partway through. Replaying the
+                                  Researcher, the catalog and the params for a round also
+                                  restores that round's cached sweep, so a resume does not
+                                  re-fly a grid whose inputs did not change.
 
 Environment:
   JUNK_MODEL          model alias for the agents (default: opus)
@@ -205,6 +208,10 @@ async function main() {
       log,
     });
 
+  // Did this labelled call come from the recording rather than from a model? Used to decide
+  // whether the cached sweep is still describing the artifacts in hand.
+  const replayed = (label) => args.mode === 'stub' || args.reuse.includes(label);
+
   log(`Junkstronaut tuning crew — ${args.mode === 'stub' ? 'REPLAY (no model calls)' : 'live'}`);
   log(`design document: ${path.basename(gddPath)} (${gdd.length.toLocaleString()} chars)`);
   console.log('');
@@ -282,11 +289,25 @@ async function main() {
     }
 
     // -- the flight model. Deterministic: it flies the params, it does not judge them.
-    // Cached in stub mode so a replay stays instant; the exploration grid is ~8 minutes of
-    // honest compute and re-running it would defeat the point of having a replay at all.
+    // Cached when every artifact it reads came from the recording, so a replay stays instant;
+    // the exploration grid is ~8 minutes of honest compute and re-running it would defeat the
+    // point of having a replay at all.
+    //
+    // The condition is three-way, not one-way. The sweep eats the Researcher's baseline, the
+    // Designer's catalog and the Balancer's params, so the cache describes the artifacts in
+    // hand only if ALL THREE were replayed. Gating on the global mode instead meant a resumed
+    // run — `--reuse researcher,debris-designer,economy-balancer`, live mode, every input
+    // byte-identical to the recording — re-flew the whole grid for nothing. Gating on the
+    // Balancer alone would be worse than either: a live Designer revision changes the full
+    // hold mass, which moves every target that reads a hold, and the cache would be silently
+    // wrong rather than merely slow.
     log('4/5  Flight simulator — flying the config, then sweeping the parameter space');
+    const catalogLabel = designerRevisions === 0
+      ? 'debris-designer' : `debris-designer.rev${designerRevisions}`;
+    const sweepInputsReplayed = replayed('researcher') && replayed(catalogLabel) &&
+      replayed(`economy-balancer${suffix}`);
     const sweepCache = path.join(stubDir, `sweep${suffix}.json`);
-    if (args.mode === 'stub' && fs.existsSync(sweepCache)) {
+    if (sweepInputsReplayed && fs.existsSync(sweepCache)) {
       sweeps = readJson(sweepCache);
       log('     replayed from a recorded sweep');
     } else {
@@ -527,6 +548,12 @@ function renderAudit(audit) {
   }
   return lines.join('\n') + '\n';
 }
+
+// Exported for the tests. These are the deterministic pieces — argument parsing, the bug
+// reports the routing produces, and the audit renderer — and they are exactly the parts a
+// stub replay cannot check, because a replay only ever exercises the path a recorded run
+// happened to take. `main` is not exported: it writes files and takes half an hour.
+module.exports = { parseArgs, bugReport, concernReport, renderAudit, USAGE };
 
 if (require.main === module) {
   // A promise now, because the exploration grid is flown on several threads. try/catch around

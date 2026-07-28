@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Junkstronaut spec audit report",
-  "description": "The Spec Auditor's output. A fail routes back to the Economy Balancer as a bug report; the orchestrator, not the auditor, decides what happens next.",
+  "description": "The Spec Auditor's output. A fail routes back as a bug report to whichever agent owns the artifact the rule is about — catalog rules to the Debris Designer, parameter rules to the Economy Balancer — per the `owner` label on each check. The auditor labels; the orchestrator, not the auditor, decides what happens next.",
   "type": "object",
   "required": ["agent", "verdict", "summary", "checks"],
   "properties": {

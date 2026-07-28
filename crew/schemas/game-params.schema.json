@@ -77,11 +77,11 @@
           "type": "number", "exclusiveMinimum": 0
         },
         "skim_heat_multiplier": {
-          "description": "Factor on the committed entry's peak after 0, 1, 2 and 3 skims. Starts at 1.0, non-increasing, floored at 0.4 — skimming cools the entry but the benefit saturates once the orbit is grazing.",
+          "description": "Factor on the committed entry's peak after 0, 1, 2 and 3 skims. Starts at 1.0, non-increasing, floored at 0.15 — skimming cools the entry but the benefit saturates once the orbit is grazing. The floor was 0.4, chosen before the simulator could measure this quantity properly; with the skim altitude scanned rather than hardcoded, 13% of sampled grid worlds measure below 0.4 and the lowest reads 0.277. A floor above what the flight model actually produces is worse than no floor: the Auditor's instruction to adopt the measured values would be unsatisfiable, and the Balancer would fail its schema three times and kill the run rather than report the problem.",
           "type": "array",
           "minItems": 4,
           "maxItems": 4,
-          "items": { "type": "number", "minimum": 0.4, "maximum": 1 }
+          "items": { "type": "number", "minimum": 0.15, "maximum": 1 }
         },
         "heat_index": {
           "description": "Peak heat of a DIRECT entry from each band, no skims, on the 0-100 heat bar.",
@@ -116,12 +116,15 @@
       }
     },
     "landing": {
+      "description": "The canopy is stated, not implied. parachute_area_m2 and parachute_drag_coefficient are required because without them the simulator had to solve the area backwards from descent_speed_full_hold_ms and then measure that same speed — a check of the claim against itself. With both stated, the descent is flown from the physical canopy and descent_speed_full_hold_ms becomes a prediction the flight can contradict.",
       "type": "object",
       "required": [
         "soft_landing_ms",
         "damage_per_ms_over",
         "no_gear_multiplier",
         "fragile_multiplier",
+        "parachute_area_m2",
+        "parachute_drag_coefficient",
         "descent_speed_full_hold_ms"
       ],
       "properties": {
@@ -129,7 +132,18 @@
         "damage_per_ms_over": { "type": "number", "exclusiveMinimum": 0 },
         "no_gear_multiplier": { "type": "number", "minimum": 1 },
         "fragile_multiplier": { "type": "number", "minimum": 1 },
-        "descent_speed_full_hold_ms": { "type": "number", "exclusiveMinimum": 0 }
+        "parachute_area_m2": {
+          "description": "Canopy reference area. The simulator flies this; it does not infer it.",
+          "type": "number", "exclusiveMinimum": 0
+        },
+        "parachute_drag_coefficient": {
+          "description": "Canopy drag coefficient. Required alongside the area so the terminal velocity is fully determined by the params rather than by a default living in the model.",
+          "type": "number", "exclusiveMinimum": 0
+        },
+        "descent_speed_full_hold_ms": {
+          "description": "Predicted touchdown speed at base storage with a full hold. The Auditor flies the stated canopy and fails this if the measurement disagrees, so it is a claim about the flight and not a target the area was fitted to.",
+          "type": "number", "exclusiveMinimum": 0
+        }
       }
     },
     "tow_fee": {

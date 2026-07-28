@@ -20,7 +20,7 @@ flowchart TB
     A["<b>5 · SPEC AUDITOR</b><br/>recomputes each Key values<br/>bullet against the numbers"]
   end
 
-  SIM[["<b>FLIGHT SIMULATOR</b><br/><i>deterministic, no model</i><br/>flies the config, then sweeps<br/>324 worlds against 7 targets"]]
+  SIM[["<b>FLIGHT SIMULATOR</b><br/><i>deterministic, no model</i><br/>flies the config, then sweeps<br/>5,184 worlds against 8 targets"]]
 
   BASE[/"params/baseline.json<br/><i>orbital speeds, atmosphere,<br/>heating thresholds, drag</i>"/]
   CAT[/"data/debris_catalog.json<br/><i>18–30 debris types, no prices</i>"/]

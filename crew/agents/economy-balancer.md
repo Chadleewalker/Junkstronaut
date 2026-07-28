@@ -67,14 +67,30 @@ Work the constraints in this order, because each one narrows the next:
      skims. **Skims genuinely cool the committed entry** — bleeding speed high up, where the
      air is thin, means entering slower — but **the benefit saturates**, because once the
      orbit is grazing there is no speed left to shed. It must be non-increasing and never
-     below 0.4.
+     below 0.15.
 
      You run before the flight simulator, so on a first pass this array is a considered
-     guess and the audit will correct it against measurement. Guess conservatively: the
-     effect is real but usually **modest**, in the region of `[1.0, 0.95, 0.92, 0.88]` from
-     a high orbit, and it is **larger from lower bands**, which is the opposite of what the
-     design would prefer. If a revision hands you measured values, adopt them exactly —
-     they are the flown truth and your job is to price them, not to argue with them.
+     guess and the audit will correct it against measurement. The effect is **large**: the
+     simulator scans for the altitude where a skim actually bites, and one skim there has
+     measured around `[1.0, 0.44, 0.44, 0.44]` from the high band, `[1.0, 0.53, ...]` from
+     low and `[1.0, 0.70, ...]` from suborbital. Two properties to guess with:
+
+     - **It saturates almost immediately.** One skim at the right altitude drops apoapsis
+       into the atmosphere, and after that there is no speed left to shed. Expect the array
+       to go flat after index 1, not to decline smoothly.
+     - **It is larger from higher bands**, which is the direction the design wants — the
+       return leg from up high has more excess velocity over circular to give away.
+
+     An earlier version of this charter told you the effect was modest, around
+     `[1.0, 0.95, 0.92, 0.88]`, and larger from *lower* bands. Both were wrong, and they were
+     wrong because the simulator was flying its skims twelve scale heights up in vacuum. If
+     a revision hands you measured values, adopt them exactly — they are the flown truth and
+     your job is to price them, not to argue with them.
+
+     One consequence for `cycle_toll_growth` below: a skim at the scanned altitude costs
+     **0 m/s of Δv and about six minutes** of flight. It is very nearly free, so the thermal
+     toll is the only thing bounding how many a player will take. Price it as the whole
+     brake, not as a tiebreaker.
    - `cycle_toll_base_pct` with `cycle_toll_growth` is **thermal fatigue**: each heat cycle
      cracks the plate a little more than the last, so the toll on cycle *i* is
      `base * growth^i`. Growth must be **greater than 1**. This is the only thing stopping a
@@ -99,10 +115,29 @@ Work the constraints in this order, because each one narrows the next:
    the "passes" in that model were not skims at all but a slow decay into dense air. One
    plunge won every time. Skims work — pass count was simply the wrong variable.
 4. **Landing.** Soft is under 5 m/s vertical; damage scales past that; no landing gear
-   doubles it; fragile cargo takes double. Descent speed under the parachute grows roughly
-   with the square root of ship mass — pick the chute drag so that a full hold at base
-   storage lands near but under the 5 m/s line, because that is what makes the Parachute
-   upgrade a real purchase rather than a formality.
+   doubles it; fragile cargo takes double.
+
+   **State the canopy, not just the speed it produces.** You must emit
+   `parachute_area_m2` and `parachute_drag_coefficient`, and `descent_speed_full_hold_ms`
+   must be what those two actually give at sea level:
+
+   ```
+   descent_speed = sqrt( 2 * m * g / (rho_0 * Cd * A) )
+   ```
+
+   where `m` is `dry_mass_kg` plus a full hold — the same figure your full-hold-doubling
+   note uses — and `g` and `rho_0` come from the Researcher's planet. Pick the area and the
+   drag coefficient so a full hold at base storage lands near but under the 5 m/s line,
+   because that margin is what makes the Parachute upgrade a real purchase rather than a
+   formality. Descent speed then grows with the square root of ship mass on its own, which
+   is where the greedy-haul crossing comes from.
+
+   This is not bookkeeping. Until these two fields existed, the simulator had to solve the
+   area backwards out of your claimed speed and then measure that same speed — so the
+   parachute rule was audited against itself and passed every time by construction. Now the
+   simulator flies the canopy you state and the Auditor compares the measurement against
+   your claim. `descent_speed_full_hold_ms` is a prediction, and a prediction can be wrong:
+   if your arithmetic is off, the flight says so.
 5. **Tow fee.** Zero within one screen of the pad, then linear with distance, capping at
    exactly 50% of haul value at half the planet's circumference. It can never exceed 50%,
    never go negative, and never touch savings.
@@ -195,6 +230,7 @@ commentary after it.
     "damage_per_ms_over": 6.0,
     "no_gear_multiplier": 2.0,
     "fragile_multiplier": 2.0,
+    "parachute_area_m2": 630,
     "parachute_drag_coefficient": 1.8,
     "descent_speed_full_hold_ms": 4.4
   },
@@ -251,12 +287,16 @@ Rules for filling it in:
 - `cost_curve` has exactly four numbers per band, for 0 through 3 skims in order, and
   `optimal_skims[band]` is the **0-based index** of that array's smallest value.
 - `skim_heat_multiplier` has exactly four entries, starts at 1.0, is non-increasing, and
-  never drops below 0.4.
+  never drops below 0.15.
 - `cycle_toll_growth` must be greater than 1 — a flat toll cannot hold the optimum.
 - `optimal_skims.high` must be 1 or 2, and no band may exceed the high band's value. The
   Auditor checks that against your curve rather than against your word.
 - `upgrades` has exactly twelve entries: six parts at tiers 1 and 2. `part` is one of
   `fuel_tank`, `thruster`, `storage`, `heat_shield`, `parachute`, `hand_magnet`.
+- `landing.parachute_area_m2` and `landing.parachute_drag_coefficient` are both required,
+  and `descent_speed_full_hold_ms` must be the speed they produce at full hold. Show that
+  arithmetic in `balance_notes` — the Auditor flies the canopy and compares.
 - `balance_notes` has at least five entries and must cover, at minimum: the full-hold mass
-  doubling, the ablation optimum, the parachute descent speed at full hold, the
-  break-even claim for a lazy run, and the no-shear-under-steady-tow claim.
+  doubling, the ablation optimum, the parachute descent speed at full hold **with the area
+  and drag coefficient that produce it**, the break-even claim for a lazy run, and the
+  no-shear-under-steady-tow claim.

@@ -389,11 +389,15 @@ function buildConfig(baseline, params, overrides = {}) {
   // Effective exhaust velocity, for charging impulsive burns.
   const exhaustVelocity = thrust / burnRate;
 
+  // The canopy comes from the params. Both fields are required by the schema, so a params
+  // object reaching here without them is either older than that contract or came in through
+  // --gdd; the fallback below keeps those runs flyable rather than crashing them.
+  //
+  // The fallback is the circularity it exists to replace, so it announces itself. Solving
+  // the area out of the claimed speed and then measuring that speed back is a check of a
+  // claim against itself, and it passed every audit it ever faced for exactly that reason.
   let chuteArea = params.landing.parachute_area_m2;
   if (!chuteArea) {
-    // Not stated in the params. Solve for the area that produces the claimed full-hold
-    // descent speed at sea level, so the model at least starts from the crew's own claim —
-    // and record that it had to.
     const claimed = params.landing.descent_speed_full_hold_ms || params.landing.soft_landing_ms;
     const fullMass = dryMass * 2;
     chuteArea = (2 * fullMass * world.g0) /
@@ -402,7 +406,8 @@ function buildConfig(baseline, params, overrides = {}) {
       `landing.parachute_area_m2 is not in the params, so the model solved for the area ` +
       `implied by descent_speed_full_hold_ms ${claimed} m/s at twice dry mass: ` +
       `${chuteArea.toFixed(1)} m2. Measured descent speeds are therefore anchored to that ` +
-      `claim rather than independent of it. The params should state the area.`
+      `claim rather than independent of it, and the parachute check is not a measurement ` +
+      `on this run. The schema requires the area — these params predate it.`
     );
   }
 
@@ -485,23 +490,39 @@ function ablationByPassCount(scan) {
 }
 
 // Ablation is a GAME RULE, not physics, so it is applied from the crew's params rather than
-// re-derived: a fixed thermal-cycling toll per pass plus a cost that rises steeply with the
+// re-derived: a thermal-cycling toll per heat cycle plus a cost that rises steeply with the
 // peak heat of that pass. The peak heats are measured; the rule converting them is theirs.
+//
+// The toll ESCALATES, because thermal fatigue does: cycle i costs
+// cycle_toll_base_pct * cycle_toll_growth^i, which is the model stated in the Balancer's
+// charter and in the game-params schema. This helper used to charge every pass at the first
+// cycle's rate — a floor rather than the cost — which quietly meant the "measured flight
+// results" handed to the Auditor priced multi-pass descents under a rule the game does not
+// use. It survived because the bias ran the safe way: under-charging extra passes and
+// finding them expensive anyway is a conclusion that only gets stronger when they are
+// charged properly. That is luck, not design, and it inverts the moment a rule rewards
+// multi-pass flying.
+//
+// Fixing it moved no verdict. The argmin of every scan already sat at one pass, and a
+// one-pass descent pays cycle 0 either way, so cheapest_pass_count, cheapest_ablation_pct
+// and every target that reads the cheapest row are unchanged; only the n >= 2 rows of
+// ablation_by_pass_count move, and they move upward.
+//
+// The `fixed_toll_per_pass_pct_by_band` fallback covers params written against the contract
+// that predates cycle_toll_base_pct.
 function ablationFor(passes, params, band) {
   const a = params.ablation;
-  // The toll is per heat cycle and escalates (cycle_toll_base_pct * cycle_toll_growth^i).
-  // This helper charges every pass at the FIRST cycle's rate, which is a floor rather than
-  // the real cost — it exists for the pass-count scan, which predates the skim model and is
-  // kept only so the older descent tables still render. The skim study is the measurement
-  // that matters. The fallback covers params written against the earlier contract.
-  const toll = a.cycle_toll_base_pct
+  const base = a.cycle_toll_base_pct
     ?? (a.fixed_toll_per_pass_pct_by_band ? a.fixed_toll_per_pass_pct_by_band[band] : 0)
     ?? 0;
+  // Absent growth means the older flat contract, where 1 reproduces it exactly.
+  const growth = a.cycle_toll_growth ?? 1;
   let total = 0;
-  const perPass = passes.map((p) => {
+  const perPass = passes.map((p, i) => {
+    const toll = base * Math.pow(growth, i);
     const cost = toll + a.heat_cost_coefficient * Math.pow(p.peakHeat, a.heat_cost_exponent);
     total += cost;
-    return { peakHeat: p.peakHeat, ablation: cost };
+    return { peakHeat: p.peakHeat, toll, ablation: cost };
   });
   return { perPass, total };
 }

@@ -14,10 +14,18 @@ Read the caveats at the bottom before acting on any of it.
 
 ## 1. §2.3.1 — replace "2–4 committed passes" with "1–2 skims, then commit"
 
-> **Contested — read §7 before acting on this.** A later run measured the same quantity on a
-> different planet scale and got a tenth of the effect. The half of this section that
-> survived is the half that says a single plunge is cheapest; the proposed replacement
-> wording did not.
+> **Resolved — this section was right, and §7 was measuring in vacuum.** For three runs this
+> carried a warning that a later measurement of the same quantity got a tenth of the effect,
+> and that one of the two had to be wrong. Neither was. The skim altitude in `lib/sweep.js`
+> had been fixed at `atmTop * 0.87`, which on the shipped planet is twelve scale heights up
+> at ρ = 8.6e-6 kg/m³ — skims flown there shed nothing, so the crew measured 2.8% and
+> reported that skimming does not work. Scanned properly, one skim takes the high band's
+> committed entry from 159.9 to 78.0 on the bar: **−56%**, in the same range this section
+> originally measured. See §10.
+>
+> The half of this section that does *not* survive is the proposed replacement wording. A
+> single plunge is still the cheapest descent — see §7 — but not for the structural reason
+> given below.
 
 **What the GDD says now:**
 
@@ -156,53 +164,115 @@ track the rate**, which is a one-parameter fix that keeps the existing concept.
 
 ---
 
-## 7. §2.3.1 again — the newest run contradicts §1 above, and §1 may be the wrong one
+## 7. §2.3.1 again — the pass-count finding, and a skim measurement that was broken
 
-This section disagrees with section 1 of this document. Both are recorded rather than one
-quietly replacing the other, because the disagreement is the finding.
+> **The skim half of this section was wrong.** Everything below about *pass count* stands and
+> has since been reproduced across three ships. Everything below about *skim multipliers*
+> was measured with the skim altitude pinned in vacuum, and the numbers are an artifact of
+> that constant rather than a property of the design. They are left in place, struck through
+> in effect, because the way this section confidently contradicted §1 for three runs is the
+> most useful thing in it. See §10.
 
-The crew's most recent full run flew the shipped config and measured the skim multipliers at
-the same entry depth section 1 uses (0 m — a grazing entry, where skimming has the most to
-give):
+This section disagreed with section 1 of this document for three runs. Both were recorded
+rather than one quietly replacing the other, on the grounds that the disagreement was the
+finding. That was the right instinct and it paid: the disagreement was real, and it was a bug.
 
-| band | 0 skims | 1 | 2 | 3 |
-|---|---|---|---|---|
-| suborbital | 1 | 0.951 | 0.897 | **0.684** |
-| low | 1 | 0.977 | 0.955 | 0.934 |
-| high | 1 | 0.984 | 0.968 | **0.954** |
+The crew's runs measured the skim multipliers at the same entry depth section 1 uses (0 m —
+a grazing entry, where skimming has the most to give). **These are the broken numbers**, kept
+for the record:
 
-Section 1's table, on a different planet scale, has three skims cooling a grazing entry by
-**50%**. This run has three high-band skims cooling it by **4.6%** — an order of magnitude
-apart, in the same measurement, on the same simulator. Something about planet scale or
-ballistic coefficient moves this enormously, and **neither number should be written into the
-GDD until it is known which.** That is the open question this document now carries.
+| band | 0 skims | 1 | 2 | 3 | corrected (§10) |
+|---|---|---|---|---|---|
+| suborbital | 1 | 0.968 | 0.937 | 0.907 | **0.697** |
+| low | 1 | 0.984 | 0.969 | 0.956 | **0.526** |
+| high | 1 | 0.990 | 0.980 | 0.972 | **0.439** |
 
-What does not depend on resolving it:
+The conclusion drawn here at the time — that three measurements spanning an order of
+magnitude meant "no number should be written into the GDD until it is known which" — read as
+appropriate caution and was in fact a bug report nobody recognised. The variance was not
+planet scale or ballistic coefficient. It was that the skim altitude was a hardcoded
+constant, and the runs that flew it on a thick atmosphere put the skims in vacuum.
+
+Two claims made here are now measurably false and are worth naming, because both were stated
+with confidence:
+
+- *"Skims always cool more from lower bands than higher ones, which is the opposite of what
+  the design would prefer."* Corrected, the ordering is 0.697 / 0.526 / 0.439 — skimming
+  helps **most** from the high band, which is the direction the design wants.
+- *"Each run has widened rather than closed the question."* The runs were re-measuring the
+  same constant and getting the same wrong answer with better precision.
+
+What does not depend on any of that:
 
 **A single committed plunge is the cheapest descent at every band and every load.** Ablation
 rises monotonically with pass count in all nine band × load descents without exception:
 
-| descent | 1 pass | 2 | 3 | 4 |
-|---|---|---|---|---|
-| suborbital, full hold | 15.6 | 18.0 | 18.5 | 18.9 |
-| low, full hold | 13.1 | 17.2 | 18.1 | 18.5 |
-| high, full hold | 13.6 | 18.7 | 19.5 | 19.7 |
+| descent | 1 pass | 2 | 3 | 4 | 5 | 6 |
+|---|---|---|---|---|---|---|
+| suborbital, full hold | 13.5 | 15.5 | 16.8 | 18.5 | 21.6 | 26.9 |
+| low, full hold | 11.7 | 14.9 | 16.5 | 18.3 | 21.3 | 27.7 |
+| high, full hold | 10.8 | 15.8 | 17.4 | 19.4 | 22.6 | 28.3 |
+| suborbital, empty | 4.6 | 5.6 | 6.6 | 8.3 | 11.3 | 16.6 |
 
-The second pass costs 3.9–6.9 plate-percent and returns nothing. §2.3.1's *"never a single
-plunge"* is false at every band and every load, and this is the one check the crew could not
-revise its way out of across three rounds — the cost array is internally exact to within
-0.01% and describes a descent the game does not fly.
+The second pass costs 2.0–5.0 plate-percent and returns nothing. §2.3.1's *"never a single
+plunge"* is false at every band and every load, and this is the check the crew could not
+revise its way out of across three rounds — the cost array is internally exact and describes
+a descent the game does not fly.
 
-**Depth is the lever skimming was supposed to be.** On the high band, moving entry depth from
-0 to 36000 m drops peak heat 163.1 → 93.8 (0.575×), while three skims reach only 0.954 —
-**depth is roughly eight times the lever.** Each skim also costs 43–54 m/s of commit Δv and
-about an hour of simulated flight (1.25 h direct against 4.18 h with three skims).
+**This now holds across three ships, not one.** The finding survived a deliberate order-of-
+magnitude change to the vehicle. Successive runs flew staged ballistic coefficients of 19.4,
+182.8 and 290.3 kg/m² — the first below the ~50 threshold where the atmosphere stops a ship
+rather than braking it, the last squarely inside the 300–500 band real reentry capsules
+occupy. Every one of them made the single plunge cheapest. That is much stronger evidence
+than a single run: it is not an artefact of a badly sized ship, because a well-sized ship
+does the same thing.
 
-**Proposed:** the descent decision the design wants is *how deep do you commit*, not *how many
-times do you skim*. That is a decision the config does not currently expose — there is no
-entry-depth parameter — and it is worth considering before tuning the skim economy further.
-Section 2's escalating thermal toll still stands either way: it exists to close the feathering
-exploit, and it does that regardless of which lever picks the optimum.
+The tolls above are also now charged correctly. An earlier version of the simulator billed
+every pass at the *first* heat cycle's rate, so a 25-pass feathering descent cost about the
+same as a 4-pass one — the exploit `cycle_toll_growth` exists to close was priced at nearly
+nothing in the flown model while the params priced it as prohibitive. Fixing it moved no
+verdict, because the cheapest descent was already a single pass, but it means the multi-pass
+columns above are the real cost rather than a floor.
+
+**~~Depth is the lever skimming was supposed to be.~~ Corrected — skimming is the stronger
+lever, and it is nearly free.** This paragraph previously concluded that depth was "roughly
+fifteen times the lever" and that each skim cost 45 m/s of Δv and an hour and a half of extra
+flight. Every one of those figures came from skims flown in vacuum. Re-measured on the same
+planet with the skim altitude scanned:
+
+| lever | effect on high-band peak heat |
+|---|---|
+| entry depth, 0 → 21,500 m | 159.9 → 90.9 = **0.568×** |
+| one skim at 23,600 m, entry held at 0 | **0.453×** |
+
+Skimming is the *bigger* lever, not a fifteenth of it. And the cost that was supposed to
+price it is not there: commit Δv is **0 m/s**, because a skim at that altitude drops apoapsis
+inside the atmosphere and no burn is needed, and the time cost is **0.70 h against 0.80 h** —
+six minutes, not ninety.
+
+That matters for more than the arithmetic. The thermal-fatigue toll in §2 exists to stop a
+player skimming indefinitely for free, and on these numbers skimming really is very nearly
+free. The toll is now doing the whole job of bounding the mechanic, rather than merely
+pricing a difference the physics had already created.
+
+**~~Proposed:~~ withdrawn.** This section previously proposed replacing the skim mechanic with
+an entry-depth one, on the grounds that depth was the far stronger lever. It is not. Both
+levers are real, they are close in magnitude (0.568× against 0.453×), and **they are
+substitutes** — a shallower entry and a skim buy the same reduction in entry speed, so a
+player who can freely choose entry depth will never pay for a skim.
+
+That substitution, not any impossibility, is why the cheapest descent is still a single pass.
+The margin is small: 3.65% against 4.18% for two passes, a 13% penalty rather than the chasm
+earlier runs reported.
+
+**What is worth proposing instead:** constrain entry depth so the substitution is not free.
+If the shallow committed entry has a cost the plunge does not — a minimum commit angle, a
+navigation-precision limit, or a soak-time penalty on the long shallow path — skimming
+becomes the only route to the velocity reduction and 2–4 passes becomes the cheapest descent
+on its own merits. At a 13% margin that is a small rule, not a redesign.
+
+Section 2's escalating thermal toll still stands either way, and matters more than before:
+with skims costing 0 m/s and six minutes, the toll is the only thing bounding the mechanic.
 
 ---
 
@@ -245,6 +315,43 @@ which is the design correctly refusing a ship with nothing to decide. It is also
 fuel is not simply better: on the good worlds a 1500 kg tank scores strictly worse than a
 900 kg one. Fuel and thrust trade along a ridge rather than a gradient.
 
+### A later run corrects the classification above
+
+A subsequent full run over the same 5,184-world grid produced these final-round rates:
+
+| target | this run | previous run |
+|---|---|---|
+| `unstaged_pass_survivable` | **7.4%** | 15.4% |
+| `fuel_margin_sane` | 18.4% | 16.2% |
+| `full_hold_lands_soft` | 31.5% | — |
+| `skimming_cools_the_entry` | 43.8% | — |
+| `bands_reachable` | 50.0% | 33.8% |
+| `difficulty_rises_with_band` | 60.8% | 31.8% |
+| `greed_costs_something` | 88.0% | — |
+| `skim_benefit_saturates` | 92.6% | — |
+
+`unstaged_pass_survivable` **halved**, and the section above lists it as one of the targets
+that "barely move" because it reads only the world. That classification is wrong, and the
+correction is worth more than the number.
+
+The route is the heat-scale calibration. The simulator fixes its heat scale once per world so
+that an empty single-pass suborbital descent reads 100 on the bar, and *that calibration is
+performed with the crew's own ship*. Change the ship and you change what "100" means, which
+changes whether an unstaged pass clears it — even though `unstaged_heat_multiplier` (3) and
+`heat_capacity` (100) are identical across both runs. Dry mass moved 900 → 1350 kg and
+reference area 3.5 → 3.1 m² between them, and `difficulty_rises_with_band` nearly doubling
+in the same run points the same way.
+
+So the split is not world-only versus ship-dependent. **Every target is ship-dependent**,
+because the normalisation every heat figure is quoted against is itself measured off the
+ship. The safe reading is the one the section above already lands on, only stronger: a sweep
+rate is a statement about a world grid crossed with one particular ship, catalog and params.
+There is no subset of these numbers that can be quoted free of that.
+
+This is inferred from the parameters that changed, not proven by an experiment that holds the
+ship fixed and varies nothing else. That experiment is cheap — `bench.js` can do it — and it
+has not been run.
+
 Two specifics worth recording:
 
 - **The base tank is oversized for the slice.** All three bands are reachable at base config,
@@ -275,6 +382,48 @@ Two specifics worth recording:
   that same speed back. The greedy-haul crossing that justifies the Parachute upgrade is
   asserted arithmetic, never a flight. Adding `parachute_area_m2` to the params would make it
   measurable.
+
+---
+
+## 10. The constant that produced three runs of a false finding
+
+Not a GDD change. A correction to this document and to the crew that wrote it, recorded here
+because the failure mode is the interesting part and it has now happened three times.
+
+`lib/sweep.js` measured what skimming does by flying shallow passes at a **hardcoded**
+altitude, `atmTop * 0.87`, on the reasoning that a skim should be high and thin. On the
+shipped planet that is twelve scale heights up, at ρ = 8.6e-6 kg/m³. There is no air there.
+The skims shed nothing, the measured multiplier came back at 0.97, and everything downstream
+behaved impeccably on top of a number that was an artifact of a constant:
+
+- the Balancer priced a mechanic the simulator had told it was worthless;
+- the Auditor confirmed the pricing was internally consistent, which it was;
+- §7 of this document concluded that skimming does not work and that §1 must be wrong;
+- three successive runs re-measured it and got the same wrong answer with better precision,
+  which read as convergence.
+
+Scanned across 0.35–0.95 of the atmosphere instead, one skim takes the high band's committed
+entry from 159.9 to 78.0 on the bar. The corrected multipliers are 0.697 / 0.526 / 0.439 for
+suborbital / low / high, against 0.907 / 0.956 / 0.972 before — and the ordering inverts, so
+skimming helps most from the high band rather than least.
+
+**The pattern.** This is the third instance of one bug, and they are worth listing together:
+
+| constant | what it was | what it made the crew report |
+|---|---|---|
+| fuel tank & engine | fixed 620 kg tank, 1.8 TWR | worlds scored with a ship that could not reach orbit in them |
+| skim altitude | `atmTop * 0.87` | "skimming does not cool the entry" |
+| band altitude | `atmTop * [1.6, 2.6, 4.2]` | **still fixed** — the grid cannot test the one geometry that governs multi-pass |
+
+Each time, a value nobody swept was reported as a property of the design. The exploration
+grid varies seven axes and is careful about all of them; the constants outside it were never
+questioned, and they are where every false finding has come from.
+
+**The check that would have caught it:** none of the crew's gates can. The schema validates
+shape, the audit validates the params against the design document, and both were satisfied.
+What was wrong was the *instrument*, and nothing audits the instrument. The nearest thing is
+the discipline already written into the `SCAN_SAMPLES` comment — measure the constant, do not
+choose it — and that discipline had simply never been applied to this one.
 
 ---
 

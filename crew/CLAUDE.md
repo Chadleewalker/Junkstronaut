@@ -1,6 +1,6 @@
 # Junkstronaut Tuning Crew — instructions for Claude Code
 
-This folder is a four-agent crew that produces the config file for **Junkstronaut**, a 2D
+This folder is a five-agent crew that produces the config file for **Junkstronaut**, a 2D
 game about salvaging space junk. Read `README.md` for what it does.
 
 ## If the user asks to run the crew
@@ -39,6 +39,20 @@ Read `out/audit/audit_report.md` and tell them:
 4. Anything in the report's **Observations** section — those satisfy the spec but are
    flagged for a human to look at before flying the numbers. They are usually the most
    interesting part of the run, because they are what a passing audit could not catch.
+
+## Tests
+
+`node --test "test/*.test.js"` from this folder. No credentials, about a second.
+
+Use that exact form. `node --test test/` does not resolve, and a bare `node --test` picks up
+`test/fixtures/fake-agent.js` — which is a stand-in for the CLI, not a test — and blocks
+forever waiting for a prompt on stdin.
+
+Run it after touching anything in `lib/` or `run-crew.js`. It exists because `--stub` is not
+a test: a replay reads its sweep from `stubs/`, so it never executes a single line of
+`lib/sim.js` or the scoring in `lib/sweep.js` — the exact place the project's interesting
+claims come from. The suite covers the schema validator, envelope parsing, the ablation rule,
+the full-hold mass, the retry-with-feedback loop, and the audit routing.
 
 ## Do not
 

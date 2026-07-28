@@ -17,7 +17,7 @@ it sells for — all of it. This crew is what writes that file.
 
 The crew doesn't just argue about the numbers. A **flight simulator** sits in the middle of
 it: it launches the ship, aerobrakes it and lands it, thousands of times, across every
-altitude band and cargo load. Then it does the same across a grid of 324 different worlds —
+altitude band and cargo load. Then it does the same across a grid of 5,184 different worlds —
 varying gravity, air density, ship mass and frontal area — to find where the design's own
 targets are achievable at all. So when the crew says a full hold lands at 4.4 m/s, that is
 a measurement, not an argument.
@@ -39,10 +39,13 @@ node run-crew.js
 
 That's it. It prints what it's doing as it goes, and everything it makes lands in `out/`.
 
-**It takes 30 to 45 minutes.** Most of that is agents thinking hard — the Balancer solves
-every design constraint at once, the Auditor recomputes all of them — plus about eight
-minutes of the simulator flying 324 worlds. If you only want to confirm the thing runs, use
-the replay below instead.
+**Budget an hour and a half.** A clean pass is 30–40 minutes; a run that fails its audit and
+takes both revision rounds — which is the normal outcome on the current design — took 93
+minutes the last time it was recorded. Most of that is agents thinking hard, the Balancer
+solving every design constraint at once and the Auditor recomputing all of them, plus about
+eighteen minutes of simulator per round: the exploration grid is re-flown every round, because
+a revision moves the very numbers it scores against. If you only want to confirm the thing
+runs, use the replay below instead.
 
 ### No credentials? Run this instead
 
@@ -74,6 +77,11 @@ There is no Docker, no `npm install`, no Godot needed. The crew has zero depende
 
 `--reuse researcher` is the useful one while iterating: the Researcher's answer doesn't
 change when you edit a downstream agent, and skipping it saves about nine minutes a run.
+
+Replaying the Researcher, the catalog and the params for a round also restores that round's
+recorded sweep, so resuming an interrupted run doesn't re-fly a grid whose inputs never
+changed. All three have to be replayed, not just the params — a live Designer revision moves
+the full hold mass, which moves every target that reads a hold.
 
 A full live run takes roughly 30–45 minutes, most of it the Balancer and the Auditor
 thinking. Set `JUNK_MODEL=sonnet` for a faster, cheaper run.
@@ -144,7 +152,14 @@ the finished game. The Auditor turns each one into a check and does the arithmet
 
 - A full cargo hold roughly doubles the ship's mass
 - The cheapest way down is 2 to 4 aerobraking passes — never one dive, never a dozen
+- The skim cost curve bottoms out at 1 to 2 skims from the high band, and reproduces its own
+  coefficients — a separate question from the one above, and checked separately, because a
+  skim and a pass are different things and mixing them up produced three wrong answers before
+  anyone noticed
 - A fully loaded ship under a parachute lands *just* under the 5 m/s soft-landing line
+- The claimed descent speed is what the stated canopy actually flies — the parachute's area
+  is in the config, so the simulator flies it instead of solving it backwards out of the
+  answer it was supposed to be checking
 - The tow fee never goes above 50% and never goes below zero
 - A lazy run still breaks even
 - Towing junk normally never rips a magnet off — only yanking it does
@@ -177,7 +192,7 @@ params/baseline.json       the physics, with the math shown
 audit/audit_report.md      every rule checked, pass or fail, with evidence
 playtest/playtest_report.json    what the flights measured vs what was claimed
 playtest/sweep_verification.json every scenario flown with these numbers
-playtest/sweep_exploration.json  324 worlds scored against 7 design targets
+playtest/sweep_exploration.json  5,184 worlds scored against 8 design targets
 report/dashboard.html      the charts — open this one in a browser
 run.json                   what ran, how long it took, which model
 logs/                      every prompt sent and every reply received
@@ -185,6 +200,11 @@ logs/                      every prompt sent and every reply received
 
 The `.tres` and `.gd` files drop straight into a Godot project under `config/`. They are
 the point of the whole thing.
+
+`out/` is committed, so you can read a finished run without running one. It is a sample, not
+a build artifact: a replay overwrites it, and `run.json` and `dashboard.html` will each come
+back one line different because they carry the time the run finished. That churn is the
+timestamp and nothing else.
 
 ### The charts
 
@@ -226,11 +246,12 @@ It keeps a hard line between two kinds of number:
   applying the crew's rules is what lets the sweep answer "is the cheapest descent really
   2–4 passes" by measurement, instead of by restating the formula that claimed it.
 
-Then it sweeps. 324 worlds, varying gravity, air density, atmosphere thickness, the ship's
-frontal area and its dry mass, each scored against seven targets pulled from the design:
-are both bands reachable, does aerobraking exist at all, is the cheapest descent 2–4 passes,
-is an unstaged braking pass survivable, does a full hold land soft, does greed cost
-something, does the return leg get harder with altitude.
+Then it sweeps. 5,184 worlds, varying planet radius, gravity, air density, the ship's frontal
+area, its dry mass, its tank size and its engine, each scored against eight targets pulled
+from the design: are both bands reachable, is the fuel margin sane, does skimming actually
+cool the committed entry, does that benefit saturate, is an unstaged braking pass survivable,
+does a full hold land soft, does greed cost something, does the return leg get harder with
+altitude. (`node bench.js --targets` prints them with what each one asks for.)
 
 That's the part a single config can never answer. Not *"are these numbers good"* but
 *"where in the parameter space is there a good set of numbers at all"* — and if almost
@@ -268,17 +289,38 @@ it. This folder runs on its own.
 
 ```
 run-crew.js              the orchestrator — start here
-agents/                  the four agents, one markdown file each
+bench.js                 score candidate configs against the design targets, one at a time
+agents/                  the five agents, one markdown file each
 schemas/                 the JSON contract for each agent's output
 lib/agent.js             runs one agent, validates it, retries with the error
 lib/schema.js            the JSON Schema checker (hand-rolled, no dependencies)
 lib/sim.js               the 2D flight model
-lib/sweep.js             the scenario matrix and the 324-world grid
+lib/sweep.js             the scenario matrix and the 5,184-world grid
 lib/godot.js             writes the .tres and .gd files
 lib/charts.js            renders the dashboard
+test/                    the test suite — no credentials, about a second
 stubs/                   a recorded run, for --stub mode
 DIAGRAM.md               architecture diagrams
 ```
+
+### Tests
+
+```bash
+node --test "test/*.test.js"
+```
+
+68 tests, no credentials, no install, about a second. They cover the schema validator, the
+envelope parser, the ablation rule, the full-hold mass, the retry-with-feedback loop and the
+audit routing.
+
+Use that exact invocation. `node --test test/` does not resolve, and a bare `node --test`
+discovers `test/fixtures/fake-agent.js` — a stand-in for the CLI rather than a test — and
+hangs waiting for a prompt on stdin.
+
+It exists because **`--stub` is not a test.** A replay reads its sweep straight out of
+`stubs/`, so it never executes a line of `lib/sim.js` or the scoring in `lib/sweep.js` —
+which is precisely where everything interesting in this project is measured. The replay
+proves the orchestrator still runs; the tests prove the physics and the plumbing still work.
 
 ## The shape of it
 

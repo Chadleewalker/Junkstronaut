@@ -465,7 +465,10 @@ function chartTargets(exploration) {
 
 // Claim against measurement, side by side. This table is the entire argument for having a
 // simulator: every row is something an agent asserted and the flight model then checked.
-function claimedVsMeasured(verification, params) {
+// Split from its renderer so the read-first banner can count how many claims the flights
+// disagreed with. One source of truth for that number: the summary at the top and the table
+// below it cannot drift apart, because they are the same array.
+function claimRows(verification, params) {
   const rows = [];
   const num = (n, dp = 1) => (Number.isFinite(n) ? n.toFixed(dp) : '—');
 
@@ -526,6 +529,11 @@ function claimedVsMeasured(verification, params) {
     ok: bc.staged_kg_m2 >= 50,
   });
 
+  return rows;
+}
+
+function claimedVsMeasured(verification, params) {
+  const rows = claimRows(verification, params);
   return `<table class="data">
     <thead><tr><th>Quantity</th><th>What the params claim</th><th>What the flights measured</th><th></th></tr></thead>
     <tbody>${rows.map((r) => `<tr>
@@ -536,7 +544,7 @@ function claimedVsMeasured(verification, params) {
     </tr>`).join('')}</tbody></table>`;
 }
 
-function playtestCard(playtest, verification, exploration, params) {
+function playtestCard(playtest, verification, exploration, params, t) {
   if (!playtest || !verification || !exploration) return '';
   const sev = { blocking: 'bad', significant: 'bad', minor: '' };
   const findings = playtest.findings.map((f) => `<li>
@@ -571,27 +579,25 @@ function playtestCard(playtest, verification, exploration, params) {
     : '';
 
   return `
-  <div class="card">
-    <h2>What the flights measured</h2>
-    <p class="lede">Every other agent reasons about these numbers. The simulator flew them —
-      launch, aerobrake, land — across every band and cargo load. Where a row below says
-      <i>does not hold</i>, an agent asserted something the physics disagreed with.</p>
-    ${claimedVsMeasured(verification, params)}
-  </div>
+  ${card('flights', 'What the flights measured', t && t.flights,
+    `Every other agent reasons about these numbers. The simulator flew them — launch, aerobrake,
+     land — across every band and cargo load. Where a row says <i>does not hold</i>, an agent
+     asserted something the physics disagreed with.`,
+    claimedVsMeasured(verification, params))}
 
-  <div class="card">
-    <h2>Where the design's targets are reachable at all</h2>
-    <p class="lede">${esc(String(exploration.total_configs))} worlds, varying gravity, air density,
-      atmosphere thickness, ship frontal area and dry mass. Each scored against seven targets
-      taken from the design document. A short bar means almost no configuration anywhere
-      satisfies that target — which is a fact about the rule, not about the current numbers.</p>
-    ${chartTargets(exploration)}
-    ${bestLine}
-  </div>
+  ${card('targets', "Where the design's targets are reachable at all", t && t.targets,
+    `${esc(String(exploration.total_configs))} worlds, varying planet radius, gravity, air density,
+     ship frontal area, dry mass, tank size and engine. Each scored against
+     ${esc(String(Object.keys(exploration.target_satisfaction_rate || {}).length))} targets taken
+     from the design document. A short bar means almost no configuration anywhere satisfies that
+     target — which is a fact about the rule, not about the current numbers.`,
+    chartTargets(exploration) + bestLine)}
 
-  <div class="card">
+  <div class="card" id="playtest">
     <h2>Playtest — ${esc(playtest.verdict.replace(/_/g, ' '))}</h2>
-    <p class="lede">${esc(playtest.summary)}</p>
+    ${t && t.playtest ? `<p class="takeaway"><span class="chip ${t.playtest.state}">${esc(t.playtest.label)}</span><span>${esc(t.playtest.text)}</span></p>` : ''}
+    <details class="explain"><summary>What am I looking at?</summary>
+      <p class="lede">${esc(playtest.summary)}</p></details>
     <ul class="findings">${findings}</ul>
     ${proposals}
     <details><summary>What the simulator cannot tell you</summary>
@@ -646,8 +652,226 @@ function legend() {
   </div>`;
 }
 
+// ---------------------------------------------------------------- reading the page
+//
+// Everything below computes ONE SENTENCE per card from the data on that card, and a
+// five-second summary for the top. None of it is written prose: if a takeaway states a
+// number, that number came out of the same array the chart beside it plots. The page used to
+// open every card with three sentences of explanation and no verdict, which made a long
+// report where nothing looked more important than anything else.
+
+function pearson(xs, ys) {
+  const n = xs.length;
+  if (n < 3) return null;
+  const mx = xs.reduce((a, b) => a + b, 0) / n;
+  const my = ys.reduce((a, b) => a + b, 0) / n;
+  let sxy = 0, sxx = 0, syy = 0;
+  for (let i = 0; i < n; i++) {
+    const dx = xs[i] - mx, dy = ys[i] - my;
+    sxy += dx * dy; sxx += dx * dx; syy += dy * dy;
+  }
+  return sxx > 0 && syy > 0 ? sxy / Math.sqrt(sxx * syy) : null;
+}
+
+// Value per cargo slot, per band, per size class — the number behind "is one class best".
+function valuePerSlotByBand(catalog, params) {
+  const tier = params.cargo.compactor_tier;
+  const out = {};
+  for (const band of BANDS) {
+    const byClass = {};
+    for (const d of catalog.debris) {
+      if (d.band !== band) continue;
+      const cls = catalog.size_classes[d.size_class];
+      if (!cls || !cls.hand_tetherable) continue;
+      const slots = (!d.fragile && tier >= 1) ? cls.slots_crushed : cls.slots_uncrushed;
+      if (!(slots > 0)) continue;
+      (byClass[d.size_class] = byClass[d.size_class] || []).push(pieceValue(d, params) / slots);
+    }
+    const means = Object.entries(byClass)
+      .map(([k, v]) => [k, v.reduce((a, b) => a + b, 0) / v.length])
+      .sort((a, b) => b[1] - a[1]);
+    if (means.length) out[band] = means;
+  }
+  return out;
+}
+
+function takeaways({ catalog, params, audit, playtest, sweeps }) {
+  const t = {};
+  const v = sweeps && sweeps.verification;
+  const e = sweeps && sweeps.exploration;
+
+  // --- the audit
+  const failed = audit.checks.filter((c) => c.result === 'fail');
+  t.audit = failed.length
+    ? { state: 'bad', label: `${failed.length} failed`,
+        text: `${audit.checks.length - failed.length} of ${audit.checks.length} rules hold. Failing: ` +
+              failed.map((c) => c.rule_id).join(', ') + '.' }
+    : { state: 'good', label: 'all pass',
+        text: `All ${audit.checks.length} rules in the design document hold at these numbers.` };
+
+  // --- claims against flights
+  if (v) {
+    const rows = claimRows(v, params);
+    const bad = rows.filter((r) => !r.ok);
+    t.flights = bad.length
+      ? { state: 'bad', label: `${bad.length} disagree`,
+          text: `${bad.length} of ${rows.length} things the params claim are contradicted by the flights: ` +
+                bad.map((r) => r.what.toLowerCase()).join('; ') + '.' }
+      : { state: 'good', label: 'all hold',
+          text: `All ${rows.length} claims the params make survived being flown.` };
+  }
+
+  // --- exploration targets
+  if (e && e.target_satisfaction_rate) {
+    const rates = Object.entries(e.target_satisfaction_rate).sort((a, b) => a[1] - b[1]);
+    const [scarce, rate] = rates[0];
+    t.targets = {
+      state: rate < 0.15 ? 'bad' : rate < 0.4 ? 'warn' : 'good',
+      label: `${(rate * 100).toFixed(0)}% scarcest`,
+      text: `Hardest target to satisfy anywhere is ${scarce.replace(/_/g, ' ')}, met by ` +
+            `${(rate * 100).toFixed(1)}% of ${e.total_configs} worlds. A target almost nothing ` +
+            `satisfies is a statement about the rule, not about these numbers.`,
+    };
+  }
+
+  // --- the design's central bet
+  const priced = catalog.debris.map((d) => ({ m: d.mass_kg, v: pieceValue(d, params) }));
+  const r = pearson(priced.map((x) => x.m), priced.map((x) => x.v));
+  t.debris = r === null
+    ? { state: 'info', label: 'n/a', text: 'Not enough pieces to test the relationship.' }
+    : { state: r >= 0.5 ? 'good' : r >= 0.2 ? 'warn' : 'bad',
+        label: `r = ${r.toFixed(2)}`,
+        text: r >= 0.5
+          ? `Value rises with mass (r = ${r.toFixed(2)}), so the valuable haul really is the heavy one — the design's central bet holds.`
+          : `Value barely tracks mass (r = ${r.toFixed(2)}). The heavy pieces are not the valuable ones, so upgrades will outrun difficulty.` };
+
+  // --- the ablation optimum
+  const os = params.ablation.optimal_skims || {};
+  const high = os.high;
+  const inWindow = high === 1 || high === 2;
+  const noneExceed = BANDS.every((b) => os[b] === undefined || os[b] <= high);
+  // A skim and a pass are different quantities, and this chart plots skims. Saying "as
+  // designed" here while the audit fails the PASS-count rule reads as the page contradicting
+  // itself, so the caveat is carried explicitly. Conflating the two axes is the mistake that
+  // produced three runs of a wrong answer; the report should not reintroduce it.
+  const passRule = audit.checks.find((c) => c.rule_id === 'cheapest_descent_is_multi_pass');
+  const passFailed = passRule && passRule.result === 'fail';
+  t.ablation = {
+    state: inWindow && noneExceed ? (passFailed ? 'warn' : 'good') : 'bad',
+    label: inWindow && noneExceed ? (passFailed ? 'curve ok, rule fails' : 'as designed') : 'off target',
+    text: `Cheapest descent is ${BANDS.map((b) => `${os[b]} skim${os[b] === 1 ? '' : 's'} from ${BAND_LABEL[b].toLowerCase()}`).join(', ')}. ` +
+      (inWindow
+        ? (noneExceed ? 'The high band sits in the 1–2 skim window and no band exceeds it, as §2.3.1 asks.'
+                      : 'The high band is in the 1–2 window, but a lower band needs more skims than it — the return leg gets easier with altitude, which inverts the design.')
+        : 'The high band should bottom out at 1 or 2 skims and does not.') +
+      (passFailed
+        ? ' This is the SKIM axis and it passes. The separate rule about how many atmospheric' +
+          ' PASSES the cheapest descent takes fails — see the audit. The two are different' +
+          ' manoeuvres and neither is evidence about the other.'
+        : ''),
+  };
+  t.surface = {
+    state: 'info', label: 'read the valley',
+    text: 'The dark line along the floor is the cheapest strategy at every entry speed. ' +
+      `It should stay in the 1–2 skim band across the whole span; here it sits at ${os.high}.`,
+  };
+
+  // --- is any size class strictly best
+  const vps = valuePerSlotByBand(catalog, params);
+  const winners = Object.values(vps).map((m) => m[0][0]);
+  const dominant = winners.length && winners.every((w) => w === winners[0]);
+  t.slots = winners.length
+    ? { state: dominant ? 'warn' : 'good',
+        label: dominant ? `${winners[0]} always wins` : 'it depends',
+        text: dominant
+          ? `${winners[0]} pays best per slot in every band, so what to grab stops being a choice — the player learns the rule once.`
+          : `The best class per slot changes by band (${Object.entries(vps).map(([b, m]) => `${BAND_LABEL[b].toLowerCase()}: ${m[0][0]}`).join(', ')}), so the greed decision survives.` }
+    : { state: 'info', label: 'n/a', text: 'No hand-tetherable pieces to compare.' };
+
+  // --- the playtest
+  if (playtest) {
+    const blocking = (playtest.findings || []).filter((f) => f.severity === 'blocking').length;
+    t.playtest = {
+      state: blocking ? 'bad' : playtest.verdict === 'pass' ? 'good' : 'warn',
+      label: playtest.verdict.replace(/_/g, ' '),
+      text: `${(playtest.findings || []).length} findings, ${blocking} blocking, ` +
+            `${(playtest.proposed_changes || []).length} proposed value changes.`,
+    };
+  }
+
+  t.catalog = {
+    state: 'info', label: `${catalog.debris.length} pieces`,
+    text: `${catalog.debris.length} debris types, ${catalog.debris.filter((d) => d.fragile).length} fragile, priced across three bands.`,
+  };
+  return t;
+}
+
+// The five-second version. Ordered by what would change a decision, not by page order.
+function readFirst({ params, audit, playtest, sweeps, t }) {
+  const items = [];
+  const failed = audit.checks.filter((c) => c.result === 'fail');
+
+  if (failed.length) {
+    items.push(`<b>${failed.length} design rule${failed.length === 1 ? '' : 's'} could not be satisfied.</b> ` +
+      failed.map((c) => `<code>${esc(c.rule_id)}</code>`).join(', ') +
+      ` — <a href="#audit">the audit</a> shows the arithmetic. A rule that fails after two revision ` +
+      `rounds is a finding about the design, not a number waiting to be tuned.`);
+  }
+
+  const v = sweeps && sweeps.verification;
+  if (v) {
+    const bad = claimRows(v, params).filter((r) => !r.ok);
+    if (bad.length) {
+      items.push(`<b>${bad.length} claim${bad.length === 1 ? '' : 's'} the params make ${bad.length === 1 ? 'is' : 'are'} contradicted by the flights.</b> ` +
+        esc(bad.map((r) => r.what.toLowerCase()).join('; ')) +
+        ` — <a href="#flights">claimed against measured</a>.`);
+    }
+  }
+
+  const e = sweeps && sweeps.exploration;
+  if (e && e.target_satisfaction_rate) {
+    const [scarce, rate] = Object.entries(e.target_satisfaction_rate).sort((a, b) => a[1] - b[1])[0];
+    items.push(`<b>${esc(scarce.replace(/_/g, ' '))}</b> is satisfied by only ` +
+      `${(rate * 100).toFixed(1)}% of ${e.total_configs} worlds — <a href="#targets">the target scan</a>. ` +
+      `Almost nowhere in the whole parameter space works for that rule.`);
+  }
+
+  const blocking = playtest ? (playtest.findings || []).filter((f) => f.severity === 'blocking') : [];
+  if (blocking.length) {
+    items.push(`<b>${blocking.length} blocking playtest finding${blocking.length === 1 ? '' : 's'}</b> — ` +
+      `<a href="#playtest">what the flights actually did</a>.`);
+  }
+
+  if (!items.length) {
+    items.push('<b>Nothing is failing.</b> Every rule holds, every claim survived being flown, ' +
+      'and no target is unreachable. Read the observations before flying it anyway.');
+  }
+
+  const verdict = audit.verdict === 'pass'
+    ? 'The numbers obey every rule in the design document.'
+    : `The numbers obey ${audit.checks.length - failed.length} of ${audit.checks.length} rules in the design document.`;
+
+  return `<div class="readfirst" id="top">
+    <h2>Read this first</h2>
+    <p class="headline">${esc(verdict)} ${esc(audit.summary || '')}</p>
+    <ol>${items.map((i) => `<li>${i}</li>`).join('')}</ol>
+  </div>`;
+}
+
+// title + one computed verdict line + the chart, with the explanation tucked behind a
+// disclosure. `explain` is trusted HTML from this file; everything else is escaped.
+function card(id, title, take, explain, body) {
+  return `<div class="card" id="${esc(id)}">
+    <h2>${esc(title)}</h2>
+    ${take ? `<p class="takeaway"><span class="chip ${take.state}">${esc(take.label)}</span><span>${esc(take.text)}</span></p>` : ''}
+    ${explain ? `<details class="explain"><summary>What am I looking at?</summary><p class="lede">${explain}</p></details>` : ''}
+    ${body}
+  </div>`;
+}
+
 function renderDashboard({ baseline, catalog, params, audit, manifest, playtest, sweeps }) {
   const failed = audit.checks.filter((c) => c.result === 'fail');
+  const t = takeaways({ catalog, params, audit, playtest, sweeps });
 
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
@@ -663,13 +887,16 @@ function renderDashboard({ baseline, catalog, params, audit, manifest, playtest,
     --text-primary:#0b0b0b; --text-secondary:#52514e; --muted:#898781;
     --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
     --band-suborbital:#2a78d6; --band-low:#eb6834; --band-high:#1baf7a;
-    --good:#0ca30c; --bad:#d03b3b; --target:rgba(42,120,214,.07);
+    --accent:#2a78d6;
+    --good:#0ca30c; --bad:#d03b3b; --warn:#fab219; --serious:#ec835a;
+    --target:rgba(42,120,214,.07);
   }
   @media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])) .viz-root{
     --plane:#0d0d0d; --surface-1:#1a1a19;
     --text-primary:#fff; --text-secondary:#c3c2b7; --muted:#898781;
     --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
     --band-suborbital:#3987e5; --band-low:#d95926; --band-high:#199e70;
+    --accent:#3987e5;
     --target:rgba(57,135,229,.10);
   }}
   :root[data-theme="dark"] .viz-root{
@@ -677,6 +904,7 @@ function renderDashboard({ baseline, catalog, params, audit, manifest, playtest,
     --text-primary:#fff; --text-secondary:#c3c2b7; --muted:#898781;
     --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
     --band-suborbital:#3987e5; --band-low:#d95926; --band-high:#199e70;
+    --accent:#3987e5;
     --target:rgba(57,135,229,.10);
   }
   .viz-root{background:var(--plane);min-height:100vh;padding:32px 20px 64px}
@@ -713,6 +941,36 @@ function renderDashboard({ baseline, catalog, params, audit, manifest, playtest,
   .findings li{display:flex;align-items:center;gap:8px;padding:5px 0}
   .verdict{font-weight:600}
   .verdict.good{color:var(--good)} .verdict.bad{color:var(--bad)}
+
+  /* Read-first banner. The page is long and everything in it used to look equally
+     important; this is the five-second version, and every line points at a card. */
+  .readfirst{background:var(--surface-1);border:1px solid var(--border);
+    border-left:4px solid var(--accent);border-radius:12px;padding:18px 20px;margin:0 0 20px}
+  .readfirst h2{margin:0 0 6px;font-size:17px}
+  .readfirst .headline{font-size:15px;color:var(--text-primary);margin:0 0 12px}
+  .readfirst ol{margin:0;padding-left:20px}
+  .readfirst li{margin:7px 0;font-size:14px;color:var(--text-secondary)}
+  .readfirst a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+  .readfirst b{color:var(--text-primary)}
+
+  /* One computed sentence per card, sitting above the chart. Never hand-written prose:
+     if it says a number, that number came out of the data on this page. */
+  .takeaway{display:flex;gap:9px;align-items:baseline;margin:2px 0 12px;font-size:14px;
+    color:var(--text-primary);line-height:1.5}
+  .chip{flex:none;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    border-radius:20px;padding:2px 9px;border:1px solid currentColor}
+  .chip.good{color:var(--good)} .chip.bad{color:var(--bad)}
+  .chip.warn{color:#8a6200} .chip.info{color:var(--text-secondary)}
+  @media (prefers-color-scheme:dark){ .chip.warn{color:var(--warn)} }
+
+  /* The explanation is still here, just not shouting. Collapsed by default so the page
+     reads as chart-then-verdict rather than three paragraphs then a chart. */
+  .explain{margin:0 0 12px}
+  .explain summary{cursor:pointer;color:var(--text-secondary);font-size:13px;
+    list-style:none;display:inline-block;border-bottom:1px dotted var(--muted)}
+  .explain summary::-webkit-details-marker{display:none}
+  .explain summary:hover{color:var(--accent)}
+  .explain .lede{margin:8px 0 0}
   .caption{color:var(--text-secondary);font-size:13.5px;margin:14px 0 0}
   table.data{width:100%;border-collapse:collapse;font-size:13.5px}
   table.data th{text-align:left;color:var(--muted);font-weight:600;font-size:12px;
@@ -736,44 +994,40 @@ function renderDashboard({ baseline, catalog, params, audit, manifest, playtest,
 
   ${statTiles({ catalog, params, audit, manifest })}
 
-  <div class="card">
-    <h2>Value costs mass</h2>
-    <p class="lede">The design's central bet (§2.3.7): the better the haul, the harder the ride
-      home. If this cloud trends up and to the right, the bet holds — the valuable pieces are
-      the heavy ones. A flat cloud means upgrades will outrun difficulty.</p>
-    ${chartDebris(catalog, params)}
-    ${legend()}
-  </div>
+  ${readFirst({ params, audit, playtest, sweeps, t })}
 
-  <div class="card">
-    <h2>The ablation curve</h2>
-    <p class="lede">The hardest constraint in the document (§2.3.1). One screaming plunge is
-      expensive; a dozen feather-light passes are expensive; the cheapest descent should be a
-      planned 2–4 committed passes. Each ring marks where that band's curve bottoms out.</p>
-    ${chartAblation(params)}
-  </div>
+  ${card('debris', 'Value costs mass', t.debris,
+    `The design's central bet (§2.3.7): the better the haul, the harder the ride home. If this
+     cloud trends up and to the right, the bet holds — the valuable pieces are the heavy ones.
+     A flat cloud means upgrades will outrun difficulty.`,
+    chartDebris(catalog, params) + legend())}
 
-  <div class="card">
-    <h2>Is any size class strictly best?</h2>
-    <p class="lede">Value per cargo slot. If one class towers over the others at every band,
-      the greed decision collapses — the player just learns the rule and stops choosing.</p>
-    ${chartValuePerSlot(catalog, params)}
-    ${legend()}
-  </div>
+  ${card('ablation', 'The ablation curve', t.ablation,
+    `The hardest constraint in the document (§2.3.1). One screaming plunge is expensive; a dozen
+     feather-light passes are expensive; the cheapest descent should be a planned 2–4 committed
+     passes. Each ring marks where that band's curve bottoms out. These are the Balancer's own
+     numbers plotted verbatim, not the renderer's arithmetic — so the curve and the audit
+     beneath it can never disagree.`,
+    chartAblation(params))}
 
-  <div class="card">
-    <h2>The ablation surface</h2>
-    <p class="lede">Plate burned as a function of both inputs at once — how fast you are coming
-      in, and how many passes you split it into. Two independent variables and one output, so
-      this is the one place a surface beats a line chart.</p>
-    ${chartSurface(params)}
-  </div>
+  ${card('slots', 'Is any size class strictly best?', t.slots,
+    `Value per cargo slot. If one class towers over the others at every band, the greed decision
+     collapses — the player just learns the rule and stops choosing.`,
+    chartValuePerSlot(catalog, params) + legend())}
 
-  ${playtestCard(playtest, sweeps && sweeps.verification, sweeps && sweeps.exploration, params)}
+  ${card('surface', 'The ablation surface', t.surface,
+    `Plate burned as a function of both inputs at once — how fast you are coming in, and how many
+     passes you split it into. Two independent variables and one output, so this is the one place
+     a surface beats a line chart.`,
+    chartSurface(params))}
 
-  <div class="card">
+  ${playtestCard(playtest, sweeps && sweeps.verification, sweeps && sweeps.exploration, params, t)}
+
+  <div class="card" id="audit">
     <h2>Spec audit — ${esc(audit.verdict.toUpperCase())}</h2>
-    <p class="lede">${esc(audit.summary)}</p>
+    ${t.audit ? `<p class="takeaway"><span class="chip ${t.audit.state}">${esc(t.audit.label)}</span><span>${esc(t.audit.text)}</span></p>` : ''}
+    <details class="explain"><summary>What am I looking at?</summary>
+      <p class="lede">${esc(audit.summary)}</p></details>
     ${failed.length ? failed.map((c) => `<div class="fail">
         <b>${esc(c.rule_id)}</b> — GDD §${esc(c.gdd_ref)}<br>${esc(c.statement)}<br>
         <span style="color:var(--text-secondary)">Found: ${esc(c.evidence)}</span></div>`).join('')
@@ -787,11 +1041,9 @@ function renderDashboard({ baseline, catalog, params, audit, manifest, playtest,
       <ul class="findings">${params.catalog_concerns.map((c) => `<li>${esc(c)}</li>`).join('')}</ul></details>` : ''}
   </div>
 
-  <div class="card">
-    <h2>The catalog</h2>
-    <p class="lede">Every piece the crew authored and priced. Sorted by band, then by value.</p>
-    ${debrisTable(catalog, params)}
-  </div>
+  ${card('catalog', 'The catalog', t.catalog,
+    'Every piece the crew authored and priced. Sorted by band, then by value.',
+    debrisTable(catalog, params))}
 
 </div></div>
 <div id="tip"></div>

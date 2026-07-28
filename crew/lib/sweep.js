@@ -88,45 +88,163 @@ function fullHoldMass(catalog, params) {
 // The three earlier versions: one periapsis for the whole descent (skims were really a
 // decay); a per-band heat normalisation (every row scaled to itself); and this one, picking
 // the coolest entry available per skim count. All three produced confident, wrong flat lines.
-function skimStudy(world, cfg, startAlt, params, band, cargoMass) {
-  const skimAlt = world.atmTop * 0.87;          // high and thin: a real skim, not a decay
+// WHERE the skims are flown, and the constant that cost this crew three runs.
+//
+// The skim altitude used to be fixed at `atmTop * 0.87`, on the reasoning that a skim should
+// be high and thin. On the shipped planet that is twelve scale heights up — rho 8.6e-6 kg/m3,
+// which is vacuum with extra steps. Skims flown there shed no measurable velocity, the
+// measured multiplier came back at 0.97, and the Balancer faithfully priced a mechanic the
+// simulator had just told it was worthless. Scanned instead, ONE skim at 0.60 * atmTop takes
+// the high band's committed entry from 159.9 to 78.0 on the bar — a 51% cut, which is the
+// effect the design always claimed.
+//
+// That also settles a contradiction the change proposal has carried for three runs: its
+// section 1 measured skims cooling an entry by 22-50% and its section 7 measured 2.8% and
+// concluded one of them had to be wrong. Neither was. Section 1 flew skims deep enough to
+// bite; section 7 flew them in vacuum.
+//
+// The general lesson is the one the tank, the engine and the band altitudes each taught
+// separately: a constant the sweep never questions is not a measurement. It is an assumption
+// wearing a measurement's clothes, and it gets reported as a property of the design.
+const SKIM_ALT_MIN_FRAC = 0.35;
+const SKIM_ALT_MAX_FRAC = 0.95;
+const SKIM_ALT_SAMPLES = Number(process.env.JUNK_SKIM_ALT_SAMPLES) || 13;
+// The exploration grid pays this per cell. It is set to the same 13, and the reason is worth
+// writing down because it is NOT the reason SCAN_SAMPLES is 50.
+//
+// Measured against a 41-sample reference over 91 cells spread across the whole grid, scoring
+// the two targets that read this study (skimming_cools_the_entry, skim_benefit_saturates):
+//
+//   samples   verdicts changed   worst multiplier deviation
+//      31          4.40%                  0.048
+//      25          6.04%                  0.064
+//      21          2.75%                  0.110
+//      17          5.49%                  0.117
+//      13          4.40%                  0.120
+//
+// The measured VALUE converges — deviation falls steadily with resolution. The VERDICTS do
+// not: the flip rate bounces between 2.75% and 6.04% with no trend, and 31 samples is no
+// more stable than 13 while costing 2.4x as much. That is the signature of threshold
+// sensitivity rather than scan noise. `skimming_cools_the_entry` asks whether the multiplier
+// is at or below 0.85, and a few percent of cells sit within 0.05 of that line, so they flip
+// on any perturbation at all. No achievable resolution fixes them, because the instability
+// is in the question, not in the answer.
+//
+// So resolution is chosen for accuracy of the number rather than stability of the boolean.
+//
+// The cost is real and was initially mis-measured, which is worth recording because it is the
+// same mistake the SCAN_SAMPLES note warns about two paragraphs up. A 32-cell sample put this
+// at 1330 ms per cell and the conclusion drawn was "costs nothing measurable". Flying the
+// actual grid gives 3.38 s per cell against 2.17 s before the scan existed — the whole
+// 5,184-world round went from 704 s to 1095 s, up 56%. Cost varies enormously with planet
+// radius, which is the outermost axis, so a small sample lands on a badly unrepresentative
+// mix. Measure this against the full grid or not at all.
+//
+// 56% for a measurement that was previously wrong is worth paying. Going to 31 samples would
+// roughly double it again and buys no verdict stability.
+//
+// The residual ~4% is a real limit on what a satisfaction rate from this grid means, and it
+// is the same lesson section 8 of the change proposal reaches from the other direction. The
+// honest fix is not more samples — it is for these targets to report their margin alongside
+// the boolean, so a cell on the fence is visibly on the fence. That is not done yet.
+const SKIM_ALT_SAMPLES_GRID = Number(process.env.JUNK_SKIM_ALT_SAMPLES_GRID) || 13;
+
+// One skim series at one altitude and one entry depth, varying ONLY the skim count.
+function flySkimSeries(world, cfg, startAlt, params, cargoMass, skimAlt, entry, counts) {
+  const series = [];
+  for (const skims of counts) {
+    let r;
+    try {
+      r = simDescent(world, { ...cfg, cargoMass }, startAlt, skimAlt, 0,
+        { skims, entryPeriapsis: entry });
+    } catch (e) { continue; }
+    if (!r.landed || !r.passes.length) continue;
+    const final = r.passes[r.passes.length - 1];
+    series.push({
+      skims,
+      entry_peak_rate: final.peakRate,
+      entry_peak_heat: Number(final.peakHeat.toFixed(1)),
+      skim_peak_heat: r.passes.length > 1
+        ? Number(Math.max(...r.passes.slice(0, -1).map((p) => p.peakHeat)).toFixed(1)) : 0,
+      touchdown_ms: Number(r.touchdownSpeed.toFixed(2)),
+      soft_landing: r.touchdownSpeed <= params.landing.soft_landing_ms,
+      commit_dv_ms: Number((r.commitDv || 0).toFixed(0)),
+      hours: Number((r.time / 3600).toFixed(2)),
+    });
+  }
+  return series;
+}
+
+// A descent is k shallow skims then a committed entry — two depths, with a burn between.
+// Scanning one shared depth conflates "how many skims" with "how deep the entry", which is
+// how an earlier version of this sweep concluded that skimming never cools an entry: both
+// effects moved together and cancelled.
+//
+// HOLD THE ENTRY DEPTH FIXED. This is the third time the same confound has been made here,
+// each time in a new disguise, so it is worth stating as a rule: to measure what skimming
+// does, ONLY the skim count may vary. Letting the entry depth float and taking the best
+// descent at each skim count silently compares a shallow direct entry against a deep
+// skimmed one — two effects moving at once, cancelling into "skimming does nothing".
+//
+// The three earlier versions: one periapsis for the whole descent (skims were really a
+// decay); a per-band heat normalisation (every row scaled to itself); and one picking the
+// coolest entry available per skim count. All three produced confident, wrong flat lines.
+//
+// WHY SCANNING THE SKIM ALTITUDE IS NOT A FOURTH VERSION OF THAT MISTAKE. The altitude is
+// chosen ONCE per entry depth — by which altitude cools the entry most at the largest skim
+// count that flew — and then held fixed while the whole series is flown. Within a series only
+// the skim count varies, which is the rule. And the denominator cannot move: at k = 0 the
+// ship commits immediately and never visits the skim altitude at all, so the direct-entry
+// baseline every ratio is measured against is identical at every altitude. Verified: k = 0
+// reads 159.9 on the bar at both 0.87x and 0.60x.
+function skimStudy(world, cfg, startAlt, params, band, cargoMass, opts = {}) {
+  const altSamples = Math.max(2, opts.altSamples || SKIM_ALT_SAMPLES);
   const entryDepths = [0, 0.25, 0.5].map((f) => f * world.atmTop);
   const byDepth = [];
 
   for (const entry of entryDepths) {
-    const series = [];
-    for (const skims of [0, 1, 2, 3]) {
-      let r;
-      try {
-        r = simDescent(world, { ...cfg, cargoMass }, startAlt, skimAlt, 0,
-          { skims, entryPeriapsis: entry });
-      } catch (e) { continue; }
-      if (!r.landed || !r.passes.length) continue;
-      const final = r.passes[r.passes.length - 1];
-      series.push({
-        skims,
-        entry_peak_rate: final.peakRate,
-        entry_peak_heat: Number(final.peakHeat.toFixed(1)),
-        skim_peak_heat: r.passes.length > 1
-          ? Number(Math.max(...r.passes.slice(0, -1).map((p) => p.peakHeat)).toFixed(1)) : 0,
-        touchdown_ms: Number(r.touchdownSpeed.toFixed(2)),
-        soft_landing: r.touchdownSpeed <= params.landing.soft_landing_ms,
-        commit_dv_ms: Number((r.commitDv || 0).toFixed(0)),
-        hours: Number((r.time / 3600).toFixed(2)),
-      });
+    // k = 0 ignores the skim altitude entirely, so it is flown once rather than per altitude.
+    const base = flySkimSeries(world, cfg, startAlt, params, cargoMass, world.atmTop * 0.5, entry, [0]);
+    if (!base.length) continue;
+
+    let bestAlt = null;
+    for (let i = 0; i < altSamples; i++) {
+      const frac = SKIM_ALT_MIN_FRAC +
+        (SKIM_ALT_MAX_FRAC - SKIM_ALT_MIN_FRAC) * (i / (altSamples - 1));
+      const skimAlt = world.atmTop * frac;
+      if (skimAlt <= entry) continue;   // cannot skim below the entry you are committing to
+      const tail = flySkimSeries(world, cfg, startAlt, params, cargoMass, skimAlt, entry, [1, 2, 3]);
+      if (!tail.length) continue;
+      // Judged at the deepest skim count that flew: that is the strategy the mechanic is
+      // asking a player to invest in, and the one the design prices.
+      const score = tail[tail.length - 1].entry_peak_rate;
+      if (!bestAlt || score < bestAlt.score) bestAlt = { score, skimAlt, frac, tail };
     }
-    // A series is only meaningful if the 0-skim baseline flew, since every ratio is against it.
-    if (series.length >= 2 && series[0].skims === 0) {
-      const direct = series[0].entry_peak_rate;
-      byDepth.push({
-        entry_depth_m: Number(entry.toFixed(0)),
-        series: series.map((s) => ({
-          ...s,
-          entry_peak_rate: Number(s.entry_peak_rate.toExponential(3)),
-          heat_vs_direct: Number((s.entry_peak_rate / direct).toFixed(3)),
-        })),
-      });
-    }
+    if (!bestAlt) continue;
+
+    const series = base.concat(bestAlt.tail);
+    const direct = series[0].entry_peak_rate;
+    // Every figure below is a ratio against the direct entry. If that baseline did not heat
+    // at all the ratios are 0/0, and NaN serialises to null in JSON — which reads downstream
+    // as a measurement rather than as its absence. Drop the depth instead.
+    if (!(direct > 0) || !(series[0].entry_peak_heat > 0)) continue;
+    byDepth.push({
+      entry_depth_m: Number(entry.toFixed(0)),
+      skim_altitude_m: Number(bestAlt.skimAlt.toFixed(0)),
+      skim_altitude_fraction_of_atm: Number(bestAlt.frac.toFixed(3)),
+      skim_altitude_density_kgm3: Number(world.rhoAt(bestAlt.skimAlt).toExponential(2)),
+      series: series.map((s) => ({
+        ...s,
+        entry_peak_rate: Number(s.entry_peak_rate.toExponential(3)),
+        // Ratio of peak heating RATES. The Balancer's model multiplies this against
+        // heat_index, which the schema defines in 0-100 bar units — strictly a different
+        // quantity. Measured, they agree to within 2.7% at the extreme (bar 0.488 against
+        // rate 0.475), so the mismatch is recorded rather than acted on here; changing the
+        // measure and the altitude in the same pass would make the effect uninterpretable.
+        heat_vs_direct: Number((s.entry_peak_rate / direct).toFixed(3)),
+        bar_vs_direct: Number((s.entry_peak_heat / series[0].entry_peak_heat).toFixed(3)),
+      })),
+    });
   }
   if (!byDepth.length) return null;
 
@@ -136,8 +254,56 @@ function skimStudy(world, cfg, startAlt, params, band, cargoMass) {
   const deepest = byDepth[0];
   return {
     measured_at_entry_depth_m: deepest.entry_depth_m,
+    measured_at_skim_altitude_m: deepest.skim_altitude_m,
+    skim_altitude_was_scanned: true,
     skim_heat_multiplier_measured: deepest.series.map((s) => s.heat_vs_direct),
     by_entry_depth: byDepth,
+  };
+}
+
+// Claimed against flown, for the one rule the crew could previously only check against
+// itself. The params now state a canopy — area and drag coefficient — so the descent under
+// the chute is a PREDICTION: the simulator integrates the fall rather than being handed the
+// answer, and `claimed_full_hold_ms` can be wrong.
+//
+// `independent` is the field the Auditor keys off, and it matters more than the numbers
+// beside it. When the area is missing the model solves it backwards out of the claimed speed
+// and then measures that speed back, so `delta_ms` comes out at zero no matter what the
+// design says — a tautology wearing the clothes of a measurement. That is how this rule
+// passed every audit it ever faced. False here means: do not read the agreement below as
+// evidence of anything.
+function parachuteCheck(world, cfg, params, hold, descents) {
+  const claimed = params.landing.descent_speed_full_hold_ms;
+  const flown = descents
+    .filter((d) => d.load === 'full hold' && d.landed)
+    .map((d) => d.touchdown_ms);
+  const measured = flown.length ? flown.reduce((a, b) => a + b, 0) / flown.length : null;
+  const fullMass = cfg.dryMass + hold.fullHold;
+  // Closed-form terminal velocity, reported alongside the integrated result. The two
+  // disagreeing would mean the ship is still decelerating at touchdown rather than riding
+  // the canopy down, which is a different finding from the claim being wrong.
+  const terminal = Math.sqrt(
+    (2 * fullMass * world.g0) / (world.rho0 * cfg.chuteCd * cfg.chuteArea)
+  );
+  const independent = params.landing.parachute_area_m2 != null;
+  return {
+    independent,
+    area_m2: Number(cfg.chuteArea.toFixed(1)),
+    drag_coefficient: cfg.chuteCd,
+    full_hold_mass_kg: Number(fullMass.toFixed(1)),
+    claimed_full_hold_ms: claimed === undefined ? null : claimed,
+    measured_full_hold_ms: measured === null ? null : Number(measured.toFixed(2)),
+    terminal_velocity_ms: Number(terminal.toFixed(2)),
+    delta_ms: measured === null || claimed === undefined
+      ? null : Number(Math.abs(measured - claimed).toFixed(2)),
+    spread_across_bands_ms: flown.length
+      ? Number((Math.max(...flown) - Math.min(...flown)).toFixed(3)) : null,
+    note: independent
+      ? 'The area is stated in the params, so measured_full_hold_ms is an independent ' +
+        'measurement and delta_ms is a real disagreement.'
+      : 'The area was NOT stated and had to be solved out of claimed_full_hold_ms, so ' +
+        'delta_ms is zero by construction and proves nothing. Fail the Balancer for the ' +
+        'missing field rather than passing the rule.',
   };
 }
 
@@ -244,6 +410,7 @@ function verificationSweep(baseline, params, catalog) {
       full_hold_kg: Number(hold.fullHold.toFixed(1)),
       full_hold_mass_ratio: Number(((cfg.dryMass + hold.fullHold) / cfg.dryMass).toFixed(2)),
     },
+    parachute: parachuteCheck(world, cfg, params, hold, descents),
     ascents,
     descents,
     skims,
@@ -256,7 +423,8 @@ function verificationSweep(baseline, params, catalog) {
 // The design's own targets, turned into measurable pass/fail. This is the closest thing the
 // crew has to an objective function, and it is deliberately written out rather than folded
 // into one number, so a config that scores 5/7 says WHICH two it missed.
-function scoreWorld(baseline, params, catalog) {
+function scoreWorld(baseline, params, catalog, opts = {}) {
+  const skimAltSamples = opts.skimAltSamples || SKIM_ALT_SAMPLES_GRID;
   const { world, cfg } = sim.buildConfig(baseline, params);
   cfg.heatScale = sim.calibrateHeatScale(world, cfg, bandAlt(baseline, 'suborbital'));
   const hold = fullHoldMass(catalog, params);
@@ -279,7 +447,8 @@ function scoreWorld(baseline, params, catalog) {
   //        the benefit saturate? Both are properties of the world, and both have to hold for
   //        the design's descent to be a decision rather than a formality. Measured from the
   //        high band, where skims are supposed to matter most.
-  const skimStudyHigh = skimStudy(world, cfg, bandAlt(baseline, 'high'), params, 'high', 0);
+  const skimStudyHigh = skimStudy(world, cfg, bandAlt(baseline, 'high'), params, 'high', 0,
+    { altSamples: skimAltSamples });
   const mults = skimStudyHigh ? skimStudyHigh.skim_heat_multiplier_measured : [];
   // A skim is worth flying if two of them cut the entry's peak by at least 15%.
   targets.skimming_cools_the_entry = mults.length >= 3 && mults[2] <= 0.85;
@@ -526,5 +695,6 @@ async function explorationSweep(baseline, params, catalog, opts = {}) {
 
 module.exports = {
   verificationSweep, explorationSweep, scoreWorld, fullHoldMass, GRID,
-  enumerateCells, scoreCell, sweepIndices,
+  enumerateCells, scoreCell, sweepIndices, skimStudy, parachuteCheck,
+  SKIM_ALT_SAMPLES, SKIM_ALT_SAMPLES_GRID,
 };
