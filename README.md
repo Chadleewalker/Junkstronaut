@@ -126,8 +126,27 @@ that owns those values, which drives up to two revision rounds.
 
 A **flight simulator** sits in the middle — deterministic, no model. It launches, aerobrakes
 and lands the ship thousands of times per round, then re-flies a grid of 5,184 worlds
-against 8 design targets. So when the crew says a full hold lands at 4.4 m/s, that is a
+against 9 design targets. So when the crew says a full hold lands at 4.4 m/s, that is a
 measurement, not an argument.
+
+### What the crew is actually enforcing
+
+These are the design goals the audit checks, in the game's own terms. Each one is a rule the
+numbers have to satisfy, not a preference — and each is measured by flying it, not by
+restating the formula that claimed it.
+
+| the goal | how it is checked |
+|---|---|
+| **The endgame must aerobrake.** Armstrong's module — the win condition, ~3,600 kg at the top of the band — cannot be brought home on one committed plunge. Getting it down requires at least one braking pass. | `heavy_descent_requires_multi_pass` — the module's single-pass peak heat must exceed the heat bar at *every* shield tier. A maxed shield that buys the plunge back would delete the mechanic. |
+| **Ordinary hauls must still plunge.** An empty ship and a full hold can dive straight in from any altitude. The rule lands on the endgame alone. | Same check, part three — every ordinary load's peak stays under the base capacity. |
+| **The player cannot buy a skim's benefit for free.** Committing to a shallower entry sheds the same speed a braking pass does, for one heat cycle instead of two — so without a floor on entry depth, skimming is pointless and no heat capacity can force it. | `commit_floor_m` must sit well below the atmosphere top, or it constrains nothing and the endgame rule is moot. Checked first, for that reason. |
+| **Feathering must cost something.** A braking pass costs 0 m/s of Δv and about six minutes, so nothing in the physics stops a player skimming forever. Escalating thermal fatigue is the only brake. | `skim_pricing_saturates_and_toll_grows` — the per-cycle toll must compound, and the benefit must saturate. |
+| **The first launch must survive itself.** The climb heats the ship too. A config whose opening flight burns up before reaching the junk must fail, not pass quietly. | `launch_survives_itself` — added after the ascent was found to peak at 1.4× the bar with nothing reading it. |
+| **Height is where the money is.** One continuous band, value rising with altitude, so reward and reentry risk climb together without discrete tiers to keep in sync. | `single_band_and_sample_keys`, plus a strictly increasing value gradient. |
+| **Nothing is satisfied by moving the target.** An agent may not make a rule pass by editing the constant the rule is about. | `nothing_satisfied_by_moving_the_target` — every GDD-stated constant is re-read and compared. |
+
+The full rule set, with the arithmetic behind each verdict, is in `out/audit/audit_report.md`
+after a run.
 
 Full detail on every agent, every schema and both gates: [`crew/README.md`](crew/README.md).
 
