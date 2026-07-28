@@ -1,115 +1,143 @@
 {
   "agent": "playtester",
   "verdict": "targets_missed",
-  "summary": "Flown, this config lands softly from every band at every load and never burns through its plate, but the two-to-four-pass ablation optimum the design is built around does not exist — a single committed plunge is the cheapest descent in all nine band/load cases, and the grid says that is a design problem, not a tuning one.",
+  "summary": "Flown, this config never reaches orbit — all three bands run out of fuel before circularising — and of the reentry claims that can still be checked, the parachute holds exactly while the pass-count optimum, the skim cooling, and the band difficulty ordering all fail, the last of them inverted: the high band is measured as the cheapest descent in the game.",
   "findings": [
     {
-      "id": "ablation_optimum_is_always_one_pass",
-      "gdd_ref": "2.3.1",
-      "claim": "game_params.ablation.optimal_skims asserts 0/1/2 skims for suborbital/low/high, and the cost_curve asserts high-band minima at k=2 (30.49, 29.72, 29.57, 30.23), i.e. a U-shaped cost with its floor at 2-4 committed passes.",
-      "measured": "cheapest_pass_count is 1 in all nine descents. The curve is monotonically increasing everywhere: high band full hold 13.6 -> 18.7 -> 19.5 -> 19.7 -> 20.3 ...; low band full hold 13.1 -> 17.2 -> 18.1 -> 18.5; suborbital empty 5.2 -> 6.0 -> 6.3 -> 6.5. The first extra pass costs 4.1-5.1 plate-percent against a claimed saving of 0.15-0.92. No U-curve exists at any band or load.",
+      "id": "ascent_does_not_close_in_any_band",
+      "gdd_ref": "4.1",
+      "claim": "game_params balance_notes: exhaust velocity 3,000 m/s and wet/dry 3150/1350 give 2,542 m/s ideal dv against ~1,450 m/s (suborbital) and ~1,800 m/s (low), so 'both shipping-slice bands now close on ascent' with 75% and 40% margin.",
+      "measured": "Verification sweep, ascents: suborbital reached=false, low reached=false, high reached=false, all three 'out of fuel before circularising'. Reported fuel_remaining 503.73 / 377.44 / 248.37 kg (28% / 21% / 13.8%). Ideal-rocket-equation dv is not what the integrator spends: the ship is losing the difference to the climb. Every descent, ablation and economy figure in the params is conditioned on an orbit the ship does not achieve. Grid: bands_reachable is satisfied by 50% of the 5,184 configs, and every top-scoring world runs fuel_fraction 2.5-4.0 against this ship's 1800/1350 = 1.33.",
       "severity": "blocking",
-      "kind": "design"
-    },
-    {
-      "id": "skimming_barely_cools_the_committed_entry",
-      "gdd_ref": "2.3.1",
-      "claim": "Aerobraking is essential: shallow passes bleed speed so the committed entry runs cooler, and the params price skims against a skim_heat_multiplier of [1, 0.984, 0.974, 0.972].",
-      "measured": "Measured multipliers at the shallowest entry depth are suborbital [1, 0.951, 0.897, 0.684], low [1, 0.977, 0.955, 0.934], high [1, 0.984, 0.968, 0.954] — so the params' array is right for high, pessimistic for low, and badly pessimistic for suborbital. But the effect is dwarfed by entry depth: on the high band, going from entry_depth 0 to 36000 m drops entry peak heat 163.1 -> 93.8 (a 0.575x multiplier) while three skims only reach 0.954. Depth is roughly 8x the lever that skimming is, and each skim costs 43-54 m/s of commit dv and about an hour of flight. In the grid, skimming_cools_the_entry is satisfied by 44.1% of configurations, but every config that satisfies it strongly does so with a low ballistic coefficient (the 0.363 and 0.211 multiplier rows sit at beta 44.4 and 133.3) and those same configs fail unstaged_pass_survivable with peak heats of 371-523.",
-      "severity": "blocking",
-      "kind": "design"
-    },
-    {
-      "id": "beta_and_unstaged_survival_are_mutually_exclusive",
-      "gdd_ref": "2.3.1",
-      "claim": "The design wants both a meaningful multi-pass aerobrake (which needs air that bites) and survivable shallow unstaged braking passes before staging (2.3.1: 'fly your shallow braking passes before you stage').",
-      "measured": "unstaged_pass_survivable is the rarest target in the whole grid at 15.4%, and fuel_margin_sane is next at 16.2%. Across the 12 top-scoring configs, every one that measures a strong skim effect (multipliers 0.211-0.363) records unstaged_peak_heat of 355-523, and every one that survives unstaged (peak heat 47-90) measures skim multipliers of 0.945-0.987 — i.e. skimming that does nothing. No configuration in 2916 scores 8 of 8. The current config sits on the survivable side: unstaged shallow passes peak at 62 (suborbital) and 71 (low), both safe, which is why its skims are near-inert.",
-      "severity": "blocking",
-      "kind": "design"
-    },
-    {
-      "id": "peak_heat_exceeds_the_bar_but_nothing_burns",
-      "gdd_ref": "2.3.1",
-      "claim": "reentry.heat_capacity is 100 and cargo damage begins at 100% heat, one slot every 3 s; a depleted shield behaves as unshielded.",
-      "measured": "Sixteen entries in the descent table peak above 100 — high band full hold reaches 102 at 10, 14 and 15 passes; low band full hold reaches 101 from 11 passes up; suborbital full hold reaches 101 from 6 passes. Yet every descent reports plate_survives true and soft_landing true, and the skim table shows entry peaks of 131.5 (low, direct) and 163.1 (high, direct) with touchdown still 3.25 m/s and soft_landing true. Either the 100 bar does not gate cargo damage in the model or the two heat scales are not the same quantity; as reported, the ship exceeds its stated heat capacity by 63% and suffers nothing.",
-      "severity": "significant",
       "kind": "tuning"
     },
     {
-      "id": "difficulty_does_not_rise_with_band",
+      "id": "cheapest_descent_is_single_pass_everywhere",
+      "gdd_ref": "2.3.1",
+      "claim": "GDD 2.3.1: ablation is tuned so 'the cheapest path' is 2-4 committed passes, never a single plunge. game_params balance_note 5 concedes it cannot produce this and substitutes a skim-count optimum.",
+      "measured": "cheapest_pass_count = 1 in all nine band x load cases. Peak heat is nearly flat in pass count because braking altitude climbs as passes are added: suborbital empty 70 -> 74 while braking altitude goes 27,846 -> 38,424 m; high full hold 94 -> 108 across 22,450 -> 30,221 m. Cost is monotonically increasing from pass 1 in every case (suborbital empty 4.6 / 5.6 / 6.6 / 8.3%; high full hold 10.8 / 15.8 / 17.4 / 19.4%). The heat term has nothing to give back, so no assignment of cycle_toll_base_pct, cycle_toll_growth, heat_cost_coefficient or heat_cost_exponent moves the minimum off 1. This confirms GDD 4.5 risk 1 rather than clearing it: the U-curve does not exist inside a 43,000 m atmosphere. The decision is a human's — accept the skim framing into 2.3.1, or take the named fallback of flat per-pass ablation with a hard pass cap. Neither is a number I can nudge.",
+      "severity": "blocking",
+      "kind": "design"
+    },
+    {
+      "id": "difficulty_curve_inverts_with_altitude",
       "gdd_ref": "2.3.7",
-      "claim": "Reentry speed and therefore heat scale with the altitude you return from; the value curve and the risk curve rise together, and heat_index asserts 83/100/119 across the three bands.",
-      "measured": "At the cheapest (one-pass) descent, ablation is 5.2 / 4.4 / 4.5 percent empty and 15.6 / 13.1 / 13.6 percent full for suborbital / low / high. The high band is cheaper to come home from than suborbital at every load, and the ordering across bands is essentially flat — a 1.06x spread against the claimed 1.43x. Cargo mass, by contrast, does move it: full hold costs 3x an empty hold (13.6 vs 4.5 on the high band). Mass carries the difficulty curve; altitude does not.",
+      "claim": "GDD 2.3.7: 'the value curve and the risk curve rise together'; reentry heat scales with the altitude you return from. game_params cost_curve asserts minima of 6.21 / 12.78 / 32.03 plate-percent for suborbital / low / high, i.e. the high band costs 5.3x the suborbital one.",
+      "measured": "Flown, the ordering reverses. Cheapest ablation, empty: suborbital 4.6%, low 4.0%, high 3.6%. Full hold: 13.5% / 11.7% / 10.8%. Peak heat on the cheapest descent, empty: 70 / 67 / 64. The high band is the cheapest and coolest return in the game at every cargo load — the exact inversion GDD 4.5 risk 2 is written against, and it is measured, not predicted. (Held at a fixed entry depth the ordering is correct — see heat_index_high_overstated — so the inversion is produced by the descent solver braking higher bands deeper, not by the heat model.) Grid: difficulty_rises_with_band is satisfied by 60.8% of configs, so this is reachable; GDD 4.5 names the lever as band-gated ablation rates, which is what ablation.heat_index already is.",
+      "severity": "blocking",
+      "kind": "tuning"
+    },
+    {
+      "id": "skimming_buys_almost_nothing_at_this_ballistic_coefficient",
+      "gdd_ref": "2.3.1",
+      "claim": "game_params adopts skim_heat_multiplier [1, 0.985, 0.971, 0.958] and builds the entire anti-plunge substitution on it — three skims buying 4.2% of peak heat.",
+      "measured": "High band, entry_depth 0: [1, 0.99, 0.98, 0.972] — three skims buy 2.8%, a third less than the adopted array, and at entry_depth 21,500 m it degrades to [1, 0.994, 0.988, 0.983], 1.7%. Each skim costs commit_dv 44-45 m/s and 0.53 h of flight time. Entry depth by contrast moves heat 159.9 -> 90.9 (43% cooler) over the same 21,500 m — roughly 20x the leverage of the whole skim stack. The controlling quantity is the ballistic coefficient: the sweep reports staged 290.3 kg/m2, while the grid worlds where skimming genuinely cools run beta 33-133 and reach [1, 0.925, 0.849, 0.766] or better. Grid: skimming_cools_the_entry satisfied by 43.8% of configs, so this is tuning, not an impossible rule.",
       "severity": "significant",
       "kind": "tuning"
     },
     {
-      "id": "full_hold_lands_soft_everywhere_with_no_margin_pressure",
-      "gdd_ref": "2.3.2",
-      "claim": "descent_speed_full_hold_ms 4.6 sits just under the 5.0 m/s soft-landing line, and the Parachute upgrade exists to counter a greedy hold.",
-      "measured": "Confirmed exactly: touchdown is 3.25 m/s empty, 3.99 half hold, 4.60 full hold, identical across all three bands, and soft_landing is true in all nine. The sqrt(mass) law holds — 4.6/sqrt(2) = 3.25. But because a base hold is the largest load the sim flies, no measured case ever crosses 5.0, so the Parachute upgrade has no measured case in which it is needed; the crossing the params describe (a 1665 kg haul at 5.49 m/s) is asserted, not flown. The parachute area was also not in the params — the sim solved for 630.1 m2 from the 4.6 m/s claim, so this is a consistency check, not an independent measurement.",
+      "id": "optimal_skims_high_is_one_not_two",
+      "gdd_ref": "2.3.1",
+      "claim": "game_params ablation.optimal_skims.high = 2, derived from totals 33.13 / 32.31 / 32.03 / 32.61 with a stated 0.28 plate-percent separation.",
+      "measured": "Re-running the params' own arithmetic on the measured multipliers [1, 0.99, 0.98, 0.972] at heat_index 138: heat terms 32.85 / 31.88 / 30.92 / 30.17, tolls 0.28 / 0.784 / 1.691 / 3.324, skim heat 0 / 0.133 / 0.266 / 0.399, totals 33.13 / 32.80 / 32.88 / 33.89. The minimum moves to 1 skim, and 0 vs 1 are separated by 0.33 plate-percent. At the corrected heat_index of 128 the totals are 26.49 / 26.36 / 26.63 / 27.79 — still 1. The optimum is inside the required 1-2 window either way, but the stated value is wrong and the margin is thinner than a rounding error on the plate gauge.",
+      "severity": "significant",
+      "kind": "tuning"
+    },
+    {
+      "id": "heat_index_high_overstated_not_understated",
+      "gdd_ref": "2.3.1",
+      "claim": "game_params heat_index 78 / 100 / 138, with balance_note 8 worrying the high band is '17% low' against a reported 161.5 peak and asking for it to be routed as its own finding.",
+      "measured": "It is routed, and it points the other way. At a fixed entry depth of 0 with no skims, an empty ship peaks at 100 (suborbital) / 125 (low) / 159.9 (high) on the sweep's bar, which is normalised to suborbital = 100. Renormalised to the params' own convention of low = 100, the measured indices are 80 / 100 / 127.9 against the stated 78 / 100 / 138. The high band is 7.9% overstated; suborbital is 2.6% understated. The 161.5 figure the note was reacting to is on the suborbital-normalised scale, which is what made it look 17% low.",
       "severity": "minor",
       "kind": "tuning"
     },
     {
-      "id": "ascent_margins_are_thin_and_inverted_against_the_upgrade_tree",
-      "gdd_ref": "2.3.6",
-      "claim": "The base tank was sized for shipping-slice reachability (suborbital and low), and the balance notes ask whether fuel_tank tier 1 is a wanted purchase rather than a prerequisite.",
-      "measured": "All three bands are reachable at base config, including the deferred high band: fuel margins 16.6% / 13.5% / 11.8% (316.19 / 255.75 / 223.80 kg remaining). That settles the open question the economy notes could not — the tank is oversized for its stated job, since the semester slice only needs two bands. It also leaves fuel_tank tier 1 (450 credits) buying nothing the player needs, and 11.8% is a thin reserve for the return burn the sim does not charge for. In the grid, fuel_margin_sane holds in only 16.2% of worlds, so a thin margin here is normal for the space rather than a mistake.",
+      "id": "parachute_claim_holds_exactly",
+      "gdd_ref": "2.3.2",
+      "claim": "game_params descent_speed_full_hold_ms = 4.59, derived from 870 m2 at Cd 1.8 against a 2,747.8 kg full-hold ship.",
+      "measured": "Independently measured at 4.59 m/s, delta 0, spread across bands 0. Touchdown is 3.22 / 3.96 / 4.59 m/s at empty / half / full hold and soft_landing = true in all nine descents. full_hold_mass_ratio measured 2.04 against the claimed 2.035, inside the 1.75-2.25 window. This is the one claim in the file the simulator confirms to the digit. Worth knowing that the margin is 0.41 m/s and that only 31.5% of grid configs satisfy full_hold_lands_soft at all — storage tier 1 spends most of what is left.",
+      "severity": "minor",
+      "kind": "tuning"
+    },
+    {
+      "id": "unstaged_pass_survives_here_and_almost_nowhere_else",
+      "gdd_ref": "2.3.1",
+      "claim": "GDD 2.3.1: shallow unstaged passes are survivable and are how coarse pre-stage braking happens; unstaged_heat_multiplier = 3.",
+      "measured": "Holds in this world: shallow unstaged pass peaks at 54 (suborbital) and 60 (low), both survivable against a 100 capacity. But the grid satisfies unstaged_pass_survivable in only 7.4% of 5,184 configs, and every one of the twelve top-scoring worlds fails it, at unstaged peak heats of 356-419. This is the one target the crew's config wins and the grid's best worlds lose, which is the reason not to adopt a top-scoring grid world wholesale.",
+      "severity": "minor",
+      "kind": "design"
+    },
+    {
+      "id": "reported_ballistic_coefficient_is_at_dry_mass",
+      "gdd_ref": "2.3.5",
+      "claim": "game_params balance_note 9 computes staged full-hold beta = 2747.8 / 4.65 = 591 kg/m2 and flags it as above the Researcher's 300-500 capsule band.",
+      "measured": "The sweep reports staged 290.3 and unstaged 967.7 kg/m2. Both back-solve to 1,350 kg (290.3 x 1.5 x 3.1 and 967.7 x 0.45 x 3.1), so the reported figure is the dry, empty, fuel-less ship — not the same quantity the params quote. The two do not disagree about physics; the descents plainly do carry cargo mass, since peak heat moves 70 -> 102 from empty to full hold. Both figures sit far above the ~50 kg/m2 floor below which aerobraking cannot exist, so the mechanic is intact — but any beta comparison between the params and the sweep is currently comparing two different ships.",
       "severity": "minor",
       "kind": "tuning"
     }
   ],
   "proposed_changes": [
     {
-      "path": "ablation.optimal_skims",
-      "current": 2,
-      "proposed": 0,
-      "reason": "The flown cheapest_pass_count is 1 in all nine cases, so the claim of 0/1/2 optimal skims is contradicted; set it flat until the mechanic is rebuilt, rather than shipping a number the simulator disagrees with."
+      "path": "flight.fuel_capacity_kg",
+      "current": 1800,
+      "proposed": 3400,
+      "reason": "Takes fuel fraction from 1.33 to 2.52, into the 2.5-4.0 band every bands_reachable grid config occupies, and ideal dv from 2,542 to 3,775 m/s; it costs liftoff TWR (see the thrust change) and it puts both fuel_tank upgrade tiers, at 2,300 and 2,900, below the new base, so that ladder has to be re-emitted."
     },
     {
-      "path": "ablation.cycle_toll_base_pct",
-      "current": 0.16,
-      "proposed": 0.16,
-      "reason": "Adopt GDD 4.5 risk 1's own fallback — a flat per-pass toll with a hard cap on passes — because the grid shows no world where skimming cools enough to pay for itself while unstaged passes stay survivable; hold the toll and stop tuning it toward a U-curve that does not exist."
+      "path": "flight.thrust_n",
+      "current": 78000,
+      "proposed": 118000,
+      "reason": "Restores liftoff TWR to 2.76 at the new 4,750 kg wet mass — the balance_notes already identify low TWR as where the previous ascent lost its dv to hovering — and it costs the thruster upgrade ladder, whose 92,000 and 108,000 tiers now sit below base and must be re-priced above it."
+    },
+    {
+      "path": "reentry.reference_area_m2",
+      "current": 3.1,
+      "proposed": 6,
+      "reason": "In baseline.json: halves the ballistic coefficient toward the 33-133 kg/m2 range where the grid measures skims actually cooling (0.766-0.849 over three skims, against 0.972 here), which is the only lever that makes the skim substitution in balance_note 5 worth flying; it costs the Researcher's stated symmetry between hull and shield area and will shorten every descent, so the whole descent table needs re-flying rather than re-deriving."
     },
     {
       "path": "ablation.skim_heat_multiplier",
-      "current": 0.984,
-      "proposed": 0.954,
-      "reason": "Replace the estimated array with the measured high-band values [1, 0.984, 0.968, 0.954] so the pricing model stops working from a fifth-of-claimed guess; per-band arrays would be better still, since suborbital measures 0.684 at three skims."
+      "current": [
+        1,
+        0.985,
+        0.971,
+        0.958
+      ],
+      "proposed": [
+        1,
+        0.99,
+        0.98,
+        0.972
+      ],
+      "reason": "The measured high-band array at entry_depth 0; the flown value is the truth and the adopted one overstates three skims' cooling by a third, which costs nothing but the cost_curve, which has to be re-emitted with it."
     },
     {
-      "path": "reentry.heat_capacity",
-      "current": 100,
-      "proposed": 110,
-      "reason": "Sixteen flown descents peak between 101 and 102 with no damage taken and entry peaks reach 163 on the high band, so the stated capacity does not gate anything; raising it to the measured ceiling makes the bar honest at the cost of a slightly later cargo-damage threshold."
+      "path": "ablation.optimal_skims.high",
+      "current": 2,
+      "proposed": 1,
+      "reason": "Under the measured multipliers the totals become 33.13 / 32.80 / 32.88 / 33.89 and the minimum moves to one skim; it stays inside the required 1-2 window, but the 0.33 plate-percent separation should be stated as the thin margin it is."
     },
     {
-      "path": "ablation.heat_index",
-      "current": 119,
-      "proposed": 105,
-      "reason": "Measured one-pass ablation is 5.2/4.4/4.5 percent across the bands, a 1.06x spread, not the 1.43x the index asserts; either bring the index to what is flown or push the high band's altitude out, which is the Researcher's own first lever for a steeper curve."
+      "path": "ablation.heat_index.high",
+      "current": 138,
+      "proposed": 128,
+      "reason": "Measured at a fixed entry depth the high band reads 127.9 against low = 100, not 138; correcting it settles the open question in balance_note 8 in the opposite direction to the one it guessed, and it lowers the whole high-band cost_curve by roughly 20%."
     },
     {
-      "path": "flight.fuel_capacity_kg",
-      "current": 1900,
-      "proposed": 1700,
-      "reason": "All three bands are reachable at base with 11.8-16.6% margin, so the tank overshoots the two-band shipping slice and makes fuel_tank tier 1 a dead purchase; trimming it restores the upgrade as a want, at the cost of narrowing the high-band margin the semester does not ship anyway."
-    },
-    {
-      "path": "landing.parachute_area_m2",
-      "current": 0,
-      "proposed": 630.1,
-      "reason": "The sim had to solve for this from descent_speed_full_hold_ms, so the 4.6 m/s figure is currently self-referential; stating the area makes touchdown speed an independent measurement instead of a restatement of the claim."
+      "path": "ablation.heat_index.suborbital",
+      "current": 78,
+      "proposed": 80,
+      "reason": "Same measurement, same normalisation — suborbital reads 80 against low = 100; a 2.6% correction that costs nothing and keeps all three indices on one measured scale."
     }
   ],
   "confidence_notes": [
-    "The heat scale is normalised so that an empty single-pass suborbital descent peaks at 100, per the sweep's own calibration note. Every heat figure I quote is relative to that anchor, so 'peak 163 on the high band' means 1.63x that reference descent, not 163 physical units of anything. The finding that peaks exceed heat_capacity 100 without consequence follows from comparing two scales that may not be the same quantity — that is the first thing to check before acting on it.",
-    "The parachute area was inferred by the simulator, not read from the params. Every touchdown speed in the sweep is therefore anchored to the 4.6 m/s claim it was solved from, which is why 'full hold lands soft' is a consistency check rather than independent evidence. Adding landing.parachute_area_m2 to the params would make the next sweep's touchdown numbers mean something on their own.",
-    "The sim flies a point mass with a perfect pilot: no attitude error, so off_retrograde_penalty is never exercised; no debris collisions; no cargo damage accumulation modelled during the pass. The claim that plate_survives in every descent should be read as 'the ablation arithmetic stays under the plate', not as 'a human can fly this'.",
-    "The exploration grid varies world and ship geometry but not the ablation knobs themselves (cycle_toll_base_pct, heat_cost_coefficient, skim_peak). So its 44.1% satisfaction rate for skimming_cools_the_entry measures whether the physics can produce a cooling effect, not whether the pricing model can turn that effect into a U-curve. My design-versus-tuning call on the ablation optimum rests on the physics half of that; a sweep over the three ablation knobs at fixed world would settle the other half and is the single most useful thing the next run could add.",
-    "No skim series in the verification sweep reaches a periapsis of 40-45 km, where the Researcher's own dv table says a pass is worth 25-85 m/s rather than a feather. The deepest skims flown are shallow enough that skim_peak_heat never exceeds 9.6. If the crew wants the aerobrake mechanic to survive, that unflown depth band is where to look before adopting the flat-toll fallback — my 'design' verdict on the U-curve is calibrated to the depths actually flown.",
-    "The descent table's pass_counts_reachable has gaps (the high band empty case skips 13, 15, 16) and ablation is not monotonic in a few rows — high band empty dips from 8.3 at 11 passes to 8.1 at 12, and high band half hold from 14.4 at 8 to 13.3 at 9. Those non-monotonicities are larger than the 0.15-percent differences the params' U-curve depends on, which is independent evidence that the intended optimum is below the model's own noise floor."
+    "The ascent finding is load-bearing and the sweep is internally inconsistent about it: it reports 'out of fuel before circularising' alongside 503.73 kg remaining and a 28% margin. Both cannot be literal. I trust reached=false — it is the flag the descent cases are all conditioned on — and I would not quote the 28% figure to anyone until someone says what budget it is a margin against.",
+    "The descent series and the skim series disagree in sign about band difficulty: descents get cooler with altitude (70 / 67 / 64) while fixed-depth entries get hotter (100 / 125 / 159.9). The difference is entry depth, which the descent solver floats and the skim series pins. This is exactly the confusion the charter warns about, so I have kept them apart: the inversion finding is about what the descent solver does, and the heat_index finding is about what the heat model does. Neither should be quoted as evidence for the other.",
+    "The Researcher predicts a 1.31x band-to-band heat spread from v-cubed at a common periapsis; the simulator measures 1.60x at a common entry depth. I have not reconciled these and I would not assume the simulator's heat model is the Researcher's. The heat bar is a normalised 0-100 scale by the sweep's own statement, so every heat figure I have quoted is relative, and none of it is W/m2.",
+    "The fuel and thrust proposals are derived from the grid's fuel_fraction and TWR distributions plus the rocket equation, not from a flown re-run of this ship. They are the direction the evidence points, not a measured fix, and they must be re-swept before anyone believes the specific numbers. They also invalidate the fuel_tank and thruster upgrade ladders, which is the economy-balancer's work and not mine.",
+    "The reference_area change moves the quantity that controls whether skimming exists at all, but 6.0 m2 is chosen to land near the grid's cooling band, not measured. It also raises unstaged drag, which currently has comfortable margin (54 and 60 against a 100 capacity) but is satisfied by only 7.4% of the grid — if the re-sweep shows unstaged peaks climbing toward 100, this is the change to back off first.",
+    "The simulator is a point mass with a perfect pilot. off_retrograde_penalty, the cosine heat rule, chute-shred timing against the plasma cue, latch and swing jerk, debris collisions, and everything in the tether model are untested by anything I have seen — no finding above rests on them, and the cryo_propellant_sphere concern the economy-balancer raised remains open, not cleared.",
+    "None of the top-scoring grid worlds is a drop-in replacement. They vary planet radius and gravity, which the design has fixed elsewhere, and all twelve fail unstaged_pass_survivable at peaks of 356-419 where the crew's config sits at 54-60. I have used the grid only to separate tuning problems from design ones, which is what the satisfaction rates are for.",
+    "I cannot say whether any of this is fun. The plasma-to-chute window, whether a 0.41 m/s parachute margin reads as tense or as luck, and whether one skim feels like a decision or like arithmetic are the human's checkpoints 2 and 3, and nothing in the sweep touches them."
   ]
 }

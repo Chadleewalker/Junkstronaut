@@ -2,92 +2,94 @@
   "agent": "researcher",
   "planet": {
     "radius_m": 200000,
-    "surface_gravity_ms2": 4,
-    "atmosphere_top_m": 72000,
-    "scale_height_m": 5500,
-    "sea_level_density_kgm3": 0.6
+    "surface_gravity_ms2": 9,
+    "atmosphere_top_m": 43000,
+    "scale_height_m": 3100,
+    "sea_level_density_kgm3": 1.5
   },
   "bands": [
     {
       "name": "suborbital",
-      "altitude_min_m": 80000,
-      "altitude_max_m": 120000,
-      "orbital_speed_ms": 730,
-      "period_s": 2581
+      "altitude_min_m": 50000,
+      "altitude_max_m": 80000,
+      "orbital_speed_ms": 1166,
+      "period_s": 1429
     },
     {
       "name": "low",
-      "altitude_min_m": 140000,
-      "altitude_max_m": 220000,
-      "orbital_speed_ms": 649,
-      "period_s": 3680
+      "altitude_min_m": 80000,
+      "altitude_max_m": 150000,
+      "orbital_speed_ms": 1069,
+      "period_s": 1852
     },
     {
       "name": "high",
-      "altitude_min_m": 250000,
-      "altitude_max_m": 340000,
-      "orbital_speed_ms": 569,
-      "period_s": 5470
+      "altitude_min_m": 150000,
+      "altitude_max_m": 280000,
+      "orbital_speed_ms": 931,
+      "period_s": 2800
     }
   ],
   "reentry": {
-    "heating_onset_speed_ms": 350,
-    "plasma_onset_speed_ms": 600,
+    "heating_onset_speed_ms": 550,
+    "plasma_onset_speed_ms": 820,
     "heating_velocity_exponent": 3,
-    "drag_coefficient_hull": 0.35,
+    "drag_coefficient_hull": 0.45,
     "drag_coefficient_shield": 1.5,
-    "reference_area_m2": 3.5
+    "reference_area_m2": 3.1
   },
   "derivation": [
-    "Planet first: R = 200000 m (1/31.9 of Earth's 6371 km radius, inside the charter's 160-320 km window) and g0 = 4.0 m/s2 (between Mars 3.71 and a notional heavy rock). Everything below is derived from these two numbers only.",
-    "Gravitational parameter: mu = g0 * R^2 = 4.0 * (2.0e5)^2 = 4.0 * 4.0e10 = 1.6e11 m^3/s^2. Surface escape speed = sqrt(2*mu/R) = sqrt(2*1.6e11/2.0e5) = sqrt(1.6e6) = 1265 m/s, so the whole game lives inside a ~1.3 km/s velocity envelope.",
-    "Circular speed, suborbital band midpoint h = 100000 m: v = sqrt(g0*R^2/(R+h)) = sqrt(1.6e11 / 3.0e5) = sqrt(533333) = 730.3 m/s. Period T = 2*pi*(R+h)/v = 2*pi*300000/730.3 = 1884956/730.3 = 2581 s = 43.0 min.",
-    "Same substitution, low band midpoint h = 180000: v = sqrt(1.6e11/3.8e5) = sqrt(421053) = 648.9 m/s, T = 2387610/648.9 = 3680 s = 61.3 min. High band midpoint h = 295000: v = sqrt(1.6e11/4.95e5) = sqrt(323232) = 568.5 m/s, T = 3110177/568.5 = 5470 s = 91.2 min. ON THE RECORD: the shipped time warp is mandatory. A three-pass aerobrake from the high band spans roughly 4.5 hours of simulated time; at 1x that is unplayable, and no choice of R in the charter's window fixes it (T scales as (R+h)^1.5 / (sqrt(g0)*R)).",
-    "Atmosphere: rho = rho0 * exp(-h/H) with rho0 = 0.60 kg/m3 (half Earth sea level, so the first bite of air is forgiving) and H = 5500 m. Sensible top taken where rho falls to 1e-6 kg/m3: h = -H * ln(1e-6/0.6) = -5500 * ln(1.667e-6) = -5500 * (-13.30) = 73150 m, rounded down to atmosphere_top_m = 72000 m. That is 8000 m clear of the lowest band floor (80000 m), so nothing in a band orbit feels drag - aerobraking is a deliberate dip, exactly as 2.3.1 requires.",
-    "Ballistic coefficient check. Frontal area A = 3.5 m2 (a ~2.1 m diameter hull). Staged, empty: beta = m/(Cd*A) = 900/(1.5*3.5) = 900/5.25 = 171 kg/m2. Staged, full hold (2.3.5 says a full hold roughly doubles mass): 1600/5.25 = 305 kg/m2. Both sit inside the real capsule range of 300-500 and well above the 50 kg/m2 cliff where first air contact eats the whole orbit. Unstaged, with a fuelled stage still attached: 2400/(0.35*3.5) = 2400/1.225 = 1959 kg/m2 - an order of magnitude slipperier, which is the physics behind 'shallow braking passes before you stage'.",
-    "Delta-v per aerobrake pass, using the standard periapsis-pass approximation dv = v_p * rho_p * L / (2*beta) with effective path length L = sqrt(2*pi*H*r_p). At periapsis altitude 40000 m: r_p = 240000, L = sqrt(2*pi*5500*240000) = sqrt(8.294e9) = 91070 m; rho_p = 0.6*exp(-40000/5500) = 0.6*exp(-7.273) = 0.6*6.94e-4 = 4.16e-4 kg/m3. Staged empty (beta = 171): dv = 764 * 4.16e-4 * 91070 / 342 = 28.95/0.342 -> 84.6 m/s per pass. At periapsis 55000 m the same formula gives rho_p = 0.6*exp(-10.0) = 2.72e-5 and dv = 5.5 m/s - a feather. So the tunable pass depth spans a factor of ~15 in braking authority between 55 km and 40 km, which is the room the Playtester needs to find the 2-4 pass optimum.",
-    "Entry speeds at the atmosphere interface (r = 272000 m), coming down from each band on an orbit with periapsis dropped to 40000 m (r_p = 240000). Vis-viva v = sqrt(mu*(2/r - 1/a)), 2/r = 7.3529e-6. Suborbital (r_a = 300000, a = 270000): v = sqrt(1.6e11*(7.3529e-6 - 3.7037e-6)) = sqrt(583872) = 764 m/s. Low (r_a = 380000, a = 310000): sqrt(1.6e11*4.1271e-6) = sqrt(660336) = 813 m/s. High (r_a = 495000, a = 367500): sqrt(1.6e11*4.6318e-6) = sqrt(741088) = 861 m/s.",
-    "Heating, Sutton-Graves form q = k * sqrt(rho/Rn) * v^3 with exponent 3.0. Band-to-band ratio at equal periapsis depth: (861/764)^3 = 1.127^3 = 1.43, and (813/764)^3 = 1.20. So each band up is ~20-43% hotter at peak flux before mass effects, and the high band's slower, longer pass integrates more total heat still. The velocity-cubed law is what makes that spread superlinear rather than proportional.",
-    "Heating and plasma thresholds. Heating onset 350 m/s = 0.48 of suborbital circular speed, which is the GDD's 'roughly half of orbital speed' read literally. Plasma onset 600 m/s = 0.82 of that same circular speed, chosen above heating onset so plasma is a strictly narrower, later cue: a high-band entry at 861 m/s glows from interface, and the chute window opens only after drag has removed ~260 m/s.",
-    "Absolute flux sanity check (this is where game scale departs from reality). At the high-band entry, rho = 4.16e-4, v = 861, nose radius Rn = 1.5 m: q = 1.7415e-4 * sqrt(4.16e-4/1.5) * 861^3 = 1.7415e-4 * 0.01665 * 6.38e8 = 1850 W/m2 = 0.185 W/cm2. Apollo peaked near 500 W/cm2. Nothing ablates at 0.19 W/cm2; see notes - heat must be a normalised game quantity that keeps the v^3*sqrt(rho) SHAPE, not a real watt figure.",
-    "Terminal velocity and the parachute, from the same rho0. Staged empty ship on the bare shield at sea level: v_t = sqrt(2*m*g0/(rho0*Cd*A)) = sqrt(2*900*4.0/(0.6*1.5*3.5)) = sqrt(7200/3.15) = sqrt(2286) = 47.8 m/s - lethal, so the chute is not optional. To hit the 5 m/s soft-landing line the chute needs Cd*A = 2*m*g0/(rho0*v^2) = 7200/(0.6*25) = 480 m2, i.e. ~343 m2 of canopy at Cd 1.4, a ~21 m disc. Note v_t scales as sqrt(m): doubling the hold to 1800 kg raises touchdown speed by sqrt(2) = 1.41x under the same canopy, which is precisely the Storage-vs-Parachute pairing asserted in 2.3.6, now with a number on it."
+    "Radius and gravity are chosen first, everything else follows. R = 200,000 m, which is 1/32 of Earth's 6,371 km radius and sits inside the charter's 160-320 km window. Surface gravity g = 9.0 m/s2, near Earth-normal, so that the human-scale numbers the GDD already commits to (the 5 m/s soft-landing line in 2.3.2, parachute descent rates, a person walking a junkyard) behave the way a player expects. Gravitational parameter mu = g * R^2 = 9.0 * (2.0e5)^2 = 9.0 * 4.0e10 = 3.6e11 m3/s2.",
+    "Implied planet mass and density, stated so the cheat is visible rather than hidden: M = mu / G = 3.6e11 / 6.674e-11 = 5.39e21 kg. Volume = (4/3)*pi*R^3 = 4.18879 * 8.0e15 = 3.351e16 m3. Mean density = 5.39e21 / 3.351e16 = 1.61e5 kg/m3, about 161,000 kg/m3. Osmium is 22,600. No rocky body can be this dense; see notes.",
+    "Atmospheric scale height from the barometric relation H = R_specific * T / g. Composition assumed argon-nitrogen heavy, mean molar mass 0.040 kg/mol, so R_specific = 8.314 / 0.040 = 208 J/(kg*K). Temperature T = 134 K. H = 208 * 134 / 9.0 = 27,872 / 9.0 = 3,097 m, rounded to 3,100 m.",
+    "Top of the sensible atmosphere is defined as the altitude where density has fallen to one millionth of sea level: rho/rho0 = 1e-6 gives h = H * ln(1e6) = 3,100 * 13.8155 = 42,828 m, rounded to 43,000 m. That is 7,000 m below the bottom of the suborbital band at 50,000 m, so reaching air is a deliberate dip, never a standing drag on a parked ship.",
+    "Surface pressure follows from the ideal gas law as a consistency check: P = rho0 * R_specific * T = 1.5 * 208 * 134 = 41,808 Pa, about 0.41 bar. Thin but breathable-adjacent, and dense enough at the molecular level to brake a ship.",
+    "Circular orbital speed at the suborbital band midpoint, shown in full. h = 65,000 m, so r = R + h = 200,000 + 65,000 = 265,000 m. v = sqrt(g * R^2 / (R + h)) = sqrt(3.6e11 / 2.65e5) = sqrt(1,358,491) = 1,165.5 m/s. Period T = 2*pi*r / v = 2 * 3.14159 * 265,000 / 1,165.5 = 1,665,044 / 1,165.5 = 1,428.6 s, about 23.8 minutes.",
+    "The other two bands by the same substitution. Low band midpoint h = 115,000, r = 315,000: v = sqrt(3.6e11 / 3.15e5) = sqrt(1,142,857) = 1,069.0 m/s, T = 1,979,203 / 1,069.0 = 1,851.5 s, about 30.9 minutes. High band midpoint h = 215,000, r = 415,000: v = sqrt(3.6e11 / 4.15e5) = sqrt(867,470) = 931.4 m/s, T = 2,607,522 / 931.4 = 2,799.6 s, about 46.7 minutes. Orbital periods therefore run 24 to 47 minutes and the on-rails time warp is a hard requirement, not a convenience.",
+    "Ballistic coefficient check, beta = m / (Cd * A), against an assumed staged-and-empty ship mass of 1,800 kg and frontal area A = pi * (1.0 m)^2 = 3.14 m2 for a 2 m diameter hull, rounded to 3.1. Staged, shield forward, empty hold: beta = 1,800 / (1.5 * 3.1) = 1,800 / 4.65 = 387 kg/m2. Full hold roughly doubles ship mass per GDD 2.3.5: beta = 3,600 / 4.65 = 774 kg/m2. Unstaged slender hull with a full stage aboard, 4,000 kg: beta = 4,000 / (0.45 * 3.1) = 4,000 / 1.395 = 2,867 kg/m2. The staged figure of 387 sits inside the real-capsule band of 300-500 and well above the charter's floor of 100, so the atmosphere brakes the ship rather than stopping it.",
+    "Drag deceleration ladder versus periapsis depth, a = rho * v^2 / (2 * beta), at a representative entry speed of 1,320 m/s (v^2 = 1.7424e6) with the staged full-hold beta of 774. Periapsis 35,000 m: rho = 1.5 * exp(-35000/3100) = 1.5 * exp(-11.29) = 1.87e-5, a = 1.87e-5 * 1.7424e6 / 774 = 32.6 / 774 = 0.042 m/s2, which over a 120 s pass sheds about 5 m/s. Periapsis 25,000 m: rho = 1.5 * exp(-8.065) = 4.71e-4, a = 820.7 / 774 = 1.06 m/s2, about 95 m/s per pass. Periapsis 20,000 m: rho = 1.5 * exp(-6.452) = 2.365e-3, a = 4,121 / 774 = 5.32 m/s2, about 320 m/s over a 60 s effective pass. Periapsis 15,000 m: rho = 1.5 * exp(-4.839) = 1.19e-2, a = 20,734 / 774 = 26.8 m/s2, about 2.7 g, which kills the whole orbit in a single plunge.",
+    "That ladder locates the 2-4 pass corridor the GDD asks for in 2.3.1 without any tuning of the ablation curve: shedding roughly 1,000-1,150 m/s takes about 3 passes at a periapsis of 20,000 m, 12 passes at 25,000 m, and 1 violent pass at 15,000 m. The design's intended descent is a periapsis held between roughly 18,000 and 22,000 m. Hand this to the Playtester as the first place to look.",
+    "Convective heating by Sutton-Graves, q = k * sqrt(rho / Rn) * v^3 with k = 1.7415e-4 in SI units and an assumed nose radius Rn = 0.5 m. At the 20,000 m periapsis: sqrt(2.365e-3 / 0.5) = sqrt(4.73e-3) = 0.0688, v^3 = 1,320^3 = 2.300e9, so q = 1.7415e-4 * 0.0688 * 2.300e9 = 27,555 W/m2, about 28 kW/m2. Apollo's peak lunar-return flux was of order 4,000 kW/m2, so this planet's worst reentry is roughly 1/150 of that in absolute terms. The exponent on velocity is 3.0 (convective only; the radiative term, which scales far more steeply, is negligible at these speeds).",
+    "Heating and plasma onsets, kept distinct. GDD 2.3.1 says heat starts building above roughly half of orbital speed: 0.5 * 1,069 = 535 m/s, taken as 550. Plasma is the higher, more visible threshold, since a luminous ionized shock layer needs more shock-layer enthalpy than mere heat build-up: taking 0.77 of low-orbit circular speed gives 0.77 * 1,069 = 823, taken as 820 m/s. Plasma onset is therefore above heating onset by design, and below every band's circular speed, so any unbraked entry begins inside plasma and the chute window only opens after real braking.",
+    "Band-to-band heat spread, computed by vis-viva at a common 25,000 m periapsis (r_p = 225,000 m), v = sqrt(mu * (2/r - 1/a)). From the high band, apoapsis 415,000, a = 320,000: v = sqrt(3.6e11 * (8.8889e-6 - 3.125e-6)) = sqrt(2.075e6) = 1,440.5 m/s. From the low band, apoapsis 315,000, a = 270,000: v = sqrt(3.6e11 * (8.8889e-6 - 3.7037e-6)) = sqrt(1.867e6) = 1,366.3 m/s. From the suborbital band, apoapsis 265,000, a = 245,000: v = sqrt(3.6e11 * (8.8889e-6 - 4.0816e-6)) = sqrt(1.731e6) = 1,315.5 m/s. Ratio of heat loads top band to bottom = (1440.5/1315.5)^3 = 1.095^3 = 1.31, so only about 31 percent hotter. See notes; this contradicts the GDD."
   ],
   "sources": [
     {
-      "claim": "Convective stagnation-point heating scales as v^3 * sqrt(rho/Rn); coefficient k = 1.7415e-4 in SI units",
-      "reference": "Sutton-Graves relation (standard entry-aerothermodynamics correlation), quoted from knowledge"
+      "claim": "Circular orbital speed v = sqrt(mu/r) and entry speed from an elliptical transfer via vis-viva v = sqrt(mu*(2/r - 1/a))",
+      "reference": "Standard two-body Keplerian orbital mechanics; mu = g*R^2 by definition of surface gravity"
     },
     {
-      "claim": "Exponential atmosphere rho = rho0*exp(-h/H) and H = R_specific*T/g",
-      "reference": "Isothermal hydrostatic (barometric) atmosphere; Earth's H = 8.5 km at g = 9.81, Mars' H = 11.1 km at g = 3.71"
+      "claim": "Exponential atmosphere rho = rho0 * exp(-h/H) with H = R_specific*T/g",
+      "reference": "Barometric formula for an isothermal atmosphere; Earth's H is about 8,500 m at 287 J/(kg*K) and 250 K under 9.81 m/s2, which the same formula reproduces"
     },
     {
-      "claim": "Blunt reentry shield Cd near 1.5 and a capsule ballistic coefficient of a few hundred kg/m2",
-      "reference": "Apollo Command Module: hypersonic Cd ~1.2-1.4, beta ~300 kg/m2"
+      "claim": "Convective stagnation-point heating scales as sqrt(density) times velocity cubed",
+      "reference": "Sutton-Graves correlation, q = k*sqrt(rho/Rn)*v^3, k = 1.7415e-4 in SI units (exponent is 3.04 in the original; 3.0 used here)"
     },
     {
-      "claim": "Slender launch-configuration body Cd in the 0.3-0.5 range",
-      "reference": "Standard slender-body/launch-vehicle drag figures"
+      "claim": "Ballistic coefficient of 300-500 kg/m2 is the real reentry-capsule band",
+      "reference": "Apollo Command Module, roughly 5,560 kg with Cd about 1.35 over a 12.0 m2 heat shield, giving 5,560/(1.35*12.0) = 343 kg/m2"
     },
     {
-      "claim": "A scaled-down planet with a shallow atmosphere capped well below orbit altitude is a workable game abstraction",
-      "reference": "Kerbal Space Program's Kerbin: R = 600 km, surface g = 9.81 m/s2, atmosphere top 70 km, i.e. Earth gravity on a body far too small to physically produce it"
+      "claim": "Hypersonic drag coefficients: blunt shield forward about 1.2-1.5, slender body nose-first about 0.3-0.5",
+      "reference": "Standard blunt-body versus slender-body aerodynamics; Apollo-class capsules sit near 1.35, sounding-rocket bodies near 0.4"
     },
     {
-      "claim": "Surface gravity chosen in the Mars neighbourhood",
-      "reference": "Mars surface gravity 3.71 m/s2; Mercury 3.70 m/s2"
+      "claim": "A small planet with Earth-like surface gravity and a usable atmosphere is an accepted game-design cheat rather than a physical body",
+      "reference": "Kerbin, Kerbal Space Program: about 600 km radius at 9.81 m/s2, implying a mean density near 58,000 kg/m3, with a roughly 70 km atmosphere"
     }
   ],
   "notes": [
-    "The planet is not physically self-consistent, and this is the single largest liberty taken. A 200 km-radius body with g = 4.0 m/s2 implies a bulk density of rho = 3g/(4*pi*G*R) = 12/(4*pi*6.674e-11*2e5) = 12/1.678e-4 = 71500 kg/m3 - about 13x Earth and three times denser than osmium. A realistic 200 km rock would have g near 0.3 m/s2, orbital speeds near 200 m/s, and no atmosphere at all. Gravity is therefore an AUTHORED constant, not a derived one; every other number in this document is derived honestly from it. The charter's air-column requirement and any playable gravity cannot both be satisfied by a real body of this size.",
-    "Absolute heat flux is roughly 2500x below real reentry (0.19 W/cm2 vs Apollo's ~500) because entry speeds here are ~860 m/s rather than ~11000 m/s. Ablation, plasma and shield burn-through must be modelled as a normalised 0-1 heat quantity whose RATE follows k*sqrt(rho)*v^3, with k absorbed into the game's own scaling. Do not try to make watts mean anything.",
-    "Band-to-band heating spread is compressed relative to the GDD's ambition. Circular speed only falls from 730 to 569 m/s across all three bands, so peak flux from the high band is 1.43x the suborbital figure, not the several-times-hotter the design language implies. If the Playtester wants a steeper return-leg curve, the levers in order of physical honesty are: (1) push the high band further out - it is the (R+h) term doing the work; (2) let higher bands be entered on more eccentric orbits, since entry speed at a fixed periapsis depends on apoapsis; (3) lean on mass, which 2.3.5 already supplies and which raises beta and therefore total integrated heat; (4) only last, raise heating_velocity_exponent toward 3.15, which is still inside the real convective range.",
-    "Ballistic coefficients, quoted as the charter asks: 171 kg/m2 staged empty (900 kg dry), 305 kg/m2 staged with a full hold (1600 kg), 1959 kg/m2 unstaged with a fuelled stage (2400 kg). None fall under 100, so the atmosphere brakes the ship rather than stopping it. The dry masses are my assumption, not the GDD's - if the Coder settles on a dry mass below 525 kg the staged beta drops under 100 and the shield configuration starts behaving like a leaf. That is the number to watch.",
-    "reference_area_m2 is a single value (3.5 m2) shared by both configurations, with the staging difference carried entirely by Cd (0.35 -> 1.5, a 4.3x jump in braking authority). Physically the staged stack would also be longer and slightly wider; folding that into Cd keeps the config to one area field and one knob per configuration, which suits the single-config-file constraint in 4.4.",
-    "Scale height H = 5500 m at g = 4.0 implies R_specific*T = H*g = 22000, so e.g. T = 240 K needs a gas constant of 92 J/kg/K, i.e. a mean molar mass around 90 g/mol - twice CO2, a heavy fluorocarbon-like atmosphere. Defensible for a weird little planet, and worth knowing if anyone writes flavour text about the air. A lighter, Earth-like gas at this gravity would give H near 17 km, which would push the sensible atmosphere top past 200 km and swallow the lower bands.",
-    "The plasma-onset speed of 600 m/s is a gameplay cue, not an ionisation calculation - genuine air ionisation needs several km/s and never occurs at this scale. It is placed at 0.82 of suborbital circular speed so the plasma window is a meaningful fraction of the descent. I am also not confident a real parachute survives deployment at 600 m/s; the GDD ties chute safety to plasma clearing rather than to a dynamic-pressure limit, so I have honoured the design rather than the physics here. If it matters later, the honest gate is dynamic pressure q = 0.5*rho*v^2 rather than speed alone.",
-    "Band altitudes are given as ranges and orbital_speed_ms/period_s are computed at each band's MIDPOINT. Speed varies across a band's width by about 6% (suborbital) to 8% (high); anything downstream that needs per-altitude speed should recompute from v = sqrt(1.6e11/(200000+h)) rather than interpolating these three numbers.",
-    "The 'suborbital' band sits at 80-120 km, above the 72 km atmosphere, so its listed speed is the circular-orbit reference at that altitude rather than a claim about how the player arrives. A genuine suborbital hop reaching 100 km apoapsis arrives far slower than 730 m/s, which is exactly why it is the cheap, forgiving band.",
-    "Aerobrake pass depths worth handing the Playtester as a starting grid: periapsis 55 km ~ 5 m/s per pass (feathering, should be uneconomic), 45 km ~ 25 m/s, 40 km ~ 85 m/s, 35 km ~ 250 m/s, below 30 km committed entry. Those come from the same dv formula in the derivation and are the range in which a 2-4 pass optimum, if one exists, has to live."
+    "The planet is not physically constructible. A 200 km body at 9.0 m/s2 requires a mean density of about 161,000 kg/m3, roughly seven times osmium and nearly three times the density Kerbin already cheats to. This is the direct cost of the charter's radius window plus playable gravity, and it is the same trade every small-planet game makes. Practical consequence for the crew: do not derive anything downstream from planet mass or composition, and do not let anyone 'fix' the density, because fixing it means either a 1,000 km planet or gravity near 0.2 m/s2.",
+    "The atmosphere had to be made cold (134 K) and heavy (mean molar mass 0.040 kg/mol) to keep the sensible top below the lowest band. Temperate Earth air at this gravity would give H = 287*250/9.0 = 7,972 m and a one-millionth-density top near 110,000 m, which is above the suborbital band and above much of the low band, and aerobraking would become permanent drag on every parked ship. This is the one place the charter's constraints forced a choice I would not defend physically: a 134 K surface is inconsistent with an open-air junkyard staffed by a man in overalls. If art or fiction objects, the lever is to raise every band by roughly 70 km rather than to warm the air.",
+    "Direct contradiction of GDD 2.3.1, flagged because it is load-bearing for the difficulty curve. The GDD claims 'each altitude band up is disproportionately hotter to return from'. At this planet scale it is not. Entry speeds at a common periapsis are 1,316 / 1,366 / 1,441 m/s from the three bands, so the v^3 heat ratio from top band to bottom is only 1.31. On a small planet the orbital speeds compress toward each other and the cubic law has almost nothing to bite on. The band-to-band difficulty therefore has to come from the mass effects in 2.3.7 (denser, heavier, more fragile high-band junk, which raises beta and lengthens the time spent at heating speed) and from pass count, not from entry speed. If the design insists on a heat-driven curve, the high band has to move much further out: putting its midpoint at 800 km altitude rather than 215 km would roughly double the spread.",
+    "Absolute heat flux is small: peak convective heating on a committed pass is about 28 kW/m2, roughly 1/150 of Apollo's lunar-return peak. Do not build the heat bar on absolute W/m2 or the numbers will look wrong to anyone who checks them. Express heat as a normalized fraction of a per-shield-tier capacity, and let the shield capacity carry the units.",
+    "Ship dry mass of 1,800 kg staged and empty is my assumption, not the GDD's; the GDD never gives a mass. Every ballistic coefficient above scales linearly with it, so if the Playtester finds the drag ladder too weak or too strong, this is the cheapest single number to move before touching Cd, area, or air density.",
+    "The unstaged hull's ballistic coefficient of 2,867 kg/m2 is very high, so the pre-stage shallow braking passes that GDD 2.3.1 describes as 'coarse braking' will brake very weakly indeed, roughly a seventh as hard as the staged ship at the same periapsis. That is directionally correct (staging should matter) but it may be too extreme to make pre-stage passes worth flying at all. If the crew wants those passes to be a real manoeuvre, raise the hull drag coefficient toward 0.6 or give the unstaged configuration a larger reference area rather than lowering the shield's 1.5.",
+    "Reference area 3.1 m2 is used for both configurations, taken as the base of a 2 m diameter hull. In reality a slender body nose-first presents a smaller effective area than an exposed shield presents flat-on, so the split between hull and shield is carried entirely by the drag coefficients here. If the sim wants two areas rather than one, the shield should keep 3.1 and the hull should drop toward 1.5-2.0, which would raise its beta further and make the previous note worse.",
+    "The Sutton-Graves constant k = 1.7415e-4 and the Apollo peak-flux figure of about 4 MW/m2 are quoted from memory with no network access to verify. The correlation's form (sqrt of density, cube of velocity) I am confident in; the leading constant and the Apollo number should be checked before either appears in player-facing documentation.",
+    "Orbital periods run 1,429 / 1,852 / 2,800 seconds, that is 24 to 47 minutes. A three-pass aerobrake from the high band is therefore roughly 2.3 hours of simulated time. The warp is mandatory. It also means the headless sweeps in GDD 4.4 integrate a lot of quiet coasting per flight, so the sim should be able to skip ballistically between atmosphere entries rather than stepping every frame of an empty orbit, or the Playtester's thousands of flights get expensive.",
+    "The band named 'suborbital' sits entirely above the sensible atmosphere at 50-80 km, which reads oddly. The name describes the player's trajectory (a lobbed hop that comes straight back down), not the debris', since anything genuinely below 43 km would decay within a pass. The debris in that band should be understood as on shallow decaying orbits, which also justifies the streaks in the sky above the junkyard that the GDD uses to teach reentry ambiently.",
+    "Plasma onset at 820 m/s is below the circular speed of all three bands (1,166 / 1,069 / 931), so any ship that enters the air without first braking begins its pass inside plasma. That is the intended behaviour, since it keeps the chute locked until real braking has happened, but it also means the plasma cue carries no information on a first pass. The GDD's plasma colour-temperature cue is the thing doing the work there, not plasma's presence."
   ]
 }

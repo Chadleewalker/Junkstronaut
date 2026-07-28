@@ -1,7 +1,7 @@
 {
   "crew": "junkstronaut-tuning-crew",
   "mode": "stub",
-  "finished_at": "2026-07-27T22:22:59.011Z",
+  "finished_at": "2026-07-28T04:00:21.194Z",
   "duration_s": 0.1,
   "design_document": "Junkstronaut GDD.txt",
   "models": [
@@ -24,7 +24,7 @@
     {
       "name": "playtester",
       "verdict": "targets_missed",
-      "findings": 7
+      "findings": 9
     },
     {
       "name": "spec-auditor",
@@ -34,11 +34,14 @@
   ],
   "audit": {
     "verdict": "fail",
-    "checks_total": 18,
-    "checks_failed": 1,
+    "checks_total": 20,
+    "checks_failed": 2,
     "observations": 8
   },
-  "catalog_concerns": [],
+  "catalog_concerns": [
+    "dented_pressure_bottle, mass_kg 380 in size_class small (1 crushed slot). It is the piece most responsible for the flown 232.96 kg per crushed slot, which is what forced dry_mass_kg from 850 to 1,350 to keep the GDD 2.3.5 doubling true. The catalog is self-consistent and I balanced against it as it stands, but the Designer should know that a 380 kg one-slot piece sets the per-slot mass of the whole shipping slice, and that the base ship's dry mass is now a function of it.",
+    "cryo_propellant_sphere, mass_kg 2200 in size_class medium, hand-tetherable. At base magnet_hold_force_n 900 N steady towing is safe by a wide margin (228.6 N), but latch jerk scales with closing speed times piece mass, so this piece defines the high band's shear behaviour on its own — it is 1.9x the next heaviest hand-tetherable piece. That is a sweep target rather than a defect, but if the Playtester finds latch jerk unforgiving at any magnet tier, this is the piece it will be about."
+  ],
   "artifacts": [
     "params/baseline.json",
     "data/debris_catalog.json",
