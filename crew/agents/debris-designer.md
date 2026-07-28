@@ -71,6 +71,20 @@ the bottom without any single piece being strictly the best choice.
   should land near 0.10 and the top third near 0.25. Counting pieces instead of weighting
   them is the single most common way this check fails — five fragile types out of twenty is
   not a 1-in-4 spawn rate if those five are the heaviest weighted pieces.
+- **Armstrong's module is a required entry, and it is not an ordinary piece.** It is the game's
+  win condition (GDD 2.6): Apollo-era hardware hanging at the very top of the band, one slot,
+  **~3,600 kg** — roughly double the ship's mass, and far heavier than anything else in the
+  catalog. Give it `id: "armstrongs_module"`, an `altitude_m` at or near the band ceiling, and
+  `spawn_weight: 1` — it is a fixed objective rather than a random spawn, and 1 is the
+  lowest the schema allows. It sits above the shipping slice, so it does not affect hold mass. Never mark it fragile; it
+  degrades through pristine/damaged/scrap rather than breaking.
+
+  **Do not let the heaviest ordinary piece stand in for it.** The endgame rule — that the
+  module cannot come home on a single committed plunge — is measured against the heaviest
+  thing the crew flies. If the module is missing, that rule silently guards a nose cone
+  instead of the win condition, and passes with a margin of a few percent rather than the
+  ~20% the design intends. This has happened; it is why the entry is mandatory.
+
 - Mass rises with altitude, and it must rise smoothly rather than in three steps. The GDD's
   central bet is that the valuable stuff physically fights you: junk near the ceiling is
   denser and heavier, so a better haul is a harder ride home. Make that visible in the
