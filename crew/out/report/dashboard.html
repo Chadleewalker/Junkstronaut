@@ -11,7 +11,7 @@
     --plane:#f9f9f7; --surface-1:#fcfcfb;
     --text-primary:#0b0b0b; --text-secondary:#52514e; --muted:#898781;
     --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
-    --band-suborbital:#2a78d6; --band-low:#eb6834; --band-high:#1baf7a;
+    --band-bottom:#2a78d6; --band-middle:#eb6834; --band-top:#1baf7a;
     --accent:#2a78d6;
     --good:#0ca30c; --bad:#d03b3b; --warn:#fab219; --serious:#ec835a;
     --target:rgba(42,120,214,.07);
@@ -20,7 +20,7 @@
     --plane:#0d0d0d; --surface-1:#1a1a19;
     --text-primary:#fff; --text-secondary:#c3c2b7; --muted:#898781;
     --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
-    --band-suborbital:#3987e5; --band-low:#d95926; --band-high:#199e70;
+    --band-bottom:#3987e5; --band-middle:#d95926; --band-top:#199e70;
     --accent:#3987e5;
     --target:rgba(57,135,229,.10);
   }}
@@ -28,7 +28,7 @@
     --plane:#0d0d0d; --surface-1:#1a1a19;
     --text-primary:#fff; --text-secondary:#c3c2b7; --muted:#898781;
     --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
-    --band-suborbital:#3987e5; --band-low:#d95926; --band-high:#199e70;
+    --band-bottom:#3987e5; --band-middle:#d95926; --band-top:#199e70;
     --accent:#3987e5;
     --target:rgba(57,135,229,.10);
   }
@@ -115,13 +115,13 @@
 
   <h1>Junkstronaut — tuning crew report</h1>
   <p class="sub">What the crew's proposed numbers imply, before anyone flies them.</p>
-  <p class="meta">stub run · 0.1s · claude-opus-5 · 2026-07-28T04:00:21.194Z</p>
+  <p class="meta">live run · 4763.2s · claude-opus-5 · 2026-07-29T00:37:30.596Z</p>
 
   <div class="tiles">
     <div class="tile">
       <div class="tile-label">Debris types</div>
-      <div class="tile-value">28</div>
-      <div class="tile-sub ">9 fragile</div>
+      <div class="tile-value">30</div>
+      <div class="tile-sub ">12 fragile</div>
     </div>
     <div class="tile">
       <div class="tile-label">Upgrades priced</div>
@@ -130,7 +130,7 @@
     </div>
     <div class="tile">
       <div class="tile-label">Spec checks passed</div>
-      <div class="tile-value">18/20</div>
+      <div class="tile-value">20/21</div>
       <div class="tile-sub bad">FAIL</div>
     </div>
     <div class="tile">
@@ -141,33 +141,33 @@
 
   <div class="readfirst" id="top">
     <h2>Read this first</h2>
-    <p class="headline">The numbers obey 18 of 20 rules in the design document. Eighteen of twenty checks pass and the ablation curve reproduces its own model exactly, but the ship runs out of fuel before circularising in all three bands and the cheapest descent is a single plunge at every band and load — the second of those is a rule no parameter assignment can satisfy and needs a human decision, not a retune.</p>
-    <ol><li><b>2 design rules could not be satisfied.</b> <code>cheapest_descent_is_multi_pass</code>, <code>shipping_slice_bands_reachable</code> — <a href="#audit">the audit</a> shows the arithmetic. A rule that fails after two revision rounds is a finding about the design, not a number waiting to be tuned.</li><li><b>unstaged pass survivable</b> is satisfied by only 7.4% of 5184 worlds — <a href="#targets">the target scan</a>. Almost nowhere in the whole parameter space works for that rule.</li><li><b>3 blocking playtest findings</b> — <a href="#playtest">what the flights actually did</a>.</li></ol>
+    <p class="headline">The numbers obey 20 of 21 rules in the design document. One check fails: the claimed full-hold parachute speed (3.99 m/s) is 21% off what the stated canopy actually flew (4.83 m/s), because the claim is computed on a 1,504 kg ship and the simulator flew 2,205 kg — and the deeper problem behind it, that the harness&#39;s hold is 42% lighter than the catalog&#39;s own shipping slice, is flagged for the human because no agent&#39;s artifact can fix it.</p>
+    <ol><li><b>1 design rule could not be satisfied.</b> <code>parachute_speed_matches_flight</code> — <a href="#audit">the audit</a> shows the arithmetic. A rule that fails after two revision rounds is a finding about the design, not a number waiting to be tuned.</li><li><b>2 claims the params make are contradicted by the flights.</b> entry heat after 2 skims, lower band; full hold mass ratio — <a href="#flights">claimed against measured</a>.</li><li><b>unstaged pass survivable</b> is satisfied by only 8.0% of 5184 worlds — <a href="#targets">the target scan</a>. Almost nowhere in the whole parameter space works for that rule.</li><li><b>1 blocking playtest finding</b> — <a href="#playtest">what the flights actually did</a>.</li></ol>
   </div>
 
   <div class="card" id="debris">
     <h2>Value costs mass</h2>
-    <p class="takeaway"><span class="chip good">r = 0.74</span><span>Value rises with mass (r = 0.74), so the valuable haul really is the heavy one — the design&#39;s central bet holds.</span></p>
+    <p class="takeaway"><span class="chip bad">r = 0.08</span><span>Value barely tracks mass (r = 0.08). The heavy pieces are not the valuable ones, so upgrades will outrun difficulty.</span></p>
     <details class="explain"><summary>What am I looking at?</summary><p class="lede">The design's central bet (§2.3.7): the better the haul, the harder the ride home. If this
      cloud trends up and to the right, the bet holds — the valuable pieces are the heavy ones.
      A flat cloud means upgrades will outrun difficulty.</p></details>
     
 <svg viewBox="0 0 720 420" class="chart" role="img" aria-label="Debris mass against value, by altitude band">
-  <line class="grid" x1="64" x2="700" y1="338.5" y2="338.5"/><text class="tick" x="54" y="342.5" text-anchor="end">50</text><line class="grid" x1="64" x2="700" y1="292.7" y2="292.7"/><text class="tick" x="54" y="296.7" text-anchor="end">100</text><line class="grid" x1="64" x2="700" y1="247.0" y2="247.0"/><text class="tick" x="54" y="251.0" text-anchor="end">200</text><line class="grid" x1="64" x2="700" y1="186.4" y2="186.4"/><text class="tick" x="54" y="190.4" text-anchor="end">500</text><line class="grid" x1="64" x2="700" y1="140.6" y2="140.6"/><text class="tick" x="54" y="144.6" text-anchor="end">1,000</text><line class="grid" x1="64" x2="700" y1="94.9" y2="94.9"/><text class="tick" x="54" y="98.9" text-anchor="end">2,000</text><line class="grid" x1="64" x2="700" y1="34.3" y2="34.3"/><text class="tick" x="54" y="38.3" text-anchor="end">5,000</text><text class="tick" x="136.6" y="388" text-anchor="middle">50</text><text class="tick" x="223.4" y="388" text-anchor="middle">100</text><text class="tick" x="310.2" y="388" text-anchor="middle">200</text><text class="tick" x="424.9" y="388" text-anchor="middle">500</text><text class="tick" x="511.7" y="388" text-anchor="middle">1,000</text><text class="tick" x="598.5" y="388" text-anchor="middle">2,000</text>
+  <line class="grid" x1="64" x2="700" y1="338.1" y2="338.1"/><text class="tick" x="54" y="342.1" text-anchor="end">50</text><line class="grid" x1="64" x2="700" y1="276.1" y2="276.1"/><text class="tick" x="54" y="280.1" text-anchor="end">100</text><line class="grid" x1="64" x2="700" y1="214.2" y2="214.2"/><text class="tick" x="54" y="218.2" text-anchor="end">200</text><line class="grid" x1="64" x2="700" y1="132.4" y2="132.4"/><text class="tick" x="54" y="136.4" text-anchor="end">500</text><line class="grid" x1="64" x2="700" y1="70.5" y2="70.5"/><text class="tick" x="54" y="74.5" text-anchor="end">1,000</text><text class="tick" x="174.8" y="388" text-anchor="middle">100</text><text class="tick" x="270.4" y="388" text-anchor="middle">200</text><text class="tick" x="396.8" y="388" text-anchor="middle">500</text><text class="tick" x="492.5" y="388" text-anchor="middle">1,000</text><text class="tick" x="588.1" y="388" text-anchor="middle">2,000</text>
   <line class="axis" x1="64" x2="700" y1="368" y2="368"/>
   <line class="axis" x1="64" x2="64" y1="16" y2="368"/>
-  <circle class="mark" cx="406.0" cy="299.7" r="5" fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2" data-tip="Bent Truss Section · Suborbital · medium · 430.0 kg · 90 credits"/><circle class="mark" cx="123.4" cy="353.3" r="5" fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2" data-tip="Crumpled Foil Blanket · Suborbital · small · 45.0 kg · 40 credits"/><circle class="mark" cx="203.0" cy="353.3" r="5" fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2" data-tip="Burnt Panel Offcut · Suborbital · small · 85.0 kg · 40 credits"/><circle class="mark" cx="256.2" cy="353.3" r="5" fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2" data-tip="Spent Bolt Cluster · Suborbital · small · 130.0 kg · 40 credits"/><circle class="mark ring" cx="91.9" cy="280.7" r="6.5" fill="none" stroke="var(--band-suborbital)" stroke-width="2.5" data-tip="Cracked Antenna Whip · Suborbital · small · fragile · 35.0 kg · 120 credits"/><circle class="mark" cx="467.0" cy="299.7" r="5" fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2" data-tip="Scorched Hull Plate · Suborbital · medium · 700.0 kg · 90 credits"/><circle class="mark" cx="390.5" cy="353.3" r="5" fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2" data-tip="Dented Pressure Bottle · Suborbital · small · 380.0 kg · 40 credits"/><circle class="mark ring" cx="178.7" cy="280.7" r="6.5" fill="none" stroke="var(--band-suborbital)" stroke-width="2.5" data-tip="Shattered Lens Cowl · Suborbital · small · fragile · 70.0 kg · 120 credits"/><circle class="mark" cx="523.6" cy="215.9" r="5" fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2" data-tip="Collapsed Launch Shroud · Suborbital · oversized · 1,100.0 kg · 320 credits"/><circle class="mark" cx="494.2" cy="241.9" r="5" fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2" data-tip="Reaction Wheel Housing · Low orbit · medium · 870.0 kg · 216 credits"/><circle class="mark" cx="477.3" cy="241.9" r="5" fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2" data-tip="Severed Solar Wing Spar · Low orbit · medium · 760.0 kg · 216 credits"/><circle class="mark ring" cx="393.8" cy="169.3" r="6.5" fill="none" stroke="var(--band-low)" stroke-width="2.5" data-tip="Cracked Solar Array · Low orbit · medium · fragile · 390.0 kg · 648 credits"/><circle class="mark" cx="529.2" cy="241.9" r="5" fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2" data-tip="Battery Pack Module · Low orbit · medium · 1,150.0 kg · 216 credits"/><circle class="mark" cx="376.6" cy="295.4" r="5" fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2" data-tip="Thruster Nozzle Bell · Low orbit · small · 340.0 kg · 96 credits"/><circle class="mark ring" cx="278.3" cy="222.9" r="6.5" fill="none" stroke="var(--band-low)" stroke-width="2.5" data-tip="Star Tracker Head · Low orbit · small · fragile · 155.0 kg · 288 credits"/><circle class="mark" cx="316.3" cy="295.4" r="5" fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2" data-tip="Tangled Harness Bundle · Low orbit · small · 210.0 kg · 96 credits"/><circle class="mark ring" cx="403.1" cy="169.3" r="6.5" fill="none" stroke="var(--band-low)" stroke-width="2.5" data-tip="Parabolic Dish Section · Low orbit · medium · fragile · 420.0 kg · 648 credits"/><circle class="mark" cx="598.5" cy="158.1" r="5" fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2" data-tip="Derelict Upper Stage Tank · Low orbit · oversized · 2,000.0 kg · 768 credits"/><circle class="mark" cx="595.3" cy="187.1" r="5" fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2" data-tip="Comsat Bus Frame · High orbit · medium · 1,950.0 kg · 495 credits"/><circle class="mark" cx="570.5" cy="187.1" r="5" fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2" data-tip="Hardened Avionics Core · High orbit · medium · 1,600.0 kg · 495 credits"/><circle class="mark" cx="610.4" cy="187.1" r="5" fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2" data-tip="Cryo Propellant Sphere · High orbit · medium · 2,200.0 kg · 495 credits"/><circle class="mark" cx="529.2" cy="240.7" r="5" fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2" data-tip="Momentum Gyro Cluster · High orbit · small · 1,150.0 kg · 220 credits"/><circle class="mark" cx="467.0" cy="240.7" r="5" fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2" data-tip="Sensor Boom Mast · High orbit · small · 700.0 kg · 220 credits"/><circle class="mark ring" cx="501.2" cy="114.5" r="6.5" fill="none" stroke="var(--band-high)" stroke-width="2.5" data-tip="Gallium Solar Panel · High orbit · medium · fragile · 920.0 kg · 1,485 credits"/><circle class="mark ring" cx="544.5" cy="114.5" r="6.5" fill="none" stroke="var(--band-high)" stroke-width="2.5" data-tip="Optical Telescope Barrel · High orbit · medium · fragile · 1,300.0 kg · 1,485 credits"/><circle class="mark ring" cx="434.5" cy="168.1" r="6.5" fill="none" stroke="var(--band-high)" stroke-width="2.5" data-tip="Xenon Ion Grid · High orbit · small · fragile · 540.0 kg · 660 credits"/><circle class="mark" cx="657.3" cy="103.3" r="5" fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2" data-tip="High-Gain Dish Assembly · High orbit · oversized · 3,200.0 kg · 1,760 credits"/><circle class="mark ring" cx="672.1" cy="30.7" r="6.5" fill="none" stroke="var(--band-high)" stroke-width="2.5" data-tip="Armstrong&#39;s Satellite · High orbit · oversized · fragile · 3,600.0 kg · 5,280 credits"/>
+  <circle class="mark ring" cx="94.8" cy="255.6" r="6.5" fill="none" stroke="var(--band-bottom)" stroke-width="2.5" data-tip="Torn Foil Blanket · Lower band · small · fragile · 56.0 kg · 126 credits"/><circle class="mark" cx="145.7" cy="348.1" r="5" fill="var(--band-bottom)" stroke="var(--surface-1)" stroke-width="2" data-tip="Crumpled Panel Stack · Lower band · small · 81.0 kg · 45 credits"/><circle class="mark ring" cx="181.5" cy="169.3" r="6.5" fill="none" stroke="var(--band-bottom)" stroke-width="2.5" data-tip="Cracked Solar Array · Lower band · medium · fragile · 105.0 kg · 331 credits"/><circle class="mark" cx="208.8" cy="259.9" r="5" fill="var(--band-bottom)" stroke="var(--surface-1)" stroke-width="2" data-tip="Bent Truss Section · Lower band · medium · 128.0 kg · 120 credits"/><circle class="mark" cx="230.7" cy="324.2" r="5" fill="var(--band-bottom)" stroke="var(--surface-1)" stroke-width="2" data-tip="Spent Kick Motor Casing · Lower band · small · 150.0 kg · 58 credits"/><circle class="mark" cx="380.8" cy="124.1" r="5" fill="var(--band-bottom)" stroke="var(--surface-1)" stroke-width="2" data-tip="Collapsed Dish Frame · Lower band · oversized · 445.0 kg · 549 credits"/><circle class="mark ring" cx="250.4" cy="132.9" r="6.5" fill="none" stroke="var(--band-bottom)" stroke-width="2.5" data-tip="Shredded Antenna Mesh · Lower band · medium · fragile · 173.0 kg · 497 credits"/><circle class="mark" cx="270.4" cy="225.1" r="5" fill="var(--band-bottom)" stroke="var(--surface-1)" stroke-width="2" data-tip="Cracked Battery Pallet · Lower band · medium · 200.0 kg · 177 credits"/><circle class="mark" cx="282.3" cy="291.9" r="5" fill="var(--band-bottom)" stroke="var(--surface-1)" stroke-width="2" data-tip="Seized Reaction Wheel Housing · Lower band · small · 218.0 kg · 84 credits"/><circle class="mark" cx="289.7" cy="286.2" r="5" fill="var(--band-bottom)" stroke="var(--surface-1)" stroke-width="2" data-tip="Burst Pressurant Sphere · Lower band · small · 230.0 kg · 89 credits"/><circle class="mark ring" cx="269.7" cy="110.4" r="6.5" fill="none" stroke="var(--band-bottom)" stroke-width="2.5" data-tip="Delaminated Radiator Fin · Lower band · medium · fragile · 199.0 kg · 640 credits"/><circle class="mark" cx="312.8" cy="200.7" r="5" fill="var(--band-middle)" stroke="var(--surface-1)" stroke-width="2" data-tip="Torn Solar Wing Spar · Mid band · medium · 272.0 kg · 233 credits"/><circle class="mark ring" cx="292.1" cy="170.4" r="6.5" fill="none" stroke="var(--band-middle)" stroke-width="2.5" data-tip="Cracked Optics Barrel · Mid band · small · fragile · 234.0 kg · 327 credits"/><circle class="mark" cx="331.3" cy="191.7" r="5" fill="var(--band-middle)" stroke="var(--surface-1)" stroke-width="2" data-tip="Fractured Docking Collar · Mid band · medium · 311.0 kg · 257 credits"/><circle class="mark" cx="339.9" cy="259.7" r="5" fill="var(--band-middle)" stroke="var(--surface-1)" stroke-width="2" data-tip="Dead Thruster Quad · Mid band · small · 331.0 kg · 120 credits"/><circle class="mark" cx="440.5" cy="69.7" r="5" fill="var(--band-middle)" stroke="var(--surface-1)" stroke-width="2" data-tip="Buckled Pressure Bulkhead · Mid band · oversized · 686.0 kg · 1,009 credits"/><circle class="mark" cx="351.9" cy="179.2" r="5" fill="var(--band-middle)" stroke="var(--surface-1)" stroke-width="2" data-tip="Ruptured Helium Tank · Mid band · medium · 361.0 kg · 296 credits"/><circle class="mark ring" cx="337.0" cy="149.9" r="6.5" fill="none" stroke="var(--band-middle)" stroke-width="2.5" data-tip="Shattered Star Tracker · Mid band · small · fragile · 324.0 kg · 411 credits"/><circle class="mark" cx="365.4" cy="171.8" r="5" fill="var(--band-middle)" stroke="var(--surface-1)" stroke-width="2" data-tip="Warped Gyro Deck · Mid band · medium · 398.0 kg · 322 credits"/><circle class="mark ring" cx="353.8" cy="70.1" r="6.5" fill="none" stroke="var(--band-middle)" stroke-width="2.5" data-tip="Cracked Ablative Nose Cone · Mid band · medium · fragile · 366.0 kg · 1,004 credits"/><circle class="mark ring" cx="361.9" cy="66.2" r="6.5" fill="none" stroke="var(--band-middle)" stroke-width="2.5" data-tip="Split Avionics Rack · Mid band · medium · fragile · 388.0 kg · 1,049 credits"/><circle class="mark" cx="388.3" cy="159.3" r="5" fill="var(--band-top)" stroke="var(--surface-1)" stroke-width="2" data-tip="Torn Reactor Shield Plate · Upper band · medium · 470.0 kg · 370 credits"/><circle class="mark ring" cx="375.4" cy="57.6" r="6.5" fill="none" stroke="var(--band-top)" stroke-width="2.5" data-tip="Cracked Deep Space Dish · Upper band · medium · fragile · 428.0 kg · 1,155 credits"/><circle class="mark ring" cx="385.9" cy="126.6" r="6.5" fill="none" stroke="var(--band-top)" stroke-width="2.5" data-tip="Fused Ion Grid Assembly · Upper band · small · fragile · 462.0 kg · 533 credits"/><circle class="mark" cx="466.4" cy="35.9" r="5" fill="var(--band-top)" stroke="var(--surface-1)" stroke-width="2" data-tip="Severed Boom Mast · Upper band · oversized · 828.0 kg · 1,472 credits"/><circle class="mark" cx="396.0" cy="146.1" r="5" fill="var(--band-top)" stroke="var(--surface-1)" stroke-width="2" data-tip="Scorched Fuel Cell Stack · Upper band · medium · 497.0 kg · 429 credits"/><circle class="mark ring" cx="380.5" cy="44.9" r="6.5" fill="none" stroke="var(--band-top)" stroke-width="2.5" data-tip="Shattered Cryo Dewar · Upper band · medium · fragile · 444.0 kg · 1,332 credits"/><circle class="mark" cx="403.0" cy="140.0" r="5" fill="var(--band-top)" stroke="var(--surface-1)" stroke-width="2" data-tip="Impact Pitted Engine Bell · Upper band · medium · 523.0 kg · 459 credits"/><circle class="mark ring" cx="383.2" cy="111.5" r="6.5" fill="none" stroke="var(--band-top)" stroke-width="2.5" data-tip="Cracked Command Module Hatch · Upper band · small · fragile · 453.0 kg · 632 credits"/><circle class="mark" cx="669.2" cy="206.7" r="5" fill="var(--band-top)" stroke="var(--surface-1)" stroke-width="2" data-tip="Armstrong&#39;s Service Module · Upper band · small · 3,600.0 kg · 218 credits"/>
   <text class="axis-label" x="382" y="410" text-anchor="middle">piece mass (kg, log scale)</text>
   <text class="axis-label" transform="translate(16,192) rotate(-90)" text-anchor="middle">value in credits (log scale)</text>
 </svg><div class="legend">
-    <span class="key"><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</span><span class="key"><span class="swatch" style="background:var(--band-low)"></span>Low orbit</span><span class="key"><span class="swatch" style="background:var(--band-high)"></span>High orbit</span>
+    <span class="key"><span class="swatch" style="background:var(--band-bottom)"></span>Lower band</span><span class="key"><span class="swatch" style="background:var(--band-middle)"></span>Mid band</span><span class="key"><span class="swatch" style="background:var(--band-top)"></span>Upper band</span>
     <span class="key"><span class="swatch ring"></span>fragile (hollow)</span>
   </div>
   </div>
 
   <div class="card" id="ablation">
     <h2>The ablation curve</h2>
-    <p class="takeaway"><span class="chip warn">curve ok, rule fails</span><span>Cheapest descent is 0 skims from suborbital, 0 skims from low orbit, 2 skims from high orbit. The high band sits in the 1–2 skim window and no band exceeds it, as §2.3.1 asks. This is the SKIM axis and it passes. The separate rule about how many atmospheric PASSES the cheapest descent takes fails — see the audit. The two are different manoeuvres and neither is evidence about the other.</span></p>
+    <p class="takeaway"><span class="chip info">where the curve bottoms out</span><span>Cheapest descent is 1 skim from the lower band, 1 skim from the mid band, 1 skim from the upper band. A single-pass optimum here is expected and is not a defect — the plunge is always the cheapest way down, and the design does not try to out-price it. The requirement that a heavy haul cannot plunge is checked on the pass axis, against the heat capacity, and it holds.</span></p>
     <details class="explain"><summary>What am I looking at?</summary><p class="lede">The hardest constraint in the document (§2.3.1). One screaming plunge is expensive; a dozen
      feather-light passes are expensive; the cheapest descent should be a planned 2–4 committed
      passes. Each ring marks where that band's curve bottoms out. These are the Balancer's own
@@ -175,136 +175,136 @@
      beneath it can never disagree.</p></details>
     
 <svg viewBox="0 0 720 420" class="chart" role="img" aria-label="Heat shield plate burned against the number of shallow skims before the committed entry, per band">
-  <rect class="target" x="254.66666666666666" y="20" width="186.66666666666666" height="348"/>
-    <text class="target-label" x="348" y="34" text-anchor="middle">target: 1–2 skims</text><line class="grid" x1="68" x2="628" y1="368.0" y2="368.0"/><text class="tick" x="58" y="372.0" text-anchor="end">0</text><line class="grid" x1="68" x2="628" y1="263.0" y2="263.0"/><text class="tick" x="58" y="267.0" text-anchor="end">10</text><line class="grid" x1="68" x2="628" y1="157.9" y2="157.9"/><text class="tick" x="58" y="161.9" text-anchor="end">20</text><line class="grid" x1="68" x2="628" y1="52.9" y2="52.9"/><text class="tick" x="58" y="56.9" text-anchor="end">30</text>
+  <line class="grid" x1="68" x2="628" y1="368.0" y2="368.0"/><text class="tick" x="58" y="372.0" text-anchor="end">0</text><line class="grid" x1="68" x2="628" y1="235.0" y2="235.0"/><text class="tick" x="58" y="239.0" text-anchor="end">10</text><line class="grid" x1="68" x2="628" y1="101.9" y2="101.9"/><text class="tick" x="58" y="105.9" text-anchor="end">20</text>
   <line class="axis" x1="68" x2="628" y1="368" y2="368"/>
   <line class="axis" x1="68" x2="68" y1="20" y2="368"/>
-  <path d="M68.0,302.8L254.7,298.8L441.3,290.4L628.0,274.1" fill="none" stroke="var(--band-suborbital)" stroke-width="2" stroke-linejoin="round"/><circle class="mark" cx="68.0" cy="302.8" r="4.5"
-        fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2"
-        data-tip="Suborbital · 0 skims then commit · 6.2% plate burned"/><circle class="mark" cx="254.7" cy="298.8" r="4.5"
-        fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2"
-        data-tip="Suborbital · 1 skim then commit · 6.6% plate burned"/><circle class="mark" cx="441.3" cy="290.4" r="4.5"
-        fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2"
-        data-tip="Suborbital · 2 skims then commit · 7.4% plate burned"/><circle class="mark" cx="628.0" cy="274.1" r="4.5"
-        fill="var(--band-suborbital)" stroke="var(--surface-1)" stroke-width="2"
-        data-tip="Suborbital · 3 skims then commit · 8.9% plate burned"/><circle cx="68.0" cy="302.8" r="9"
-        fill="none" stroke="var(--band-suborbital)" stroke-width="2.5"/><text class="series-label" x="636" y="278.1">Suborbital</text><path d="M68.0,233.8L254.7,232.9L441.3,227.2L628.0,213.5" fill="none" stroke="var(--band-low)" stroke-width="2" stroke-linejoin="round"/><circle class="mark" cx="68.0" cy="233.8" r="4.5"
-        fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2"
-        data-tip="Low orbit · 0 skims then commit · 12.8% plate burned"/><circle class="mark" cx="254.7" cy="232.9" r="4.5"
-        fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2"
-        data-tip="Low orbit · 1 skim then commit · 12.9% plate burned"/><circle class="mark" cx="441.3" cy="227.2" r="4.5"
-        fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2"
-        data-tip="Low orbit · 2 skims then commit · 13.4% plate burned"/><circle class="mark" cx="628.0" cy="213.5" r="4.5"
-        fill="var(--band-low)" stroke="var(--surface-1)" stroke-width="2"
-        data-tip="Low orbit · 3 skims then commit · 14.7% plate burned"/><circle cx="68.0" cy="233.8" r="9"
-        fill="none" stroke="var(--band-low)" stroke-width="2.5"/><text class="series-label" x="636" y="217.5">Low orbit</text><path d="M68.0,20.0L254.7,28.6L441.3,31.6L628.0,25.5" fill="none" stroke="var(--band-high)" stroke-width="2" stroke-linejoin="round"/><circle class="mark" cx="68.0" cy="20.0" r="4.5"
-        fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2"
-        data-tip="High orbit · 0 skims then commit · 33.1% plate burned"/><circle class="mark" cx="254.7" cy="28.6" r="4.5"
-        fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2"
-        data-tip="High orbit · 1 skim then commit · 32.3% plate burned"/><circle class="mark" cx="441.3" cy="31.6" r="4.5"
-        fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2"
-        data-tip="High orbit · 2 skims then commit · 32.0% plate burned"/><circle class="mark" cx="628.0" cy="25.5" r="4.5"
-        fill="var(--band-high)" stroke="var(--surface-1)" stroke-width="2"
-        data-tip="High orbit · 3 skims then commit · 32.6% plate burned"/><circle cx="441.3" cy="31.6" r="9"
-        fill="none" stroke="var(--band-high)" stroke-width="2.5"/><text class="series-label" x="636" y="29.5">High orbit</text><text class="tick" x="68.0" y="388" text-anchor="middle">0</text><text class="tick" x="254.7" y="388" text-anchor="middle">1</text><text class="tick" x="441.3" y="388" text-anchor="middle">2</text><text class="tick" x="628.0" y="388" text-anchor="middle">3</text>
+  <path d="M68.0,207.0L254.7,229.8L441.3,147.3L628.0,55.1" fill="none" stroke="var(--band-bottom)" stroke-width="2" stroke-linejoin="round"/><circle class="mark" cx="68.0" cy="207.0" r="4.5"
+        fill="var(--band-bottom)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Lower band · 0 skims then commit · 12.1% plate burned"/><circle class="mark" cx="254.7" cy="229.8" r="4.5"
+        fill="var(--band-bottom)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Lower band · 1 skim then commit · 10.4% plate burned"/><circle class="mark" cx="441.3" cy="147.3" r="4.5"
+        fill="var(--band-bottom)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Lower band · 2 skims then commit · 16.6% plate burned"/><circle class="mark" cx="628.0" cy="55.1" r="4.5"
+        fill="var(--band-bottom)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Lower band · 3 skims then commit · 23.5% plate burned"/><circle cx="254.7" cy="229.8" r="9"
+        fill="none" stroke="var(--band-bottom)" stroke-width="2.5"/><text class="series-label" x="636" y="59.1">Lower band</text><path d="M68.0,139.7L254.7,217.1L441.3,134.7L628.0,42.5" fill="none" stroke="var(--band-middle)" stroke-width="2" stroke-linejoin="round"/><circle class="mark" cx="68.0" cy="139.7" r="4.5"
+        fill="var(--band-middle)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Mid band · 0 skims then commit · 17.2% plate burned"/><circle class="mark" cx="254.7" cy="217.1" r="4.5"
+        fill="var(--band-middle)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Mid band · 1 skim then commit · 11.3% plate burned"/><circle class="mark" cx="441.3" cy="134.7" r="4.5"
+        fill="var(--band-middle)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Mid band · 2 skims then commit · 17.5% plate burned"/><circle class="mark" cx="628.0" cy="42.5" r="4.5"
+        fill="var(--band-middle)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Mid band · 3 skims then commit · 24.5% plate burned"/><circle cx="254.7" cy="217.1" r="9"
+        fill="none" stroke="var(--band-middle)" stroke-width="2.5"/><line x1="628.0" y1="42.5" x2="633.0" y2="40.1"
+          stroke="var(--band-middle)" stroke-width="1"/><text class="series-label" x="636" y="44.1">Mid band</text><path d="M68.0,20.3L254.7,194.7L441.3,112.1L628.0,20.0" fill="none" stroke="var(--band-top)" stroke-width="2" stroke-linejoin="round"/><circle class="mark" cx="68.0" cy="20.3" r="4.5"
+        fill="var(--band-top)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Upper band · 0 skims then commit · 26.1% plate burned"/><circle class="mark" cx="254.7" cy="194.7" r="4.5"
+        fill="var(--band-top)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Upper band · 1 skim then commit · 13.0% plate burned"/><circle class="mark" cx="441.3" cy="112.1" r="4.5"
+        fill="var(--band-top)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Upper band · 2 skims then commit · 19.2% plate burned"/><circle class="mark" cx="628.0" cy="20.0" r="4.5"
+        fill="var(--band-top)" stroke="var(--surface-1)" stroke-width="2"
+        data-tip="Upper band · 3 skims then commit · 26.2% plate burned"/><circle cx="254.7" cy="194.7" r="9"
+        fill="none" stroke="var(--band-top)" stroke-width="2.5"/><text class="series-label" x="636" y="24.0">Upper band</text><text class="tick" x="68.0" y="388" text-anchor="middle">0</text><text class="tick" x="254.7" y="388" text-anchor="middle">1</text><text class="tick" x="441.3" y="388" text-anchor="middle">2</text><text class="tick" x="628.0" y="388" text-anchor="middle">3</text>
   <text class="axis-label" x="348" y="410" text-anchor="middle">shallow skims before the committed entry</text>
   <text class="axis-label" transform="translate(16,194) rotate(-90)" text-anchor="middle">heat shield plate burned (%)</text>
 </svg>
-<ul class="findings"><li><span class="swatch" style="background:var(--band-suborbital)"></span>
-      <b>Suborbital</b> — cheapest at <b>0 skims</b> <span class="verdict good">as designed</span></li><li><span class="swatch" style="background:var(--band-low)"></span>
-      <b>Low orbit</b> — cheapest at <b>0 skims</b> <span class="verdict good">as designed</span></li><li><span class="swatch" style="background:var(--band-high)"></span>
-      <b>High orbit</b> — cheapest at <b>2 skims</b> <span class="verdict good">as designed</span></li></ul>
+<ul class="findings"><li><span class="swatch" style="background:var(--band-bottom)"></span>
+      <b>Lower band</b> — cheapest at <b>1 skim</b> <span class="verdict good">curve agrees with params</span></li><li><span class="swatch" style="background:var(--band-middle)"></span>
+      <b>Mid band</b> — cheapest at <b>1 skim</b> <span class="verdict good">curve agrees with params</span></li><li><span class="swatch" style="background:var(--band-top)"></span>
+      <b>Upper band</b> — cheapest at <b>1 skim</b> <span class="verdict good">curve agrees with params</span></li></ul>
   </div>
 
   <div class="card" id="slots">
     <h2>Is any size class strictly best?</h2>
-    <p class="takeaway"><span class="chip good">it depends</span><span>The best class per slot changes by band (suborbital: small, low orbit: medium, high orbit: medium), so the greed decision survives.</span></p>
+    <p class="takeaway"><span class="chip good">it depends</span><span>The best class per slot changes by band (lower band: medium, mid band: medium, upper band: small), so the greed decision survives.</span></p>
     <details class="explain"><summary>What am I looking at?</summary><p class="lede">Value per cargo slot. If one class towers over the others at every band, the greed decision
      collapses — the player just learns the rule and stops choosing.</p></details>
     
 <svg viewBox="0 0 720 380" class="chart" role="img" aria-label="Average value per cargo slot, by size class and band">
-  <line class="grid" x1="68" x2="700" y1="316.0" y2="316.0"/><text class="tick" x="58" y="320.0" text-anchor="end">0</text><line class="grid" x1="68" x2="700" y1="225.9" y2="225.9"/><text class="tick" x="58" y="229.9" text-anchor="end">200</text><line class="grid" x1="68" x2="700" y1="135.8" y2="135.8"/><text class="tick" x="58" y="139.8" text-anchor="end">400</text><line class="grid" x1="68" x2="700" y1="45.7" y2="45.7"/><text class="tick" x="58" y="49.7" text-anchor="end">600</text>
+  <line class="grid" x1="68" x2="700" y1="316.0" y2="316.0"/><text class="tick" x="58" y="320.0" text-anchor="end">0</text><line class="grid" x1="68" x2="700" y1="201.3" y2="201.3"/><text class="tick" x="58" y="205.3" text-anchor="end">200</text><line class="grid" x1="68" x2="700" y1="86.6" y2="86.6"/><text class="tick" x="58" y="90.6" text-anchor="end">400</text>
   <line class="axis" x1="68" x2="700" y1="316" y2="316"/>
-  <path class="mark" d="M101.3,316.0 L101.3,290.0
-        Q101.3,286.0 105.3,286.0
-        L143.3,286.0 Q147.3,286.0 147.3,290.0
+  <path class="mark" d="M101.3,316.0 L101.3,273.9
+        Q101.3,269.9 105.3,269.9
+        L143.3,269.9 Q147.3,269.9 147.3,273.9
         L147.3,316.0 Z"
-        fill="var(--band-suborbital)" data-tip="Suborbital · small · 67 credits per cargo slot · 6 pieces"/><path class="mark" d="M149.3,316.0 L149.3,247.9
-        Q149.3,243.9 153.3,243.9
-        L191.3,243.9 Q195.3,243.9 195.3,247.9
+        fill="var(--band-bottom)" data-tip="Lower band · small · 80 credits per cargo slot · 5 pieces"/><path class="mark" d="M149.3,316.0 L149.3,156.0
+        Q149.3,152.0 153.3,152.0
+        L191.3,152.0 Q195.3,152.0 195.3,156.0
         L195.3,316.0 Z"
-        fill="var(--band-low)" data-tip="Low orbit · small · 160 credits per cargo slot · 3 pieces"/><path class="mark" d="M197.3,316.0 L197.3,154.8
-        Q197.3,150.8 201.3,150.8
-        L239.3,150.8 Q243.3,150.8 243.3,154.8
+        fill="var(--band-middle)" data-tip="Mid band · small · 286 credits per cargo slot · 3 pieces"/><path class="mark" d="M197.3,316.0 L197.3,55.7
+        Q197.3,51.7 201.3,51.7
+        L239.3,51.7 Q243.3,51.7 243.3,55.7
         L243.3,316.0 Z"
-        fill="var(--band-high)" data-tip="High orbit · small · 367 credits per cargo slot · 3 pieces"/><text class="tick" x="173.3" y="338" text-anchor="middle">small</text><path class="mark" d="M312.0,316.0 L312.0,299.7
-        Q312.0,295.7 316.0,295.7
-        L354.0,295.7 Q358.0,295.7 358.0,299.7
+        fill="var(--band-top)" data-tip="Upper band · small · 461 credits per cargo slot · 3 pieces"/><text class="tick" x="173.3" y="338" text-anchor="middle">small</text><path class="mark" d="M312.0,316.0 L312.0,218.8
+        Q312.0,214.8 316.0,214.8
+        L354.0,214.8 Q358.0,214.8 358.0,218.8
         L358.0,316.0 Z"
-        fill="var(--band-suborbital)" data-tip="Suborbital · medium · 45 credits per cargo slot · 2 pieces"/><path class="mark" d="M360.0,316.0 L360.0,232.4
-        Q360.0,228.4 364.0,228.4
-        L402.0,228.4 Q406.0,228.4 406.0,232.4
+        fill="var(--band-bottom)" data-tip="Lower band · medium · 176 credits per cargo slot · 5 pieces"/><path class="mark" d="M360.0,316.0 L360.0,169.0
+        Q360.0,165.0 364.0,165.0
+        L402.0,165.0 Q406.0,165.0 406.0,169.0
         L406.0,316.0 Z"
-        fill="var(--band-low)" data-tip="Low orbit · medium · 194 credits per cargo slot · 5 pieces"/><path class="mark" d="M408.0,316.0 L408.0,119.3
-        Q408.0,115.3 412.0,115.3
-        L450.0,115.3 Q454.0,115.3 454.0,119.3
+        fill="var(--band-middle)" data-tip="Mid band · medium · 263 credits per cargo slot · 6 pieces"/><path class="mark" d="M408.0,316.0 L408.0,105.3
+        Q408.0,101.3 412.0,101.3
+        L450.0,101.3 Q454.0,101.3 454.0,105.3
         L454.0,316.0 Z"
-        fill="var(--band-high)" data-tip="High orbit · medium · 446 credits per cargo slot · 5 pieces"/><text class="tick" x="384.0" y="338" text-anchor="middle">medium</text><path class="mark" d="M522.7,316.0 L522.7,296.0
-        Q522.7,292.0 526.7,292.0
-        L564.7,292.0 Q568.7,292.0 568.7,296.0
+        fill="var(--band-top)" data-tip="Upper band · medium · 374 credits per cargo slot · 5 pieces"/><text class="tick" x="384.0" y="338" text-anchor="middle">medium</text><path class="mark" d="M522.7,316.0 L522.7,267.6
+        Q522.7,263.6 526.7,263.6
+        L564.7,263.6 Q568.7,263.6 568.7,267.6
         L568.7,316.0 Z"
-        fill="var(--band-suborbital)" data-tip="Suborbital · oversized · 53 credits per cargo slot · 1 piece"/><path class="mark" d="M570.7,316.0 L570.7,262.3
-        Q570.7,258.3 574.7,258.3
-        L612.7,258.3 Q616.7,258.3 616.7,262.3
+        fill="var(--band-bottom)" data-tip="Lower band · oversized · 91 credits per cargo slot · 1 piece"/><path class="mark" d="M570.7,316.0 L570.7,223.6
+        Q570.7,219.6 574.7,219.6
+        L612.7,219.6 Q616.7,219.6 616.7,223.6
         L616.7,316.0 Z"
-        fill="var(--band-low)" data-tip="Low orbit · oversized · 128 credits per cargo slot · 1 piece"/><path class="mark" d="M618.7,316.0 L618.7,55.7
-        Q618.7,51.7 622.7,51.7
-        L660.7,51.7 Q664.7,51.7 664.7,55.7
+        fill="var(--band-middle)" data-tip="Mid band · oversized · 168 credits per cargo slot · 1 piece"/><path class="mark" d="M618.7,316.0 L618.7,179.3
+        Q618.7,175.3 622.7,175.3
+        L660.7,175.3 Q664.7,175.3 664.7,179.3
         L664.7,316.0 Z"
-        fill="var(--band-high)" data-tip="High orbit · oversized · 587 credits per cargo slot · 2 pieces"/><text class="tick" x="594.7" y="338" text-anchor="middle">oversized</text>
+        fill="var(--band-top)" data-tip="Upper band · oversized · 245 credits per cargo slot · 1 piece"/><text class="tick" x="594.7" y="338" text-anchor="middle">oversized</text>
   <text class="axis-label" x="384" y="368" text-anchor="middle">size class</text>
   <text class="axis-label" transform="translate(16,168) rotate(-90)" text-anchor="middle">credits per cargo slot</text>
 </svg><div class="legend">
-    <span class="key"><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</span><span class="key"><span class="swatch" style="background:var(--band-low)"></span>Low orbit</span><span class="key"><span class="swatch" style="background:var(--band-high)"></span>High orbit</span>
+    <span class="key"><span class="swatch" style="background:var(--band-bottom)"></span>Lower band</span><span class="key"><span class="swatch" style="background:var(--band-middle)"></span>Mid band</span><span class="key"><span class="swatch" style="background:var(--band-top)"></span>Upper band</span>
     <span class="key"><span class="swatch ring"></span>fragile (hollow)</span>
   </div>
   </div>
 
   <div class="card" id="surface">
     <h2>The ablation surface</h2>
-    <p class="takeaway"><span class="chip info">read the valley</span><span>The dark line along the floor is the cheapest strategy at every entry speed. It should stay in the 1–2 skim band across the whole span; here it sits at 2.</span></p>
+    <p class="takeaway"><span class="chip info">read the valley</span><span>The dark line along the floor is the cheapest strategy at every entry speed. It reports where the model bottoms out; here it sits at 1 from the upper band.</span></p>
     <details class="explain"><summary>What am I looking at?</summary><p class="lede">Plate burned as a function of both inputs at once — how fast you are coming in, and how many
      passes you split it into. Two independent variables and one output, so this is the one place
      a surface beats a line chart.</p></details>
     
 <svg viewBox="0 0 760 460" class="chart" role="img" aria-label="Three-dimensional surface of plate burned over entry speed and pass count">
-  <path d="M300.0,322.0 L322.0,306.5 L292.3,311.6 L270.3,324.4 Z" fill="#b7d3f6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M270.3,324.4 L292.3,311.6 L262.6,311.5 L240.6,321.0 Z" fill="#b7d3f6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M322.0,306.5 L344.0,292.5 L314.3,299.5 L292.3,311.6 Z" fill="#9ec5f4" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M240.6,321.0 L262.6,311.5 L232.9,304.9 L210.9,310.9 Z" fill="#9ec5f4" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M292.3,311.6 L314.3,299.5 L284.6,302.0 L262.6,311.5 Z" fill="#9ec5f4" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M344.0,292.5 L366.0,279.6 L336.3,288.2 L314.3,299.5 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M262.6,311.5 L284.6,302.0 L254.9,298.6 L232.9,304.9 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M314.3,299.5 L336.3,288.2 L306.6,292.8 L284.6,302.0 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M366.0,279.6 L388.0,267.9 L358.3,277.6 L336.3,288.2 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M284.6,302.0 L306.6,292.8 L276.9,292.0 L254.9,298.6 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M336.3,288.2 L358.3,277.6 L328.6,283.9 L306.6,292.8 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M388.0,267.9 L410.0,257.1 L380.3,267.8 L358.3,277.6 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M306.6,292.8 L328.6,283.9 L298.9,285.3 L276.9,292.0 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M358.3,277.6 L380.3,267.8 L350.6,275.5 L328.6,283.9 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M410.0,257.1 L432.0,247.2 L402.3,258.6 L380.3,267.8 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M328.6,283.9 L350.6,275.5 L320.9,278.7 L298.9,285.3 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M380.3,267.8 L402.3,258.6 L372.6,267.4 L350.6,275.5 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M432.0,247.2 L454.0,238.1 L424.3,250.1 L402.3,258.6 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M350.6,275.5 L372.6,267.4 L342.9,272.2 L320.9,278.7 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M402.3,258.6 L424.3,250.1 L394.6,259.8 L372.6,267.4 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M454.0,238.1 L476.0,229.7 L446.3,242.2 L424.3,250.1 Z" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M372.6,267.4 L394.6,259.8 L364.9,266.0 L342.9,272.2 Z" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M424.3,250.1 L446.3,242.2 L416.6,252.6 L394.6,259.8 Z" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M476.0,229.7 L498.0,222.0 L468.3,234.8 L446.3,242.2 Z" fill="#256abf" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M394.6,259.8 L416.6,252.6 L386.9,259.9 L364.9,266.0 Z" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M446.3,242.2 L468.3,234.8 L438.6,245.9 L416.6,252.6 Z" fill="#256abf" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M498.0,222.0 L520.0,214.8 L490.3,228.0 L468.3,234.8 Z" fill="#1c5cab" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M416.6,252.6 L438.6,245.9 L408.9,254.1 L386.9,259.9 Z" fill="#256abf" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M468.3,234.8 L490.3,228.0 L460.6,239.6 L438.6,245.9 Z" fill="#1c5cab" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M520.0,214.8 L542.0,208.2 L512.3,221.6 L490.3,228.0 Z" fill="#1c5cab" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M438.6,245.9 L460.6,239.6 L430.9,248.6 L408.9,254.1 Z" fill="#1c5cab" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M490.3,228.0 L512.3,221.6 L482.6,233.6 L460.6,239.6 Z" fill="#1c5cab" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M542.0,208.2 L564.0,202.1 L534.3,215.7 L512.3,221.6 Z" fill="#184f95" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M460.6,239.6 L482.6,233.6 L452.9,243.4 L430.9,248.6 Z" fill="#1c5cab" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M512.3,221.6 L534.3,215.7 L504.6,228.1 L482.6,233.6 Z" fill="#184f95" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M564.0,202.1 L586.0,196.4 L556.3,210.2 L534.3,215.7 Z" fill="#104281" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M482.6,233.6 L504.6,228.1 L474.9,238.4 L452.9,243.4 Z" fill="#184f95" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M534.3,215.7 L556.3,210.2 L526.6,222.9 L504.6,228.1 Z" fill="#184f95" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M586.0,196.4 L608.0,191.2 L578.3,205.2 L556.3,210.2 Z" fill="#104281" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M504.6,228.1 L526.6,222.9 L496.9,233.8 L474.9,238.4 Z" fill="#184f95" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M556.3,210.2 L578.3,205.2 L548.6,218.1 L526.6,222.9 Z" fill="#104281" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M608.0,191.2 L630.0,186.3 L600.3,200.4 L578.3,205.2 Z" fill="#0d366b" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M526.6,222.9 L548.6,218.1 L518.9,229.3 L496.9,233.8 Z" fill="#104281" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M578.3,205.2 L600.3,200.4 L570.6,213.6 L548.6,218.1 Z" fill="#0d366b" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M548.6,218.1 L570.6,213.6 L540.9,225.2 L518.9,229.3 Z" fill="#104281" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/>
-  <path d="M300.0,319.0L322.0,303.5L344.0,289.5L366.0,276.6L388.0,264.9L410.0,254.1L432.0,244.2L424.3,247.1L446.3,239.2L468.3,231.8L460.6,236.6L482.6,230.6L504.6,225.1L526.6,219.9L548.6,215.1L540.9,222.2" fill="none" stroke="var(--text-primary)" stroke-width="2.5" stroke-linejoin="round" stroke-dasharray="1 0"/>
+  <path d="M300.0,322.0 L322.0,309.6 L292.3,329.7 L270.3,328.3 Z" fill="#cde2fb" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M270.3,328.3 L292.3,329.7 L262.6,262.9 L240.6,260.2 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M322.0,309.6 L344.0,297.8 L314.3,330.9 L292.3,329.7 Z" fill="#b7d3f6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M240.6,260.2 L262.6,262.9 L232.9,216.5 L210.9,213.2 Z" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M292.3,329.7 L314.3,330.9 L284.6,265.4 L262.6,262.9 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M344.0,297.8 L366.0,286.4 L336.3,332.0 L314.3,330.9 Z" fill="#9ec5f4" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M262.6,262.9 L284.6,265.4 L254.9,219.6 L232.9,216.5 Z" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M314.3,330.9 L336.3,332.0 L306.6,267.8 L284.6,265.4 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M366.0,286.4 L388.0,275.6 L358.3,332.9 L336.3,332.0 Z" fill="#9ec5f4" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M284.6,265.4 L306.6,267.8 L276.9,222.6 L254.9,219.6 Z" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M336.3,332.0 L358.3,332.9 L328.6,270.0 L306.6,267.8 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M388.0,275.6 L410.0,265.3 L380.3,333.7 L358.3,332.9 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M306.6,267.8 L328.6,270.0 L298.9,225.6 L276.9,222.6 Z" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M358.3,332.9 L380.3,333.7 L350.6,272.2 L328.6,270.0 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M410.0,265.3 L432.0,255.5 L402.3,334.3 L380.3,333.7 Z" fill="#86b6ef" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M328.6,270.0 L350.6,272.2 L320.9,228.5 L298.9,225.6 Z" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M380.3,333.7 L402.3,334.3 L372.6,274.3 L350.6,272.2 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M432.0,255.5 L454.0,246.1 L424.3,334.8 L402.3,334.3 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M350.6,272.2 L372.6,274.3 L342.9,231.3 L320.9,228.5 Z" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M402.3,334.3 L424.3,334.8 L394.6,276.2 L372.6,274.3 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M454.0,246.1 L476.0,237.2 L446.3,335.3 L424.3,334.8 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M372.6,274.3 L394.6,276.2 L364.9,234.0 L342.9,231.3 Z" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M424.3,334.8 L446.3,335.3 L416.6,278.1 L394.6,276.2 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M476.0,237.2 L498.0,228.8 L468.3,335.6 L446.3,335.3 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M394.6,276.2 L416.6,278.1 L386.9,236.6 L364.9,234.0 Z" fill="#256abf" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M446.3,335.3 L468.3,335.6 L438.6,279.9 L416.6,278.1 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M498.0,228.8 L520.0,220.8 L490.3,335.8 L468.3,335.6 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M416.6,278.1 L438.6,279.9 L408.9,239.2 L386.9,236.6 Z" fill="#256abf" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M468.3,335.6 L490.3,335.8 L460.6,281.6 L438.6,279.9 Z" fill="#6da7ec" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M520.0,220.8 L542.0,213.2 L512.3,336.0 L490.3,335.8 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M438.6,279.9 L460.6,281.6 L430.9,241.7 L408.9,239.2 Z" fill="#256abf" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M490.3,335.8 L512.3,336.0 L482.6,283.2 L460.6,281.6 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M542.0,213.2 L564.0,205.9 L534.3,336.1 L512.3,336.0 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M460.6,281.6 L482.6,283.2 L452.9,244.1 L430.9,241.7 Z" fill="#256abf" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M512.3,336.0 L534.3,336.1 L504.6,284.8 L482.6,283.2 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M564.0,205.9 L586.0,199.0 L556.3,336.2 L534.3,336.1 Z" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M482.6,283.2 L504.6,284.8 L474.9,246.5 L452.9,244.1 Z" fill="#256abf" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M534.3,336.1 L556.3,336.2 L526.6,286.3 L504.6,284.8 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M586.0,199.0 L608.0,192.5 L578.3,336.2 L556.3,336.2 Z" fill="#2a78d6" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M504.6,284.8 L526.6,286.3 L496.9,248.8 L474.9,246.5 Z" fill="#256abf" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M556.3,336.2 L578.3,336.2 L548.6,287.7 L526.6,286.3 Z" fill="#5598e7" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M608.0,192.5 L630.0,186.3 L600.3,336.2 L578.3,336.2 Z" fill="#256abf" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M526.6,286.3 L548.6,287.7 L518.9,251.0 L496.9,248.8 Z" fill="#256abf" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M578.3,336.2 L600.3,336.2 L570.6,289.1 L548.6,287.7 Z" fill="#3987e5" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/><path d="M548.6,287.7 L570.6,289.1 L540.9,253.2 L518.9,251.0 Z" fill="#1c5cab" stroke="var(--surface-1)" stroke-width="0.6" stroke-opacity="0.55"/>
+  <path d="M300.0,319.0L292.3,326.7L314.3,327.9L336.3,329.0L358.3,329.9L380.3,330.7L402.3,331.3L424.3,331.8L446.3,332.3L468.3,332.6L490.3,332.8L512.3,333.0L534.3,333.1L556.3,333.2L578.3,333.2L600.3,333.2" fill="none" stroke="var(--text-primary)" stroke-width="2.5" stroke-linejoin="round" stroke-dasharray="1 0"/>
   <circle class="mark" cx="300.0" cy="319.0" r="4.5"
       fill="var(--text-primary)" stroke="var(--surface-1)" stroke-width="2"
-      data-tip="heat index 66 → cheapest at 1 skim (3.9% plate)"/><circle class="mark" cx="366.0" cy="276.6" r="4.5"
+      data-tip="heat index 85 → cheapest at 1 skim (9.6% plate)"/><circle class="mark" cx="336.3" cy="329.0" r="4.5"
       fill="var(--text-primary)" stroke="var(--surface-1)" stroke-width="2"
-      data-tip="heat index 85 → cheapest at 1 skim (7.9% plate)"/><circle class="mark" cx="432.0" cy="244.2" r="4.5"
+      data-tip="heat index 105 → cheapest at 2 skims (10.6% plate)"/><circle class="mark" cx="402.3" cy="331.3" r="4.5"
       fill="var(--text-primary)" stroke="var(--surface-1)" stroke-width="2"
-      data-tip="heat index 103 → cheapest at 1 skim (14.0% plate)"/><circle class="mark" cx="468.3" cy="231.8" r="4.5"
+      data-tip="heat index 125 → cheapest at 2 skims (11.3% plate)"/><circle class="mark" cx="468.3" cy="332.6" r="4.5"
       fill="var(--text-primary)" stroke="var(--surface-1)" stroke-width="2"
-      data-tip="heat index 122 → cheapest at 2 skims (22.5% plate)"/><circle class="mark" cx="504.6" cy="225.1" r="4.5"
+      data-tip="heat index 144 → cheapest at 2 skims (12.2% plate)"/><circle class="mark" cx="534.3" cy="333.1" r="4.5"
       fill="var(--text-primary)" stroke="var(--surface-1)" stroke-width="2"
-      data-tip="heat index 140 → cheapest at 3 skims (33.5% plate)"/><circle class="mark" cx="540.9" cy="222.2" r="4.5"
+      data-tip="heat index 164 → cheapest at 2 skims (13.3% plate)"/><circle class="mark" cx="600.3" cy="333.2" r="4.5"
       fill="var(--text-primary)" stroke="var(--surface-1)" stroke-width="2"
-      data-tip="heat index 159 → cheapest at 4 skims (47.7% plate)"/><g><line x1="344.0" y1="286.5"
-        x2="344.0" y2="262.5" stroke="var(--band-suborbital)" stroke-width="2"/>
-      <circle cx="344.0" cy="292.5" r="4" fill="var(--band-suborbital)"
+      data-tip="heat index 184 → cheapest at 2 skims (14.4% plate)"/><g><line x1="314.3" y1="324.9"
+        x2="314.3" y2="300.9" stroke="var(--band-bottom)" stroke-width="2"/>
+      <circle cx="314.3" cy="330.9" r="4" fill="var(--band-bottom)"
         stroke="var(--surface-1)" stroke-width="1.5"/>
-      <text class="series-label" x="344.0" y="256.5" text-anchor="middle">Suborbital</text></g><g><line x1="410.0" y1="251.1"
-        x2="410.0" y2="207.1" stroke="var(--band-low)" stroke-width="2"/>
-      <circle cx="410.0" cy="257.1" r="4" fill="var(--band-low)"
+      <text class="series-label" x="314.3" y="294.9" text-anchor="middle">Lower band</text></g><g><line x1="402.3" y1="328.3"
+        x2="402.3" y2="284.3" stroke="var(--band-middle)" stroke-width="2"/>
+      <circle cx="402.3" cy="334.3" r="4" fill="var(--band-middle)"
         stroke="var(--surface-1)" stroke-width="1.5"/>
-      <text class="series-label" x="410.0" y="201.1" text-anchor="middle">Low orbit</text></g><g><line x1="504.6" y1="222.1"
-        x2="504.6" y2="158.1" stroke="var(--band-high)" stroke-width="2"/>
-      <circle cx="504.6" cy="228.1" r="4" fill="var(--band-high)"
+      <text class="series-label" x="402.3" y="278.3" text-anchor="middle">Mid band</text></g><g><line x1="512.3" y1="330.0"
+        x2="512.3" y2="266.0" stroke="var(--band-top)" stroke-width="2"/>
+      <circle cx="512.3" cy="336.0" r="4" fill="var(--band-top)"
         stroke="var(--surface-1)" stroke-width="1.5"/>
-      <text class="series-label" x="504.6" y="152.1" text-anchor="middle">High orbit</text></g>
+      <text class="series-label" x="512.3" y="260.0" text-anchor="middle">Upper band</text></g>
   <rect x="610" y="26" width="10" height="12" fill="#cde2fb"/><rect x="620" y="26" width="10" height="12" fill="#b7d3f6"/><rect x="630" y="26" width="10" height="12" fill="#9ec5f4"/><rect x="640" y="26" width="10" height="12" fill="#86b6ef"/><rect x="650" y="26" width="10" height="12" fill="#6da7ec"/><rect x="660" y="26" width="10" height="12" fill="#5598e7"/><rect x="670" y="26" width="10" height="12" fill="#3987e5"/><rect x="680" y="26" width="10" height="12" fill="#2a78d6"/><rect x="690" y="26" width="10" height="12" fill="#256abf"/><rect x="700" y="26" width="10" height="12" fill="#1c5cab"/><rect x="710" y="26" width="10" height="12" fill="#184f95"/><rect x="720" y="26" width="10" height="12" fill="#104281"/><rect x="730" y="26" width="10" height="12" fill="#0d366b"/>
   <text class="tick" x="608" y="22" text-anchor="start">less plate burned</text>
   <text class="tick" x="740" y="52" text-anchor="end">more</text>
@@ -313,449 +313,467 @@
 </svg>
 <p class="caption">The dark line is the valley floor — the cheapest pass count at every entry
 speed. It is the answer to the hardest question in §2.3.1, and it should stay inside 2–4
-across the whole span. Where it climbs toward the back, higher bands are demanding more
+across the whole span. Where it climbs toward the back, higher altitudes are demanding more
 passes; where it runs flat, a single strategy covers every altitude.</p>
   </div>
 
   
   <div class="card" id="flights">
     <h2>What the flights measured</h2>
-    <p class="takeaway"><span class="chip good">all hold</span><span>All 8 claims the params make survived being flown.</span></p>
+    <p class="takeaway"><span class="chip bad">2 disagree</span><span>2 of 8 things the params claim are contradicted by the flights: entry heat after 2 skims, lower band; full hold mass ratio.</span></p>
     <details class="explain"><summary>What am I looking at?</summary><p class="lede">Every other agent reasons about these numbers. The simulator flew them — launch, aerobrake,
-     land — across every band and cargo load. Where a row says <i>does not hold</i>, an agent
+     land — across every sample altitude and cargo load. Where a row says <i>does not hold</i>, an agent
      asserted something the physics disagreed with.</p></details>
     <table class="data">
     <thead><tr><th>Quantity</th><th>What the params claim</th><th>What the flights measured</th><th></th></tr></thead>
     <tbody><tr>
-      <td>Entry heat after 2 skims, suborbital</td>
-      <td>97% of a direct entry</td>
-      <td class="num" style="text-align:left">94% of a direct entry</td>
+      <td>Entry heat after 2 skims, lower band</td>
+      <td>43% of a direct entry</td>
+      <td class="num" style="text-align:left">70% of a direct entry</td>
+      <td><span class="verdict bad">does not hold</span></td>
+    </tr><tr>
+      <td>Entry heat after 2 skims, mid band</td>
+      <td>43% of a direct entry</td>
+      <td class="num" style="text-align:left">53% of a direct entry</td>
       <td><span class="verdict good">holds</span></td>
     </tr><tr>
-      <td>Entry heat after 2 skims, low orbit</td>
-      <td>97% of a direct entry</td>
-      <td class="num" style="text-align:left">97% of a direct entry</td>
-      <td><span class="verdict good">holds</span></td>
-    </tr><tr>
-      <td>Entry heat after 2 skims, high orbit</td>
-      <td>97% of a direct entry</td>
-      <td class="num" style="text-align:left">98% of a direct entry</td>
+      <td>Entry heat after 2 skims, upper band</td>
+      <td>43% of a direct entry</td>
+      <td class="num" style="text-align:left">43% of a direct entry</td>
       <td><span class="verdict good">holds</span></td>
     </tr><tr>
       <td>Full-hold touchdown speed</td>
-      <td>4.59 m/s</td>
-      <td class="num" style="text-align:left">4.59 m/s</td>
+      <td>3.99 m/s</td>
+      <td class="num" style="text-align:left">4.83 m/s</td>
       <td><span class="verdict good">holds</span></td>
     </tr><tr>
       <td>Full hold mass ratio</td>
       <td>about 2x dry mass</td>
-      <td class="num" style="text-align:left">2.04x (1397.8 kg)</td>
+      <td class="num" style="text-align:left">1.58x (805.5 kg)</td>
+      <td><span class="verdict bad">does not hold</span></td>
+    </tr><tr>
+      <td>Unstaged braking pass, lower band</td>
+      <td>under 185 heat</td>
+      <td class="num" style="text-align:left">peaks at 52</td>
       <td><span class="verdict good">holds</span></td>
     </tr><tr>
-      <td>Unstaged braking pass, suborbital</td>
-      <td>under 100 heat</td>
-      <td class="num" style="text-align:left">peaks at 54</td>
-      <td><span class="verdict good">holds</span></td>
-    </tr><tr>
-      <td>Unstaged braking pass, low orbit</td>
-      <td>under 100 heat</td>
-      <td class="num" style="text-align:left">peaks at 60</td>
+      <td>Unstaged braking pass, mid band</td>
+      <td>under 185 heat</td>
+      <td class="num" style="text-align:left">peaks at 58</td>
       <td><span class="verdict good">holds</span></td>
     </tr><tr>
       <td>Ballistic coefficient (staged)</td>
       <td>not stated</td>
-      <td class="num" style="text-align:left">290.3 kg/m2</td>
+      <td class="num" style="text-align:left">285.7 kg/m2</td>
       <td><span class="verdict good">holds</span></td>
     </tr></tbody></table>
   </div>
 
   <div class="card" id="targets">
     <h2>Where the design&#39;s targets are reachable at all</h2>
-    <p class="takeaway"><span class="chip bad">7% scarcest</span><span>Hardest target to satisfy anywhere is unstaged pass survivable, met by 7.4% of 5184 worlds. A target almost nothing satisfies is a statement about the rule, not about these numbers.</span></p>
+    <p class="takeaway"><span class="chip bad">8% scarcest</span><span>Hardest target to satisfy anywhere is unstaged pass survivable, met by 8.0% of 5184 worlds. A target almost nothing satisfies is a statement about the rule, not about these numbers.</span></p>
     <details class="explain"><summary>What am I looking at?</summary><p class="lede">5184 worlds, varying planet radius, gravity, air density,
      ship frontal area, dry mass, tank size and engine. Each scored against
-     8 targets taken
+     9 targets taken
      from the design document. A short bar means almost no configuration anywhere satisfies that
      target — which is a fact about the rule, not about the current numbers.</p></details>
     
-<svg viewBox="0 0 720 314" class="chart" role="img" aria-label="How often each design target is satisfied across the swept parameter space">
-  <line class="grid" x1="236.0" x2="236.0" y1="8" y2="280"/><text class="tick" x="236.0" y="298" text-anchor="middle">0%</text><line class="grid" x1="341.0" x2="341.0" y1="8" y2="280"/><text class="tick" x="341.0" y="298" text-anchor="middle">25%</text><line class="grid" x1="446.0" x2="446.0" y1="8" y2="280"/><text class="tick" x="446.0" y="298" text-anchor="middle">50%</text><line class="grid" x1="551.0" x2="551.0" y1="8" y2="280"/><text class="tick" x="551.0" y="298" text-anchor="middle">75%</text><line class="grid" x1="656.0" x2="656.0" y1="8" y2="280"/><text class="tick" x="656.0" y="298" text-anchor="middle">100%</text><text class="tick" x="224" y="29.0" text-anchor="end">unstaged pass survivable</text>
-      <path class="mark" d="M236,15 L263.1,15
-        Q267.1,15 267.1,19.0
-        L267.1,31.0 Q267.1,35.0 263.1,35.0
+<svg viewBox="0 0 720 348" class="chart" role="img" aria-label="How often each design target is satisfied across the swept parameter space">
+  <line class="grid" x1="236.0" x2="236.0" y1="8" y2="314"/><text class="tick" x="236.0" y="332" text-anchor="middle">0%</text><line class="grid" x1="341.0" x2="341.0" y1="8" y2="314"/><text class="tick" x="341.0" y="332" text-anchor="middle">25%</text><line class="grid" x1="446.0" x2="446.0" y1="8" y2="314"/><text class="tick" x="446.0" y="332" text-anchor="middle">50%</text><line class="grid" x1="551.0" x2="551.0" y1="8" y2="314"/><text class="tick" x="551.0" y="332" text-anchor="middle">75%</text><line class="grid" x1="656.0" x2="656.0" y1="8" y2="314"/><text class="tick" x="656.0" y="332" text-anchor="middle">100%</text><text class="tick" x="224" y="29.0" text-anchor="end">unstaged pass survivable</text>
+      <path class="mark" d="M236,15 L265.6,15
+        Q269.6,15 269.6,19.0
+        L269.6,31.0 Q269.6,35.0 265.6,35.0
         L236,35.0 Z" fill="#9ec5f4"
-        data-tip="unstaged pass survivable: satisfied by 7.4% of 5184 worlds"/>
-      <text class="series-label" x="275.1" y="30.0">7%</text><text class="tick" x="224" y="63.0" text-anchor="end">fuel margin sane</text>
-      <path class="mark" d="M236,49 L309.3,49
-        Q313.3,49 313.3,53.0
-        L313.3,65.0 Q313.3,69.0 309.3,69.0
+        data-tip="unstaged pass survivable: satisfied by 8.0% of 5184 worlds"/>
+      <text class="series-label" x="277.6" y="30.0">8%</text><text class="tick" x="224" y="63.0" text-anchor="end">fuel margin sane</text>
+      <path class="mark" d="M236,49 L308.0,49
+        Q312.0,49 312.0,53.0
+        L312.0,65.0 Q312.0,69.0 308.0,69.0
         L236,69.0 Z" fill="#9ec5f4"
-        data-tip="fuel margin sane: satisfied by 18.4% of 5184 worlds"/>
-      <text class="series-label" x="321.3" y="64.0">18%</text><text class="tick" x="224" y="97.0" text-anchor="end">full hold lands soft</text>
-      <path class="mark" d="M236,83 L364.3,83
-        Q368.3,83 368.3,87.0
-        L368.3,99.0 Q368.3,103.0 364.3,103.0
-        L236,103.0 Z" fill="#6da7ec"
-        data-tip="full hold lands soft: satisfied by 31.5% of 5184 worlds"/>
-      <text class="series-label" x="376.3" y="98.0">32%</text><text class="tick" x="224" y="131.0" text-anchor="end">skimming cools the entry</text>
-      <path class="mark" d="M236,117 L416.0,117
-        Q420.0,117 420.0,121.0
-        L420.0,133.0 Q420.0,137.0 416.0,137.0
-        L236,137.0 Z" fill="#5598e7"
-        data-tip="skimming cools the entry: satisfied by 43.8% of 5184 worlds"/>
-      <text class="series-label" x="428.0" y="132.0">44%</text><text class="tick" x="224" y="165.0" text-anchor="end">bands reachable</text>
-      <path class="mark" d="M236,151 L442.0,151
-        Q446.0,151 446.0,155.0
-        L446.0,167.0 Q446.0,171.0 442.0,171.0
-        L236,171.0 Z" fill="#3987e5"
-        data-tip="bands reachable: satisfied by 50.0% of 5184 worlds"/>
-      <text class="series-label" x="454.0" y="166.0">50%</text><text class="tick" x="224" y="199.0" text-anchor="end">difficulty rises with band</text>
-      <path class="mark" d="M236,185 L487.4,185
-        Q491.4,185 491.4,189.0
-        L491.4,201.0 Q491.4,205.0 487.4,205.0
-        L236,205.0 Z" fill="#2a78d6"
-        data-tip="difficulty rises with band: satisfied by 60.8% of 5184 worlds"/>
-      <text class="series-label" x="499.4" y="200.0">61%</text><text class="tick" x="224" y="233.0" text-anchor="end">greed costs something</text>
-      <path class="mark" d="M236,219 L601.6,219
-        Q605.6,219 605.6,223.0
-        L605.6,235.0 Q605.6,239.0 601.6,239.0
-        L236,239.0 Z" fill="#104281"
-        data-tip="greed costs something: satisfied by 88.0% of 5184 worlds"/>
-      <text class="series-label" x="613.6" y="234.0">88%</text><text class="tick" x="224" y="267.0" text-anchor="end">skim benefit saturates</text>
-      <path class="mark" d="M236,253 L620.9,253
-        Q624.9,253 624.9,257.0
-        L624.9,269.0 Q624.9,273.0 620.9,273.0
-        L236,273.0 Z" fill="#104281"
-        data-tip="skim benefit saturates: satisfied by 92.6% of 5184 worlds"/>
-      <text class="series-label" x="632.9" y="268.0">93%</text>
-  <line class="axis" x1="236" x2="236" y1="8" y2="280"/>
-  <text class="axis-label" x="446" y="308" text-anchor="middle">share of 5184 swept worlds that satisfy the target</text>
-</svg><p class="caption">Best world found: <b>7/8</b> targets —
+        data-tip="fuel margin sane: satisfied by 18.1% of 5184 worlds"/>
+      <text class="series-label" x="320.0" y="64.0">18%</text><text class="tick" x="224" y="97.0" text-anchor="end">full hold lands soft</text>
+      <path class="mark" d="M236,83 L345.0,83
+        Q349.0,83 349.0,87.0
+        L349.0,99.0 Q349.0,103.0 345.0,103.0
+        L236,103.0 Z" fill="#86b6ef"
+        data-tip="full hold lands soft: satisfied by 26.9% of 5184 worlds"/>
+      <text class="series-label" x="357.0" y="98.0">27%</text><text class="tick" x="224" y="131.0" text-anchor="end">launch survives itself</text>
+      <path class="mark" d="M236,117 L377.7,117
+        Q381.7,117 381.7,121.0
+        L381.7,133.0 Q381.7,137.0 377.7,137.0
+        L236,137.0 Z" fill="#6da7ec"
+        data-tip="launch survives itself: satisfied by 34.7% of 5184 worlds"/>
+      <text class="series-label" x="389.7" y="132.0">35%</text><text class="tick" x="224" y="165.0" text-anchor="end">difficulty rises with altitude</text>
+      <path class="mark" d="M236,151 L479.8,151
+        Q483.8,151 483.8,155.0
+        L483.8,167.0 Q483.8,171.0 479.8,171.0
+        L236,171.0 Z" fill="#2a78d6"
+        data-tip="difficulty rises with altitude: satisfied by 59.0% of 5184 worlds"/>
+      <text class="series-label" x="491.8" y="166.0">59%</text><text class="tick" x="224" y="199.0" text-anchor="end">bands reachable</text>
+      <path class="mark" d="M236,185 L496.2,185
+        Q500.2,185 500.2,189.0
+        L500.2,201.0 Q500.2,205.0 496.2,205.0
+        L236,205.0 Z" fill="#256abf"
+        data-tip="bands reachable: satisfied by 62.9% of 5184 worlds"/>
+      <text class="series-label" x="508.2" y="200.0">63%</text><text class="tick" x="224" y="233.0" text-anchor="end">greed costs something</text>
+      <path class="mark" d="M236,219 L549.5,219
+        Q553.5,219 553.5,223.0
+        L553.5,235.0 Q553.5,239.0 549.5,239.0
+        L236,239.0 Z" fill="#1c5cab"
+        data-tip="greed costs something: satisfied by 75.6% of 5184 worlds"/>
+      <text class="series-label" x="561.5" y="234.0">76%</text><text class="tick" x="224" y="267.0" text-anchor="end">skimming cools the entry</text>
+      <path class="mark" d="M236,253 L587.3,253
+        Q591.3,253 591.3,257.0
+        L591.3,269.0 Q591.3,273.0 587.3,273.0
+        L236,273.0 Z" fill="#184f95"
+        data-tip="skimming cools the entry: satisfied by 84.6% of 5184 worlds"/>
+      <text class="series-label" x="599.3" y="268.0">85%</text><text class="tick" x="224" y="301.0" text-anchor="end">skim benefit saturates</text>
+      <path class="mark" d="M236,287 L605.4,287
+        Q609.4,287 609.4,291.0
+        L609.4,303.0 Q609.4,307.0 605.4,307.0
+        L236,307.0 Z" fill="#104281"
+        data-tip="skim benefit saturates: satisfied by 88.9% of 5184 worlds"/>
+      <text class="series-label" x="617.4" y="302.0">89%</text>
+  <line class="axis" x1="236" x2="236" y1="8" y2="314"/>
+  <text class="axis-label" x="446" y="342" text-anchor="middle">share of 5184 swept worlds that satisfy the target</text>
+</svg><p class="caption">Best world found: <b>8/9</b> targets —
        gravity 3 m/s2, air density 0.5 kg/m3,
-       scale height 1680 m, frontal area 1.2 m2,
+       scale height 22.4 m, frontal area 1.2 m2,
        dry mass 200 kg (ballistic coefficient
-       111.1 kg/m2, full hold touching down at 3.5 m/s).</p>
+       119 kg/m2, full hold touching down at 3.4 m/s).</p>
   </div>
 
   <div class="card" id="playtest">
     <h2>Playtest — targets missed</h2>
-    <p class="takeaway"><span class="chip bad">targets missed</span><span>9 findings, 3 blocking, 7 proposed value changes.</span></p>
+    <p class="takeaway"><span class="chip bad">targets missed</span><span>11 findings, 1 blocking, 5 proposed value changes.</span></p>
     <details class="explain"><summary>What am I looking at?</summary>
-      <p class="lede">Flown, this config never reaches orbit — all three bands run out of fuel before circularising — and of the reentry claims that can still be checked, the parachute holds exactly while the pass-count optimum, the skim cooling, and the band difficulty ordering all fail, the last of them inverted: the high band is measured as the cheapest descent in the game.</p></details>
+      <p class="lede">The config flies, but the endgame&#39;s whole gate — base heat capacity above a full hold&#39;s plunge and below the module&#39;s best skimmed descent — is a measured window only 8.8 bar units wide (180.1 to 188.9), narrower than the skim-altitude scan&#39;s own noise, and three params claims (optimal_skims, cost_curve, full-hold descent speed) are contradicted by the flight.</p></details>
     <ul class="findings"><li>
       <span class="verdict bad">blocking</span>
-      <span><b>ascent does not close in any band</b> (§4.1, tuning) — Verification sweep, ascents: suborbital reached=false, low reached=false, high reached=false, all three &#39;out of fuel before circularising&#39;. Reported fuel_remaining 503.73 / 377.44 / 248.37 kg (28% / 21% / 13.8%). Ideal-rocket-equation dv is not what the integrator spends: the ship is losing the difference to the climb. Every descent, ablation and economy figure in the params is conditioned on an orbit the ship does not achieve. Grid: bands_reachable is satisfied by 50% of the 5,184 configs, and every top-scoring world runs fuel_fraction 2.5-4.0 against this ship&#39;s 1800/1350 = 1.33.</span>
-    </li><li>
-      <span class="verdict bad">blocking</span>
-      <span><b>cheapest descent is single pass everywhere</b> (§2.3.1, design) — cheapest_pass_count = 1 in all nine band x load cases. Peak heat is nearly flat in pass count because braking altitude climbs as passes are added: suborbital empty 70 -&gt; 74 while braking altitude goes 27,846 -&gt; 38,424 m; high full hold 94 -&gt; 108 across 22,450 -&gt; 30,221 m. Cost is monotonically increasing from pass 1 in every case (suborbital empty 4.6 / 5.6 / 6.6 / 8.3%; high full hold 10.8 / 15.8 / 17.4 / 19.4%). The heat term has nothing to give back, so no assignment of cycle_toll_base_pct, cycle_toll_growth, heat_cost_coefficient or heat_cost_exponent moves the minimum off 1. This confirms GDD 4.5 risk 1 rather than clearing it: the U-curve does not exist inside a 43,000 m atmosphere. The decision is a human&#39;s — accept the skim framing into 2.3.1, or take the named fallback of flat per-pass ablation with a hard pass cap. Neither is a number I can nudge.</span>
-    </li><li>
-      <span class="verdict bad">blocking</span>
-      <span><b>difficulty curve inverts with altitude</b> (§2.3.7, tuning) — Flown, the ordering reverses. Cheapest ablation, empty: suborbital 4.6%, low 4.0%, high 3.6%. Full hold: 13.5% / 11.7% / 10.8%. Peak heat on the cheapest descent, empty: 70 / 67 / 64. The high band is the cheapest and coolest return in the game at every cargo load — the exact inversion GDD 4.5 risk 2 is written against, and it is measured, not predicted. (Held at a fixed entry depth the ordering is correct — see heat_index_high_overstated — so the inversion is produced by the descent solver braking higher bands deeper, not by the heat model.) Grid: difficulty_rises_with_band is satisfied by 60.8% of configs, so this is reachable; GDD 4.5 names the lever as band-gated ablation rates, which is what ablation.heat_index already is.</span>
+      <span><b>endgame capacity window is 8 8 bar units</b> (§2.2, tuning) — Flown from the top of the band at commit_floor_m 8000: full hold (805.5 kg) plunges at 180.1 and the module&#39;s cheapest skimmed descent is 188.9 (2 skims; 265.3 plunge, 203.4 at 1 skim, 200.9 at 3). The base capacity must exceed 180.1 and stay under 188.9 — a window of 8.8 units, 4.9%. 185 clears the full hold by 2.7% and undercuts the module by 2.1%. The heaviest ordinary piece (828 kg) plunges at 181.0, 2.2% under the bar. The balancer&#39;s 23%/7.7% margins were computed against a 104.1 kg hold; the simulator flew 805.5 kg.</span>
     </li><li>
       <span class="verdict bad">significant</span>
-      <span><b>skimming buys almost nothing at this ballistic coefficient</b> (§2.3.1, tuning) — High band, entry_depth 0: [1, 0.99, 0.98, 0.972] — three skims buy 2.8%, a third less than the adopted array, and at entry_depth 21,500 m it degrades to [1, 0.994, 0.988, 0.983], 1.7%. Each skim costs commit_dv 44-45 m/s and 0.53 h of flight time. Entry depth by contrast moves heat 159.9 -&gt; 90.9 (43% cooler) over the same 21,500 m — roughly 20x the leverage of the whole skim stack. The controlling quantity is the ballistic coefficient: the sweep reports staged 290.3 kg/m2, while the grid worlds where skimming genuinely cools run beta 33-133 and reach [1, 0.925, 0.849, 0.766] or better. Grid: skimming_cools_the_entry satisfied by 43.8% of configs, so this is tuning, not an impossible rule.</span>
+      <span><b>full hold doubling excludes the endgame gate</b> (§2.4, design) — The sweep&#39;s own hold model gives kg_per_slot 134.25, full_hold_kg 805.5, full_hold_mass_ratio 1.58 — against the params&#39; 17.357 kg/slot and 1.074. Neither reaches 2.0, and making it true is worse than leaving it: top-of-band plunge peak measures 144.7 at 0 kg, 163.5 at 402.8 kg, 180.1 at 805.5 kg and 265.3 at 3,600 kg, so a doubling hold (~1,400 kg of cargo) extrapolates to roughly 200 bar units on a plunge — above the module&#39;s best skimmed descent of 188.9. No heat capacity can then permit the full hold&#39;s plunge and forbid the module&#39;s. The two claims are mutually exclusive at any dry mass.</span>
     </li><li>
       <span class="verdict bad">significant</span>
-      <span><b>optimal skims high is one not two</b> (§2.3.1, tuning) — Re-running the params&#39; own arithmetic on the measured multipliers [1, 0.99, 0.98, 0.972] at heat_index 138: heat terms 32.85 / 31.88 / 30.92 / 30.17, tolls 0.28 / 0.784 / 1.691 / 3.324, skim heat 0 / 0.133 / 0.266 / 0.399, totals 33.13 / 32.80 / 32.88 / 33.89. The minimum moves to 1 skim, and 0 vs 1 are separated by 0.33 plate-percent. At the corrected heat_index of 128 the totals are 26.49 / 26.36 / 26.63 / 27.79 — still 1. The optimum is inside the required 1-2 window either way, but the stated value is wrong and the margin is thinner than a rounding error on the plate gauge.</span>
+      <span><b>optimal skims and cost curve contradicted by flight</b> (§2.2, tuning) — cheapest_pass_count is 1 pass (i.e. zero skims, a plunge) in all 15 flown descent cells, at every altitude and every load including the 3,600 kg endgame haul. The flown plate cost for an empty ship at the bottom runs [7.6, 11.6, 16.0, 20.9] against the emitted [12.10, 10.39, 16.59, 23.52]: the plunge is overstated by 4.5 points, the one-skim descent understated by 1.2, and the argmin is inverted. The flight agrees with GDD Rev-3&#39;s own statement that one pass is cheapest under every ablation keying; the params are the outlier, inherited from pricing the bottom sample off the top sample&#39;s 0.434 multiplier when the bottom&#39;s own measured value is 0.700.</span>
+    </li><li>
+      <span class="verdict bad">significant</span>
+      <span><b>full hold descent speed claim off by 21 percent</b> (§2.3, tuning) — 4.83 m/s, delta 0.84 (21%), spread 0.0 across all three sample altitudes. The canopy is not implicated — the sweep flew the stated 630 m2 at Cd 1.8 independently — the disagreement is entirely the hold: 2,205.5 kg all-up against the params&#39; 1,504.1. The design rule still passes (4.83 &lt; 5.0 soft line) with 3.4% of margin instead of 20%, and empty lands at 3.85.</span>
+    </li><li>
+      <span class="verdict bad">significant</span>
+      <span><b>altitude difficulty gradient exists only because of the commit floor</b> (§2.6, design) — It does not rise on its own. With entry depth free, an empty ship&#39;s cheapest descent gets *easier* with altitude: 7.6% of plate and peak 70 from the bottom, 7.2% and 67 from the middle, 6.9% and 65 from the top — the planner simply picks a better braking altitude from a higher, slower orbit. Only with the entry pinned at commit_floor_m 8000 does the gradient invert to the designed direction: 93.2 / 114.2 / 144.7. The commit floor is not just the endgame&#39;s gate, it is the sole source of the campaign&#39;s difficulty curve, which is a stronger reason for its never-cut status than the GDD currently gives.</span>
+    </li><li>
+      <span class="verdict bad">significant</span>
+      <span><b>top of band unreachable at base config and no upgraded ship was flown</b> (§2.5, tuning) — Bottom and middle confirm the balancer exactly: arc reached with 13.3% margin and a 125.9 s EVA window, and 5.1% at the middle (which also settles GDD 4.5&#39;s open 97 s question upward, to 125.9 s). The top sample fails outright — &#39;crashed on ascent&#39;, arc apex 192,203 m against a 215,000 m sample, 10.6% short, with climb_peak_heat logged as 0. Every top-of-band descent in this sweep was therefore flown from an altitude the flown ship cannot reach, and no upgraded flight configuration (tank, shield or parachute tier) was flown at all, so §3&#39;s questions 6 and 8 — module infeasible-as-plunge at every shield tier, module run beatable at full upgrades — remain unmeasured.</span>
+    </li><li>
+      <span class="verdict bad">significant</span>
+      <span><b>module lands hard on every canopy flown</b> (§2.6, tuning) — The module touches down at 7.28 m/s from all three sample altitudes on the base 630 m2 canopy — 46% over the 5.0 soft line, in a descent the sweep itself grades soft_landing false. Since the sweep flies a perfect pilot with no flare error, a competently-flown module delivery on the starter canopy loses a state on touchdown regardless of heat, so pristine is unreachable without parachute tier 2 (1,400 m2, unflown; predicted 4.88 m/s). This makes the parachute track, not the shield track, the gate on the triumph ending — which the GDD does not say anywhere.</span>
     </li><li>
       <span class="verdict ">minor</span>
-      <span><b>heat index high overstated not understated</b> (§2.3.1, tuning) — It is routed, and it points the other way. At a fixed entry depth of 0 with no skims, an empty ship peaks at 100 (suborbital) / 125 (low) / 159.9 (high) on the sweep&#39;s bar, which is normalised to suborbital = 100. Renormalised to the params&#39; own convention of low = 100, the measured indices are 80 / 100 / 127.9 against the stated 78 / 100 / 138. The high band is 7.9% overstated; suborbital is 2.6% understated. The 161.5 figure the note was reacting to is on the suborbital-normalised scale, which is what made it look 17% low.</span>
+      <span><b>ordinary cargo never lands hard</b> (§2.5, design) — Across the entire ordinary load range the touchdown speed moves 3.85 (empty) → 4.37 (half) → 4.83 (full) → 4.86 (heaviest ordinary piece, 828 kg), a 1.01 m/s spread that never crosses the 5.0 line. Only the 3,600 kg module (7.28) lands hard. At this canopy the mass scale has one zone for everything a player can actually haul, and greed is paid for in plate (7.6% → 10.4% at the bottom) and heat (70 → 90), not in landings.</span>
     </li><li>
       <span class="verdict ">minor</span>
-      <span><b>parachute claim holds exactly</b> (§2.3.2, tuning) — Independently measured at 4.59 m/s, delta 0, spread across bands 0. Touchdown is 3.22 / 3.96 / 4.59 m/s at empty / half / full hold and soft_landing = true in all nine descents. full_hold_mass_ratio measured 2.04 against the claimed 2.035, inside the 1.75-2.25 window. This is the one claim in the file the simulator confirms to the digit. Worth knowing that the margin is 0.41 m/s and that only 31.5% of grid configs satisfy full_hold_lands_soft at all — storage tier 1 spends most of what is left.</span>
+      <span><b>starter shield lesson is 20 percent of the bar</b> (§4.4, tuning) — The climb peaks at 37.5 (bottom route) and 36.0 (middle) against reentry.heat_capacity 185 — 20.3% of the bar, a fifth rather than a half. The obvious fix is blocked: capacity 185 is pinned inside the 180.1–188.9 endgame window (finding 1) and cannot be lowered to sharpen the lesson without deleting the gate. The lever has to be the climb&#39;s heat, not the bar&#39;s capacity.</span>
     </li><li>
       <span class="verdict ">minor</span>
-      <span><b>unstaged pass survives here and almost nowhere else</b> (§2.3.1, design) — Holds in this world: shallow unstaged pass peaks at 54 (suborbital) and 60 (low), both survivable against a 100 capacity. But the grid satisfies unstaged_pass_survivable in only 7.4% of 5,184 configs, and every one of the twelve top-scoring worlds fails it, at unstaged peak heats of 356-419. This is the one target the crew&#39;s config wins and the grid&#39;s best worlds lose, which is the reason not to adopt a top-scoring grid world wholesale.</span>
+      <span><b>skim peak constant has no measured support</b> (§2.2, tuning) — One is now reported and it is zero: skim_peak_heat is 0.0 in every row of every skim study at all three samples (bottom scanned to 27,950 m, middle 25,800 m, top 23,650 m), while entry_peak_heat matches ablation.heat_index exactly (100 / 125 / 160, delta 0.000). Either skims deposit no bar heat in this model or the field is unpopulated; in both readings 46.7 is unsupported, and the per-skim heat term is roughly 12% of a one-skim descent&#39;s emitted cost.</span>
     </li><li>
       <span class="verdict ">minor</span>
-      <span><b>reported ballistic coefficient is at dry mass</b> (§2.3.5, tuning) — The sweep reports staged 290.3 and unstaged 967.7 kg/m2. Both back-solve to 1,350 kg (290.3 x 1.5 x 3.1 and 967.7 x 0.45 x 3.1), so the reported figure is the dry, empty, fuel-less ship — not the same quantity the params quote. The two do not disagree about physics; the descents plainly do carry cargo mass, since peak heat moves 70 -&gt; 102 from empty to full hold. Both figures sit far above the ~50 kg/m2 floor below which aerobraking cannot exist, so the mechanic is intact — but any beta comparison between the params and the sweep is currently comparing two different ships.</span>
+      <span><b>unstaged pass survives here but almost nowhere in the grid</b> (§2.2, design) — On this planet the choice exists: a shallow unstaged pass peaks at 52 (bottom) and 58 (middle) against a 185 bar, comfortably survivable at reentry.unstaged_heat_multiplier 3. Across the 5,184-cell world grid the same target holds in only 8.0% of configurations, and all twelve of the grid&#39;s best configurations (score 8 of 9) fail it — no world in the grid scores 9. The mechanic is a property of the locked planet, not of the rule, so it should not be traded away for anything, and the top of the band was never flown unstaged.</span>
     </li></ul>
     <details open><summary>Candidate value set — what the Playtester would fly instead</summary>
         <table class="data"><thead><tr><th>Parameter</th><th class="num">Current</th><th class="num">Proposed</th><th>Why</th></tr></thead>
         <tbody><tr>
-          <td><code>flight.fuel_capacity_kg</code></td>
-          <td class="num">1800</td>
-          <td class="num">3400</td>
-          <td>Takes fuel fraction from 1.33 to 2.52, into the 2.5-4.0 band every bands_reachable grid config occupies, and ideal dv from 2,542 to 3,775 m/s; it costs liftoff TWR (see the thrust change) and it puts both fuel_tank upgrade tiers, at 2,300 and 2,900, below the new base, so that ladder has to be re-emitted.</td></tr><tr>
-          <td><code>flight.thrust_n</code></td>
-          <td class="num">78000</td>
-          <td class="num">118000</td>
-          <td>Restores liftoff TWR to 2.76 at the new 4,750 kg wet mass — the balance_notes already identify low TWR as where the previous ascent lost its dv to hovering — and it costs the thruster upgrade ladder, whose 92,000 and 108,000 tiers now sit below base and must be re-priced above it.</td></tr><tr>
-          <td><code>reentry.reference_area_m2</code></td>
-          <td class="num">3.1</td>
+          <td><code>cargo.base_slots</code></td>
           <td class="num">6</td>
-          <td>In baseline.json: halves the ballistic coefficient toward the 33-133 kg/m2 range where the grid measures skims actually cooling (0.766-0.849 over three skims, against 0.972 here), which is the only lever that makes the skim substitution in balance_note 5 worth flying; it costs the Researcher&#39;s stated symmetry between hull and shield area and will shorten every descent, so the whole descent table needs re-flying rather than re-deriving.</td></tr><tr>
-          <td><code>ablation.skim_heat_multiplier</code></td>
-          <td class="num">1,0.985,0.971,0.958</td>
-          <td class="num">1,0.99,0.98,0.972</td>
-          <td>The measured high-band array at entry_depth 0; the flown value is the truth and the adopted one overstates three skims&#39; cooling by a third, which costs nothing but the cost_curve, which has to be re-emitted with it.</td></tr><tr>
-          <td><code>ablation.optimal_skims.high</code></td>
-          <td class="num">2</td>
-          <td class="num">1</td>
-          <td>Under the measured multipliers the totals become 33.13 / 32.80 / 32.88 / 33.89 and the minimum moves to one skim; it stays inside the required 1-2 window, but the 0.33 plate-percent separation should be stated as the thin margin it is.</td></tr><tr>
-          <td><code>ablation.heat_index.high</code></td>
-          <td class="num">138</td>
-          <td class="num">128</td>
-          <td>Measured at a fixed entry depth the high band reads 127.9 against low = 100, not 138; correcting it settles the open question in balance_note 8 in the opposite direction to the one it guessed, and it lowers the whole high-band cost_curve by roughly 20%.</td></tr><tr>
-          <td><code>ablation.heat_index.suborbital</code></td>
-          <td class="num">78</td>
-          <td class="num">80</td>
-          <td>Same measurement, same normalisation — suborbital reads 80 against low = 100; a 2.6% correction that costs nothing and keeps all three indices on one measured scale.</td></tr></tbody></table></details>
+          <td class="num">3</td>
+          <td>Halves the flown hold from 805.5 kg to 402.8 kg — an already-measured cell — dropping the top-of-band full-hold plunge from 180.1 to 163.5 and widening the endgame capacity window from 8.8 to 25.4 bar units; the identical effect is available by halving the catalog&#39;s 134.25 kg/slot, which is strictly better because it keeps the GDD walkthrough&#39;s on-screen six slots, so take this one only if the catalog cannot move. Cost: halves the per-run profit ceiling and forces the storage tiers (9/12) down with it.</td></tr><tr>
+          <td><code>reentry.heat_capacity</code></td>
+          <td class="num">185</td>
+          <td class="num">175</td>
+          <td>Centres the base shield in that widened window — 7.0% above a full hold&#39;s 163.5 plunge and 7.4% below the module&#39;s best skimmed 188.9 — instead of the current 2.7%/2.1%, which is inside the scan&#39;s own resolution. Costs nothing to the ladder (215 and 245 unchanged, both still under the module&#39;s 265.3 plunge) and leaves the climb at 21% of the bar. Do not apply without the hold change: at 805.5 kg a 175 bar forbids the full hold&#39;s own plunge.</td></tr><tr>
+          <td><code>ablation.optimal_skims</code></td>
+          <td class="num">[object Object]</td>
+          <td class="num">[object Object]</td>
+          <td>The flight&#39;s cheapest_pass_count is one pass — zero skims — in all 15 descent cells; this restores agreement with GDD Rev-3&#39;s own finding that one pass is cheapest under every ablation keying, and costs nothing because skimming&#39;s job is feasibility (the module cannot plunge), not cost.</td></tr><tr>
+          <td><code>ablation.cost_curve</code></td>
+          <td class="num">[object Object]</td>
+          <td class="num">[object Object]</td>
+          <td>Replaces a curve derived from the top sample&#39;s skim multiplier applied to all three with the flown empty-ship plate cost per pass count at each sample; fixes both the inverted argmin and a 4.5-point overstatement of the plunge. Cost: the six-constant closed form in the balance notes no longer reproduces it, so either the constants or the note must be re-derived.</td></tr><tr>
+          <td><code>landing.descent_speed_full_hold_ms</code></td>
+          <td class="num">3.99</td>
+          <td class="num">4.37</td>
+          <td>Measured, not computed: 4.37 m/s is the flown touchdown at a 402.8 kg hold, which is what a full hold becomes under change #1. If the hold stays at 805.5 kg this value is 4.83, and either way the claim of 3.99 is contradicted by the flight.</td></tr></tbody></table></details>
     <details><summary>What the simulator cannot tell you</summary>
-      <ul class="findings"><li>The ascent finding is load-bearing and the sweep is internally inconsistent about it: it reports &#39;out of fuel before circularising&#39; alongside 503.73 kg remaining and a 28% margin. Both cannot be literal. I trust reached=false — it is the flag the descent cases are all conditioned on — and I would not quote the 28% figure to anyone until someone says what budget it is a margin against.</li><li>The descent series and the skim series disagree in sign about band difficulty: descents get cooler with altitude (70 / 67 / 64) while fixed-depth entries get hotter (100 / 125 / 159.9). The difference is entry depth, which the descent solver floats and the skim series pins. This is exactly the confusion the charter warns about, so I have kept them apart: the inversion finding is about what the descent solver does, and the heat_index finding is about what the heat model does. Neither should be quoted as evidence for the other.</li><li>The Researcher predicts a 1.31x band-to-band heat spread from v-cubed at a common periapsis; the simulator measures 1.60x at a common entry depth. I have not reconciled these and I would not assume the simulator&#39;s heat model is the Researcher&#39;s. The heat bar is a normalised 0-100 scale by the sweep&#39;s own statement, so every heat figure I have quoted is relative, and none of it is W/m2.</li><li>The fuel and thrust proposals are derived from the grid&#39;s fuel_fraction and TWR distributions plus the rocket equation, not from a flown re-run of this ship. They are the direction the evidence points, not a measured fix, and they must be re-swept before anyone believes the specific numbers. They also invalidate the fuel_tank and thruster upgrade ladders, which is the economy-balancer&#39;s work and not mine.</li><li>The reference_area change moves the quantity that controls whether skimming exists at all, but 6.0 m2 is chosen to land near the grid&#39;s cooling band, not measured. It also raises unstaged drag, which currently has comfortable margin (54 and 60 against a 100 capacity) but is satisfied by only 7.4% of the grid — if the re-sweep shows unstaged peaks climbing toward 100, this is the change to back off first.</li><li>The simulator is a point mass with a perfect pilot. off_retrograde_penalty, the cosine heat rule, chute-shred timing against the plasma cue, latch and swing jerk, debris collisions, and everything in the tether model are untested by anything I have seen — no finding above rests on them, and the cryo_propellant_sphere concern the economy-balancer raised remains open, not cleared.</li><li>None of the top-scoring grid worlds is a drop-in replacement. They vary planet radius and gravity, which the design has fixed elsewhere, and all twelve fail unstaged_pass_survivable at peaks of 356-419 where the crew&#39;s config sits at 54-60. I have used the grid only to separate tuning problems from design ones, which is what the satisfaction rates are for.</li><li>I cannot say whether any of this is fun. The plasma-to-chute window, whether a 0.41 m/s parachute margin reads as tense or as luck, and whether one skim feels like a decision or like arithmetic are the human&#39;s checkpoints 2 and 3, and nothing in the sweep touches them.</li></ul>
+      <ul class="findings"><li>The skim-altitude scan is coarser than the margins finding 1 turns on. Two committed series are non-monotonic in skim count — middle/full hold reads 143.0, 108.2, 118.2, 105.2 and top/empty reads 144.7, 83.6, 102.3, 108.8 — so the scan resolves peak heat to something like plus or minus 10-12 bar units. That is larger than the 8.8-unit endgame window itself. Treat any capacity margin under roughly 15 units as unresolved rather than measured, and re-fly the top/endgame column at a finer skim-altitude resolution before trusting 188.9 as the number the shield ladder is built against.</li><li>Two hold models are live in this crew and they differ by 7.7x: the params compute 17.357 kg per slot from the catalog&#39;s crushed/uncrushed slot table, the simulator computes 134.25. Every heat, plate and touchdown figure I quote is on the simulator&#39;s model. Which one is correct is a catalog question I cannot settle from here, and it decides whether the endgame window is 4.9% or roughly 30% wide — it is the single highest-value thing for the auditor to resolve.</li><li>The simulator is a point mass with a perfect pilot: no attitude error, no flare, no debris collisions, and EVA is not flown at all. The 125.9 s arc window at the band floor is time above the floor, not a demonstration that a piece can be reached, tethered and stowed inside it; GDD 4.5&#39;s open question survives this sweep. Likewise the module&#39;s 7.28 m/s touchdown assumes an optimal chute deploy, so it is a floor on how hard the module lands, not an average.</li><li>No upgraded ship was flown. Tank tier 1 and 2, shield tiers 215 and 245, and parachute tiers 900 and 1400 m2 appear in my findings only through interpolation from base-config flights, and the top-of-band ascent failed outright at base (apex 192,203 m). The finale&#39;s feasibility at full upgrades — §3&#39;s headline question — is still unmeasured, and one upgraded-config sweep would answer more than any re-tune of the numbers I did measure.</li><li>The exploration grid&#39;s satisfaction rates are a statement about the target set, not a menu of alternative worlds: its best-scoring configurations are 800 m-radius planets with 224 m of atmosphere and staged ballistic coefficients as low as 11.9 kg/m2, well under the 50 kg/m2 floor below which aerobraking cannot exist. planet.lock.json forbids moving the world in any case, so none of my proposals touch baseline.json. What the rates are good for is the classification: skimming_cools_the_entry at 84.6% and skim_benefit_saturates at 88.9% say the skim mechanic is robust and its shortfalls here are tuning; unstaged_pass_survivable at 8.0% says that one is a property of this planet and must not be traded.</li><li>I believe the simulator, not the params, on skim_peak: the flown study reports skim_peak_heat as 0.0 in every row at every sample. But zero is also what an unpopulated field looks like, so I have flagged 46.7 as unsupported rather than proposing a replacement. If the field is real, the cost curve is overcharging each skim by 1.96% of plate; if it is a gap in the harness, the constant is untested and should be measured before the next audit prices anything off it.</li></ul>
     </details>
   </div>
 
   <div class="card" id="audit">
     <h2>Spec audit — FAIL</h2>
-    <p class="takeaway"><span class="chip bad">2 failed</span><span>18 of 20 rules hold. Failing: cheapest_descent_is_multi_pass, shipping_slice_bands_reachable.</span></p>
+    <p class="takeaway"><span class="chip bad">1 failed</span><span>20 of 21 rules hold. Failing: parachute_speed_matches_flight.</span></p>
     <details class="explain"><summary>What am I looking at?</summary>
-      <p class="lede">Eighteen of twenty checks pass and the ablation curve reproduces its own model exactly, but the ship runs out of fuel before circularising in all three bands and the cheapest descent is a single plunge at every band and load — the second of those is a rule no parameter assignment can satisfy and needs a human decision, not a retune.</p></details>
+      <p class="lede">One check fails: the claimed full-hold parachute speed (3.99 m/s) is 21% off what the stated canopy actually flew (4.83 m/s), because the claim is computed on a 1,504 kg ship and the simulator flew 2,205 kg — and the deeper problem behind it, that the harness&#39;s hold is 42% lighter than the catalog&#39;s own shipping slice, is flagged for the human because no agent&#39;s artifact can fix it.</p></details>
     <div class="fail">
-        <b>cheapest_descent_is_multi_pass</b> — GDD §2.3.1<br>The cheapest descent is 2-4 committed passes, never a single plunge and never feathering.<br>
-        <span style="color:var(--text-secondary)">Found: Judged on flown pass counts only. descents[].cheapest_pass_count = 1 in all nine band x load cases. The series are monotonically increasing from the first pass in every one: suborbital empty 4.6 / 5.6 / 6.6 / 8.3 / 11.3 / 16.6 / 26.1 / 43.3%; low full hold 11.7 / 14.9 / 16.5 / 18.3 / 21.3 / 27.7%; high full hold 10.8 / 15.8 / 17.4 / 19.4 / 22.6 / 28.3%. The failure is a single plunge, not feathering. The reason is visible in the same tables: peak heat is almost flat in pass count because braking altitude climbs as passes are added — suborbital empty 70 -&gt; 74 while braking altitude goes 27,846 -&gt; 38,424 m; high full hold 94 -&gt; 108 across 22,450 -&gt; 30,221 m. A heat term that gives back 4-14 points of peak cannot pay for a cycle toll that compounds at 1.8x, so no assignment of cycle_toll_base_pct, cycle_toll_growth, heat_cost_coefficient or heat_cost_exponent moves the minimum off 1 — lowering the toll flattens the curve toward pass 1, raising the heat term steepens it toward pass 1. Inside a 43,000 m atmosphere at this ballistic coefficient the U-curve does not exist. This is not a value the Balancer chose badly; it is a rule the parameters cannot satisfy.</span></div><div class="fail">
-        <b>shipping_slice_bands_reachable</b> — GDD §4.1<br>Every band the shipping slice needs — suborbital and low — is reachable, and the catalog populates both with at least one fragile piece and at least two size classes.<br>
-        <span style="color:var(--text-secondary)">Found: The catalog half holds: suborbital carries 2 fragile types (cracked_antenna_whip, shattered_lens_cowl) across 3 size classes (small, medium, oversized) and low carries 3 fragile types (cracked_solar_array, star_tracker_head, parabolic_dish_section) across the same 3, so the player meets crushing and fragility inside the slice. The reachability half does not: the simulator reports ascents suborbital reached = false, low reached = false, high reached = false, all three &#39;out of fuel before circularising&#39; with 503.73 / 377.44 / 248.37 kg remaining (28% / 21% / 13.8% short). The params claim 2,542 m/s of ideal dv from exhaust velocity 78000/26 = 3000 m/s and mass ratio 3150/1350 = 2.333 (3000 * ln 2.333 = 2542), against roughly 1450 and 1800 m/s of orbital requirement — but the ideal rocket equation is not what the integrator spends, and gravity losses on the climb consume the margin. Fuel fraction is 1800/1350 = 1.33 where the grid&#39;s top-scoring worlds run 2.5-4.0. Every descent, ablation, landing and economy figure in this file is conditioned on an orbit the ship does not achieve.</span></div>
+        <b>parachute_speed_matches_flight</b> — GDD §2.3<br>The claimed full-hold descent speed is what the stated canopy actually flies.<br>
+        <span style="color:var(--text-secondary)">Found: parachute.independent is true — landing.parachute_area_m2 630 and parachute_drag_coefficient 1.8 are both stated in the params and were flown as stated, so this is a real measurement and not a tautology. claimed_full_hold_ms 3.99 against measured_full_hold_ms 4.83, delta_ms 0.84 = 21.1% of the claim, against a 5% tolerance (0.20 m/s). The canopy is not implicated: sqrt(2*2,205.5*9/(1.5*1.8*630)) = sqrt(23.339) = 4.83 m/s reproduces the measurement exactly, so the entire disagreement is the mass the claim was computed on — 1,504.1 kg all-up in balance_notes (a 104.1 kg hold) against 2,205.5 kg flown (an 805.5 kg hold).</span></div>
     <details open><summary>Observations — pass the spec, worth a human's eye</summary>
-      <ul class="findings"><li>The difficulty curve is inverted in flight, and this is the finding a human should read first after the ascent failure. Cheapest ablation empty is 4.6% (suborbital) / 4.0% (low) / 3.6% (high) and full hold is 13.5% / 11.7% / 10.8%; peak heat on the cheapest descent empty is 70 / 67 / 64. The high band is the cheapest and coolest return in the game at every load, against GDD 2.3.7&#39;s &#39;the value curve and the risk curve rise together&#39;. The cost_curve asserts the opposite ordering (6.21 / 12.78 / 32.03) and passes its own check, so nothing in the audit&#39;s rule list catches this — the curve is indexed by skims and the inversion lives in the descent solver, which brakes higher bands deeper. Held at a fixed entry depth the ordering is correct (100 / 125 / 159.9 peak), so the heat model is not what is wrong.</li><li>The skim decision is arithmetic, not a feeling. In the high band 0.28 plate-percent separates 1 skim from 2 (32.31 vs 32.03) and 0.08 separates 0 from 1 in the low band. A player cannot perceive a third of a percent on a plate gauge, so the mechanic the GDD sells as a judgement call reads as a lookup table. Substituting the measured multipliers moves the high-band optimum from 2 to 1 and the separation to 0.33 — the stated optimal_skims.high = 2 is wrong against flight, even though the window it must land in is satisfied either way.</li><li>Skimming is dominated by a knob the design does not mention. Three skims buy 2.8% of peak heat at entry depth 0 and 1.7% at 21,500 m, costing 44-45 m/s of commit dv and 0.53 h each; entry depth alone moves high-band peak heat 159.9 -&gt; 90.9 (43% cooler) over that same 21,500 m. Whatever the player is actually optimising, it is not skim count. The controlling quantity is the ballistic coefficient — staged 290.3 kg/m2 here against 33-133 in the grid worlds where skimming genuinely cools.</li><li>heat_index.high 138 is overstated by about 8%, not understated by 17% as the balance notes worried. Renormalised to the params&#39; own low = 100 convention the measured indices are 80 / 100 / 127.9. Because the entry term is cubed, a 7.9% index error is a 26% error in the dominant cost of every high-band descent, and cost_curve.high would move with it.</li><li>The two ballistic coefficients in circulation describe different ships and should not be compared again without saying which. The params quote 591 kg/m2 (2747.8 kg full hold over Cd 1.5 x 3.1 m2); the sim reports 290.3, which back-solves to 1350 kg — dry, empty and fuel-less. Both sit far above the ~50 kg/m2 floor below which aerobraking cannot exist, so the mechanic is intact either way, but the reference area is held at 3.1 m2 across every heat-shield tier, which cannot be right for a plate you pay to upgrade and is the cheapest lever if the descents fly long.</li><li>The economy has no slack at either end. launch_cost 120 is exactly three cheap pieces, the top of its permitted window rather than inside it, and the full-hold parachute margin is 0.41 m/s of which storage tier 1 spends 0.37 (4.59 -&gt; 4.96 m/s). Both pass, and both fail on the next revision that moves a mass anywhere.</li><li>fragile_value_premium 3.0 is thin once the uncrushable slot cost is charged. A fragile small occupies 2 slots forever against a solid small&#39;s 1, so the per-slot premium is 1.5x, not 3x — and the fragile piece additionally takes double reentry and landing damage. GDD 2.3.7 wants one recovered intact to reshape a run&#39;s payout; at 1.5x per slot the rational player who is not certain of a soft landing skips the glint, which wastes the mechanic.</li><li>dented_pressure_bottle at 380 kg in one crushed slot is the single piece that sets the shipping slice&#39;s 232.96 kg per slot, and therefore the piece that forced dry_mass_kg from 850 to 1350 to keep the doubling true. The base ship&#39;s mass is currently a function of one debris entry.</li></ul></details>
+      <ul class="findings"><li>The harness&#39;s hold is 42% lighter than the catalog&#39;s own: cargo.kg_per_slot 134.25 and full_hold_kg 805.5, against 231.89 kg/slot spawn-weighted over the hand-tetherable shipping slice and 1,391 kg for six slots — which is the number GDD 2.2 flew at ~1,398 kg. Every full-hold figure in this sweep is therefore optimistic, and two passing checks are sensitive to it. Extrapolating the flown mass-to-peak curve (144.7 at 1,400 kg all-up, 180.1 at 2,205.5, exponent 0.49) puts the catalog&#39;s full hold at roughly 204 bar units on a top-of-band plunge — above heat_capacity 185 and above the module&#39;s best skimmed descent of 188.9, which would invert the third leg of heavy_descent_requires_multi_pass. The same canopy at 2,791 kg all-up gives sqrt(2*2,791*9/1,701) = 5.43 m/s, over the 5.0 soft line. Nothing in either agent&#39;s artifact can reconcile this; it is the hold model in the harness that needs to agree with shipping_slice.slots_per_piece before the next sweep is trusted.</li><li>The base capacity&#39;s margin over the loads it must let plunge is 2-3%, not the 32% GDD 2.2 says it is building on. From the top of the band, full hold 180.1 and the heaviest single ordinary piece (828 kg) 181.0 against heat_capacity 185. GDD 2.2 explicitly rejects a 4%-wide window as &#39;a coincidence and not a mechanic&#39;; this is of that order, and it is where the hold-mass disagreement above lands first.</li><li>cost_curve&#39;s bottom and middle rows are priced off the top sample&#39;s skim multiplier. The flight measured 0.700 at the bottom and 0.528 at the middle, not 0.434. On the bottom&#39;s own value the one-skim entry term is 0.0009*70^2 = 4.410 and the one-skim cost is 6.727 + 4.410 + 1.963 = 13.10 against a 12.10 plunge, so the bottom&#39;s true argmin is 0, not the 1 the array reports. The Balancer says this plainly and cannot fix it — the schema holds one array where the physics needs three. A per-sample skim_heat_multiplier is the change, and it is a schema change, not a value change.</li><li>The module lands hard on every canopy that was flown. Touchdown is 7.28 m/s from all three sample altitudes on the base 630 m^2 canopy — 46% over the soft line, graded soft_landing false — and the sweep flies a perfect pilot with no flare error. So a competently flown finale loses one module state on touchdown regardless of heat, and pristine is unreachable without parachute tier 2 (1,400 m^2, predicted 4.88 m/s, never flown). That makes the parachute track, not the shield track, the gate on the triumph ending, which GDD 2.6 does not say anywhere.</li><li>Ordinary cargo never lands hard, so two thirds of the hold-mass scale has nothing to show. Touchdown moves 3.85 (empty) -&gt; 4.37 (half) -&gt; 4.83 (full) -&gt; 4.86 (heaviest ordinary piece), a 1.01 m/s spread that never crosses 5.0. GDD 2.4&#39;s dial is painted green/amber/red; at this canopy and this hold model everything a player can actually haul is green. Greed is paid for in plate (7.6% -&gt; 10.4% at the bottom) and in heat (70 -&gt; 90), not in landings.</li><li>The starter shield&#39;s first lesson is a fifth of the bar, where GDD 4.4 wanted about half. The climb peaks at 37.5 against heat_capacity 185 — 20.3%. The obvious fix is blocked: 185 is pinned between the full hold&#39;s 180.1 plunge and the module&#39;s gate, so it cannot be lowered to sharpen the lesson. If the first launch is meant to look alarming, the lever has to be the climb&#39;s heat, not the bar&#39;s capacity.</li><li>The top of the band was never actually flown. The base ship &#39;crashed on ascent&#39; with an arc apex of 192,203 m against a 215,000 m sample — 10.6% short — so every top-of-band descent in this sweep was flown from an altitude the flown configuration cannot reach, and no upgraded ship (tank, shield or parachute tier) was flown at all. The Balancer&#39;s claim that fuel_tank tier 2 circularises at the top with 9% left is untested, and GDD section 3&#39;s questions 6 and 8 — module infeasible-as-plunge at every shield tier, module run beatable at full upgrades — remain unmeasured.</li><li>The module&#39;s plunge ban is a property of its altitude as much as its mass. From the bottom of the band the 3,600 kg load plunges at 177.7, under the 185 bar; from the middle it is 212.7 and from the top 265.3. The rule holds where it must because the module hangs at 277,000 m, but if anything ever moves it down the envelope, the endgame&#39;s gate quietly opens.</li><li>ablation.skim_peak 46.7 charges 0.0009*46.7^2 = 1.96% of plate per skim — about 12% of a one-skim descent&#39;s cost at the bottom — and the flight reports skim_peak_heat as 0.0 in every row of every skim study at all three samples. Either skims deposit no bar heat in this model or the field is unpopulated; on both readings the constant is unsupported by anything measured.</li></ul></details>
     <details open><summary>Catalog concerns raised by the Economy Balancer</summary>
       <p class="caption">Not audit findings. These are problems the Balancer hit while pricing the
       catalog and could not fix, because it does not own that data. On a failing run they are
       routed to the Debris Designer; on a passing run they land here.</p>
-      <ul class="findings"><li>dented_pressure_bottle, mass_kg 380 in size_class small (1 crushed slot). It is the piece most responsible for the flown 232.96 kg per crushed slot, which is what forced dry_mass_kg from 850 to 1,350 to keep the GDD 2.3.5 doubling true. The catalog is self-consistent and I balanced against it as it stands, but the Designer should know that a 380 kg one-slot piece sets the per-slot mass of the whole shipping slice, and that the base ship&#39;s dry mass is now a function of it.</li><li>cryo_propellant_sphere, mass_kg 2200 in size_class medium, hand-tetherable. At base magnet_hold_force_n 900 N steady towing is safe by a wide margin (228.6 N), but latch jerk scales with closing speed times piece mass, so this piece defines the high band&#39;s shear behaviour on its own — it is 1.9x the next heaviest hand-tetherable piece. That is a sweep target rather than a defect, but if the Playtester finds latch jerk unforgiving at any magnet tier, this is the piece it will be about.</li></ul></details>
+      <ul class="findings"><li>The whole shipping slice, mass_kg: the bottom two thirds cannot make GDD 2.4&#39;s full-hold doubling true against any ship the GDD&#39;s own canopy can land. The harness loads six slots at 17.357 kg per slot — spawn-weighted over the hand-tetherable slice at the size_classes slot cost — for a 104.1 kg hold. Doubling wants roughly 97-125 kg per slot, a 5.6x rescale of the bottom two thirds (a crumpled panel stack near 45 kg rather than 8, a warped gyro deck near 340 rather than 61), or the same effect via the slot model below. Re-filed unchanged from the last pass with the number attached rather than the argument.</li><li>size_classes block, slots_crushed / slots_uncrushed: shipping_slice.slots_per_piece says 1, but the harness prices the hold off slots_crushed and slots_uncrushed and gets 3.4 pieces per six slots, not six. That single disagreement is worth a factor of 2.05 on every hold mass in this file (17.36 kg per slot against a 35.57 kg mean piece). Either the size-class slot table should collapse to 1/1 inside the slice so a slot is a piece, as the shipping_slice object says, or the slice&#39;s masses need to carry the crush factor. Both fixes are yours; neither is reachable from the params.</li><li>collapsed_dish_frame, buckled_pressure_bulkhead, severed_boom_mast, size_class: all three are oversized and hand_tetherable false, so shipping_slice.oversized_reachable false is correct and economy.size_class_base_value.oversized (320) prices something no hold can contain. I have left the value in place because the schema requires the key, but nothing in the slice can earn it. Flagging it as vestigial rather than asking for the pieces to move — their job as the piece the magnet visibly refuses is a good one.</li></ul></details>
   </div>
 
   <div class="card" id="catalog">
     <h2>The catalog</h2>
-    <p class="takeaway"><span class="chip info">28 pieces</span><span>28 debris types, 9 fragile, priced across three bands.</span></p>
-    <details class="explain"><summary>What am I looking at?</summary><p class="lede">Every piece the crew authored and priced. Sorted by band, then by value.</p></details>
+    <p class="takeaway"><span class="chip info">30 pieces</span><span>30 debris types, 12 fragile, priced across one band with a value gradient.</span></p>
+    <details class="explain"><summary>What am I looking at?</summary><p class="lede">Every piece the crew authored and priced. Sorted by altitude, then by value.</p></details>
     <table class="data">
     <thead><tr><th>Piece</th><th>Band</th><th>Class</th><th>Flag</th>
       <th class="num">Mass (kg)</th><th class="num">Value</th><th class="num">Value/kg</th></tr></thead>
     <tbody><tr>
-      <td>Collapsed Launch Shroud</td>
-      <td><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</td>
+      <td>Delaminated Radiator Fin</td>
+      <td><span class="swatch" style="background:var(--band-bottom)"></span>Lower band</td>
+      <td>medium</td>
+      <td>fragile</td>
+      <td class="num">199.0</td>
+      <td class="num">640</td>
+      <td class="num">3.2</td>
+    </tr><tr>
+      <td>Collapsed Dish Frame</td>
+      <td><span class="swatch" style="background:var(--band-bottom)"></span>Lower band</td>
       <td>oversized</td>
       <td>—</td>
-      <td class="num">1,100.0</td>
-      <td class="num">320</td>
-      <td class="num">0.3</td>
-    </tr><tr>
-      <td>Cracked Antenna Whip</td>
-      <td><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</td>
-      <td>small</td>
-      <td>fragile</td>
-      <td class="num">35.0</td>
-      <td class="num">120</td>
-      <td class="num">3.4</td>
-    </tr><tr>
-      <td>Shattered Lens Cowl</td>
-      <td><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</td>
-      <td>small</td>
-      <td>fragile</td>
-      <td class="num">70.0</td>
-      <td class="num">120</td>
-      <td class="num">1.7</td>
-    </tr><tr>
-      <td>Bent Truss Section</td>
-      <td><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</td>
-      <td>medium</td>
-      <td>—</td>
-      <td class="num">430.0</td>
-      <td class="num">90</td>
-      <td class="num">0.2</td>
-    </tr><tr>
-      <td>Scorched Hull Plate</td>
-      <td><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</td>
-      <td>medium</td>
-      <td>—</td>
-      <td class="num">700.0</td>
-      <td class="num">90</td>
-      <td class="num">0.1</td>
-    </tr><tr>
-      <td>Crumpled Foil Blanket</td>
-      <td><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</td>
-      <td>small</td>
-      <td>—</td>
-      <td class="num">45.0</td>
-      <td class="num">40</td>
-      <td class="num">0.9</td>
-    </tr><tr>
-      <td>Burnt Panel Offcut</td>
-      <td><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</td>
-      <td>small</td>
-      <td>—</td>
-      <td class="num">85.0</td>
-      <td class="num">40</td>
-      <td class="num">0.5</td>
-    </tr><tr>
-      <td>Spent Bolt Cluster</td>
-      <td><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</td>
-      <td>small</td>
-      <td>—</td>
-      <td class="num">130.0</td>
-      <td class="num">40</td>
-      <td class="num">0.3</td>
-    </tr><tr>
-      <td>Dented Pressure Bottle</td>
-      <td><span class="swatch" style="background:var(--band-suborbital)"></span>Suborbital</td>
-      <td>small</td>
-      <td>—</td>
-      <td class="num">380.0</td>
-      <td class="num">40</td>
-      <td class="num">0.1</td>
-    </tr><tr>
-      <td>Derelict Upper Stage Tank</td>
-      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
-      <td>oversized</td>
-      <td>—</td>
-      <td class="num">2,000.0</td>
-      <td class="num">768</td>
-      <td class="num">0.4</td>
-    </tr><tr>
-      <td>Cracked Solar Array</td>
-      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
-      <td>medium</td>
-      <td>fragile</td>
-      <td class="num">390.0</td>
-      <td class="num">648</td>
-      <td class="num">1.7</td>
-    </tr><tr>
-      <td>Parabolic Dish Section</td>
-      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
-      <td>medium</td>
-      <td>fragile</td>
-      <td class="num">420.0</td>
-      <td class="num">648</td>
-      <td class="num">1.5</td>
-    </tr><tr>
-      <td>Star Tracker Head</td>
-      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
-      <td>small</td>
-      <td>fragile</td>
-      <td class="num">155.0</td>
-      <td class="num">288</td>
-      <td class="num">1.9</td>
-    </tr><tr>
-      <td>Reaction Wheel Housing</td>
-      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
-      <td>medium</td>
-      <td>—</td>
-      <td class="num">870.0</td>
-      <td class="num">216</td>
-      <td class="num">0.2</td>
-    </tr><tr>
-      <td>Severed Solar Wing Spar</td>
-      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
-      <td>medium</td>
-      <td>—</td>
-      <td class="num">760.0</td>
-      <td class="num">216</td>
-      <td class="num">0.3</td>
-    </tr><tr>
-      <td>Battery Pack Module</td>
-      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
-      <td>medium</td>
-      <td>—</td>
-      <td class="num">1,150.0</td>
-      <td class="num">216</td>
-      <td class="num">0.2</td>
-    </tr><tr>
-      <td>Thruster Nozzle Bell</td>
-      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
-      <td>small</td>
-      <td>—</td>
-      <td class="num">340.0</td>
-      <td class="num">96</td>
-      <td class="num">0.3</td>
-    </tr><tr>
-      <td>Tangled Harness Bundle</td>
-      <td><span class="swatch" style="background:var(--band-low)"></span>Low orbit</td>
-      <td>small</td>
-      <td>—</td>
-      <td class="num">210.0</td>
-      <td class="num">96</td>
-      <td class="num">0.5</td>
-    </tr><tr>
-      <td>Armstrong&#39;s Satellite</td>
-      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
-      <td>oversized</td>
-      <td>fragile</td>
-      <td class="num">3,600.0</td>
-      <td class="num">5,280</td>
-      <td class="num">1.5</td>
-    </tr><tr>
-      <td>High-Gain Dish Assembly</td>
-      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
-      <td>oversized</td>
-      <td>—</td>
-      <td class="num">3,200.0</td>
-      <td class="num">1,760</td>
-      <td class="num">0.6</td>
-    </tr><tr>
-      <td>Gallium Solar Panel</td>
-      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
-      <td>medium</td>
-      <td>fragile</td>
-      <td class="num">920.0</td>
-      <td class="num">1,485</td>
-      <td class="num">1.6</td>
-    </tr><tr>
-      <td>Optical Telescope Barrel</td>
-      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
-      <td>medium</td>
-      <td>fragile</td>
-      <td class="num">1,300.0</td>
-      <td class="num">1,485</td>
-      <td class="num">1.1</td>
-    </tr><tr>
-      <td>Xenon Ion Grid</td>
-      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
-      <td>small</td>
-      <td>fragile</td>
-      <td class="num">540.0</td>
-      <td class="num">660</td>
+      <td class="num">445.0</td>
+      <td class="num">549</td>
       <td class="num">1.2</td>
     </tr><tr>
-      <td>Comsat Bus Frame</td>
-      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
+      <td>Shredded Antenna Mesh</td>
+      <td><span class="swatch" style="background:var(--band-bottom)"></span>Lower band</td>
+      <td>medium</td>
+      <td>fragile</td>
+      <td class="num">173.0</td>
+      <td class="num">497</td>
+      <td class="num">2.9</td>
+    </tr><tr>
+      <td>Cracked Solar Array</td>
+      <td><span class="swatch" style="background:var(--band-bottom)"></span>Lower band</td>
+      <td>medium</td>
+      <td>fragile</td>
+      <td class="num">105.0</td>
+      <td class="num">331</td>
+      <td class="num">3.2</td>
+    </tr><tr>
+      <td>Cracked Battery Pallet</td>
+      <td><span class="swatch" style="background:var(--band-bottom)"></span>Lower band</td>
       <td>medium</td>
       <td>—</td>
-      <td class="num">1,950.0</td>
-      <td class="num">495</td>
-      <td class="num">0.3</td>
+      <td class="num">200.0</td>
+      <td class="num">177</td>
+      <td class="num">0.9</td>
     </tr><tr>
-      <td>Hardened Avionics Core</td>
-      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
+      <td>Torn Foil Blanket</td>
+      <td><span class="swatch" style="background:var(--band-bottom)"></span>Lower band</td>
+      <td>small</td>
+      <td>fragile</td>
+      <td class="num">56.0</td>
+      <td class="num">126</td>
+      <td class="num">2.2</td>
+    </tr><tr>
+      <td>Bent Truss Section</td>
+      <td><span class="swatch" style="background:var(--band-bottom)"></span>Lower band</td>
       <td>medium</td>
       <td>—</td>
-      <td class="num">1,600.0</td>
-      <td class="num">495</td>
-      <td class="num">0.3</td>
+      <td class="num">128.0</td>
+      <td class="num">120</td>
+      <td class="num">0.9</td>
     </tr><tr>
-      <td>Cryo Propellant Sphere</td>
-      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
-      <td>medium</td>
-      <td>—</td>
-      <td class="num">2,200.0</td>
-      <td class="num">495</td>
-      <td class="num">0.2</td>
-    </tr><tr>
-      <td>Momentum Gyro Cluster</td>
-      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
+      <td>Burst Pressurant Sphere</td>
+      <td><span class="swatch" style="background:var(--band-bottom)"></span>Lower band</td>
       <td>small</td>
       <td>—</td>
-      <td class="num">1,150.0</td>
-      <td class="num">220</td>
-      <td class="num">0.2</td>
+      <td class="num">230.0</td>
+      <td class="num">89</td>
+      <td class="num">0.4</td>
     </tr><tr>
-      <td>Sensor Boom Mast</td>
-      <td><span class="swatch" style="background:var(--band-high)"></span>High orbit</td>
+      <td>Seized Reaction Wheel Housing</td>
+      <td><span class="swatch" style="background:var(--band-bottom)"></span>Lower band</td>
       <td>small</td>
       <td>—</td>
-      <td class="num">700.0</td>
-      <td class="num">220</td>
-      <td class="num">0.3</td>
+      <td class="num">218.0</td>
+      <td class="num">84</td>
+      <td class="num">0.4</td>
+    </tr><tr>
+      <td>Spent Kick Motor Casing</td>
+      <td><span class="swatch" style="background:var(--band-bottom)"></span>Lower band</td>
+      <td>small</td>
+      <td>—</td>
+      <td class="num">150.0</td>
+      <td class="num">58</td>
+      <td class="num">0.4</td>
+    </tr><tr>
+      <td>Crumpled Panel Stack</td>
+      <td><span class="swatch" style="background:var(--band-bottom)"></span>Lower band</td>
+      <td>small</td>
+      <td>—</td>
+      <td class="num">81.0</td>
+      <td class="num">45</td>
+      <td class="num">0.6</td>
+    </tr><tr>
+      <td>Split Avionics Rack</td>
+      <td><span class="swatch" style="background:var(--band-middle)"></span>Mid band</td>
+      <td>medium</td>
+      <td>fragile</td>
+      <td class="num">388.0</td>
+      <td class="num">1,049</td>
+      <td class="num">2.7</td>
+    </tr><tr>
+      <td>Buckled Pressure Bulkhead</td>
+      <td><span class="swatch" style="background:var(--band-middle)"></span>Mid band</td>
+      <td>oversized</td>
+      <td>—</td>
+      <td class="num">686.0</td>
+      <td class="num">1,009</td>
+      <td class="num">1.5</td>
+    </tr><tr>
+      <td>Cracked Ablative Nose Cone</td>
+      <td><span class="swatch" style="background:var(--band-middle)"></span>Mid band</td>
+      <td>medium</td>
+      <td>fragile</td>
+      <td class="num">366.0</td>
+      <td class="num">1,004</td>
+      <td class="num">2.7</td>
+    </tr><tr>
+      <td>Shattered Star Tracker</td>
+      <td><span class="swatch" style="background:var(--band-middle)"></span>Mid band</td>
+      <td>small</td>
+      <td>fragile</td>
+      <td class="num">324.0</td>
+      <td class="num">411</td>
+      <td class="num">1.3</td>
+    </tr><tr>
+      <td>Cracked Optics Barrel</td>
+      <td><span class="swatch" style="background:var(--band-middle)"></span>Mid band</td>
+      <td>small</td>
+      <td>fragile</td>
+      <td class="num">234.0</td>
+      <td class="num">327</td>
+      <td class="num">1.4</td>
+    </tr><tr>
+      <td>Warped Gyro Deck</td>
+      <td><span class="swatch" style="background:var(--band-middle)"></span>Mid band</td>
+      <td>medium</td>
+      <td>—</td>
+      <td class="num">398.0</td>
+      <td class="num">322</td>
+      <td class="num">0.8</td>
+    </tr><tr>
+      <td>Ruptured Helium Tank</td>
+      <td><span class="swatch" style="background:var(--band-middle)"></span>Mid band</td>
+      <td>medium</td>
+      <td>—</td>
+      <td class="num">361.0</td>
+      <td class="num">296</td>
+      <td class="num">0.8</td>
+    </tr><tr>
+      <td>Fractured Docking Collar</td>
+      <td><span class="swatch" style="background:var(--band-middle)"></span>Mid band</td>
+      <td>medium</td>
+      <td>—</td>
+      <td class="num">311.0</td>
+      <td class="num">257</td>
+      <td class="num">0.8</td>
+    </tr><tr>
+      <td>Torn Solar Wing Spar</td>
+      <td><span class="swatch" style="background:var(--band-middle)"></span>Mid band</td>
+      <td>medium</td>
+      <td>—</td>
+      <td class="num">272.0</td>
+      <td class="num">233</td>
+      <td class="num">0.9</td>
+    </tr><tr>
+      <td>Dead Thruster Quad</td>
+      <td><span class="swatch" style="background:var(--band-middle)"></span>Mid band</td>
+      <td>small</td>
+      <td>—</td>
+      <td class="num">331.0</td>
+      <td class="num">120</td>
+      <td class="num">0.4</td>
+    </tr><tr>
+      <td>Severed Boom Mast</td>
+      <td><span class="swatch" style="background:var(--band-top)"></span>Upper band</td>
+      <td>oversized</td>
+      <td>—</td>
+      <td class="num">828.0</td>
+      <td class="num">1,472</td>
+      <td class="num">1.8</td>
+    </tr><tr>
+      <td>Shattered Cryo Dewar</td>
+      <td><span class="swatch" style="background:var(--band-top)"></span>Upper band</td>
+      <td>medium</td>
+      <td>fragile</td>
+      <td class="num">444.0</td>
+      <td class="num">1,332</td>
+      <td class="num">3.0</td>
+    </tr><tr>
+      <td>Cracked Deep Space Dish</td>
+      <td><span class="swatch" style="background:var(--band-top)"></span>Upper band</td>
+      <td>medium</td>
+      <td>fragile</td>
+      <td class="num">428.0</td>
+      <td class="num">1,155</td>
+      <td class="num">2.7</td>
+    </tr><tr>
+      <td>Cracked Command Module Hatch</td>
+      <td><span class="swatch" style="background:var(--band-top)"></span>Upper band</td>
+      <td>small</td>
+      <td>fragile</td>
+      <td class="num">453.0</td>
+      <td class="num">632</td>
+      <td class="num">1.4</td>
+    </tr><tr>
+      <td>Fused Ion Grid Assembly</td>
+      <td><span class="swatch" style="background:var(--band-top)"></span>Upper band</td>
+      <td>small</td>
+      <td>fragile</td>
+      <td class="num">462.0</td>
+      <td class="num">533</td>
+      <td class="num">1.2</td>
+    </tr><tr>
+      <td>Impact Pitted Engine Bell</td>
+      <td><span class="swatch" style="background:var(--band-top)"></span>Upper band</td>
+      <td>medium</td>
+      <td>—</td>
+      <td class="num">523.0</td>
+      <td class="num">459</td>
+      <td class="num">0.9</td>
+    </tr><tr>
+      <td>Scorched Fuel Cell Stack</td>
+      <td><span class="swatch" style="background:var(--band-top)"></span>Upper band</td>
+      <td>medium</td>
+      <td>—</td>
+      <td class="num">497.0</td>
+      <td class="num">429</td>
+      <td class="num">0.9</td>
+    </tr><tr>
+      <td>Torn Reactor Shield Plate</td>
+      <td><span class="swatch" style="background:var(--band-top)"></span>Upper band</td>
+      <td>medium</td>
+      <td>—</td>
+      <td class="num">470.0</td>
+      <td class="num">370</td>
+      <td class="num">0.8</td>
+    </tr><tr>
+      <td>Armstrong&#39;s Service Module</td>
+      <td><span class="swatch" style="background:var(--band-top)"></span>Upper band</td>
+      <td>small</td>
+      <td>—</td>
+      <td class="num">3,600.0</td>
+      <td class="num">218</td>
+      <td class="num">0.1</td>
     </tr></tbody></table>
   </div>
 

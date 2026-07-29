@@ -1,9 +1,9 @@
 {
   "crew": "junkstronaut-tuning-crew",
-  "mode": "stub",
-  "finished_at": "2026-07-28T04:00:21.194Z",
-  "duration_s": 0.1,
-  "design_document": "Junkstronaut GDD.txt",
+  "mode": "live",
+  "finished_at": "2026-07-29T00:37:30.596Z",
+  "duration_s": 4763.2,
+  "design_document": "Junkstronaut GDD Short.txt",
   "models": [
     "claude-opus-5"
   ],
@@ -24,7 +24,7 @@
     {
       "name": "playtester",
       "verdict": "targets_missed",
-      "findings": 9
+      "findings": 11
     },
     {
       "name": "spec-auditor",
@@ -34,13 +34,14 @@
   ],
   "audit": {
     "verdict": "fail",
-    "checks_total": 20,
-    "checks_failed": 2,
-    "observations": 8
+    "checks_total": 21,
+    "checks_failed": 1,
+    "observations": 9
   },
   "catalog_concerns": [
-    "dented_pressure_bottle, mass_kg 380 in size_class small (1 crushed slot). It is the piece most responsible for the flown 232.96 kg per crushed slot, which is what forced dry_mass_kg from 850 to 1,350 to keep the GDD 2.3.5 doubling true. The catalog is self-consistent and I balanced against it as it stands, but the Designer should know that a 380 kg one-slot piece sets the per-slot mass of the whole shipping slice, and that the base ship's dry mass is now a function of it.",
-    "cryo_propellant_sphere, mass_kg 2200 in size_class medium, hand-tetherable. At base magnet_hold_force_n 900 N steady towing is safe by a wide margin (228.6 N), but latch jerk scales with closing speed times piece mass, so this piece defines the high band's shear behaviour on its own — it is 1.9x the next heaviest hand-tetherable piece. That is a sweep target rather than a defect, but if the Playtester finds latch jerk unforgiving at any magnet tier, this is the piece it will be about."
+    "The whole shipping slice, mass_kg: the bottom two thirds cannot make GDD 2.4's full-hold doubling true against any ship the GDD's own canopy can land. The harness loads six slots at 17.357 kg per slot — spawn-weighted over the hand-tetherable slice at the size_classes slot cost — for a 104.1 kg hold. Doubling wants roughly 97-125 kg per slot, a 5.6x rescale of the bottom two thirds (a crumpled panel stack near 45 kg rather than 8, a warped gyro deck near 340 rather than 61), or the same effect via the slot model below. Re-filed unchanged from the last pass with the number attached rather than the argument.",
+    "size_classes block, slots_crushed / slots_uncrushed: shipping_slice.slots_per_piece says 1, but the harness prices the hold off slots_crushed and slots_uncrushed and gets 3.4 pieces per six slots, not six. That single disagreement is worth a factor of 2.05 on every hold mass in this file (17.36 kg per slot against a 35.57 kg mean piece). Either the size-class slot table should collapse to 1/1 inside the slice so a slot is a piece, as the shipping_slice object says, or the slice's masses need to carry the crush factor. Both fixes are yours; neither is reachable from the params.",
+    "collapsed_dish_frame, buckled_pressure_bulkhead, severed_boom_mast, size_class: all three are oversized and hand_tetherable false, so shipping_slice.oversized_reachable false is correct and economy.size_class_base_value.oversized (320) prices something no hold can contain. I have left the value in place because the schema requires the key, but nothing in the slice can earn it. Flagging it as vestigial rather than asking for the pieces to move — their job as the piece the magnet visibly refuses is a good one."
   ],
   "artifacts": [
     "params/baseline.json",

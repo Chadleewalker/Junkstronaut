@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Junkstronaut — candidate tuning</title>
+<style>
+  :root{color-scheme:light dark;
+    --bg:#fbfaf8;--fg:#1a1a1a;--dim:#6a6a6a;--card:#fff;--line:#dcd8d2;
+    --good:#1f8a5f;--bad:#c0392b;--accent:#2a78d6;--rule:#c0392b}
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#16181c;--fg:#e8e6e3;--dim:#9a9894;--card:#1e2126;--line:#31353c;
+    --good:#3fbf88;--bad:#e2685a;--accent:#5aa0e8;--rule:#e2685a}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:15px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+  .wrap{max-width:900px;margin:0 auto;padding:32px 20px 64px}
+  h1{font-size:26px;margin:0 0 4px}
+  .sub{color:var(--dim);margin:0 0 28px}
+  .verdict{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:20px 22px;margin-bottom:26px}
+  .score{font-size:34px;font-weight:600;letter-spacing:-.5px}
+  .score .of{color:var(--dim);font-size:18px;font-weight:400}
+  table{width:100%;border-collapse:collapse;margin:10px 0 0}
+  th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);
+    font-variant-numeric:tabular-nums}
+  th{color:var(--dim);font-weight:600;font-size:13px;text-transform:uppercase;
+    letter-spacing:.4px}
+  td.n,th.n{text-align:right}
+  .ok{color:var(--good);font-weight:600}
+  .no{color:var(--bad);font-weight:600}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:18px 22px;margin-bottom:22px}
+  .card h2{font-size:17px;margin:0 0 4px}
+  .card p.note{color:var(--dim);margin:0 0 14px;font-size:14px}
+  .chart{width:100%;height:auto;overflow:visible}
+  .grid{stroke:var(--line);stroke-width:1}
+  .tick{fill:var(--dim);font-size:11px}
+  .axis{fill:var(--dim);font-size:11px}
+  .line{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round}
+  .rule{stroke:var(--rule);stroke-width:1.5;stroke-dasharray:5 4}
+  .rulelabel{fill:var(--rule);font-size:11px;font-weight:600}
+  code{background:var(--bg);padding:1px 5px;border-radius:4px;font-size:13px}
+  .cfg{display:flex;gap:26px;flex-wrap:wrap;margin-top:12px}
+  .cfg div{font-size:14px}
+  .cfg b{display:block;font-size:19px;font-variant-numeric:tabular-nums}
+  .warn{border-left:3px solid var(--rule);padding-left:14px;color:var(--dim);font-size:14px}
+</style></head><body><div class="wrap">
+
+<h1>Candidate tuning</h1>
+<p class="sub">The whole game flown against one parameter set — first launch to
+Armstrong's Satellite. Not a crew run: this is the flight model driven directly.</p>
+
+<div class="verdict">
+  <div class="score">8<span class="of"> / 8 gates</span></div>
+  <div class="cfg">
+    <div>heat capacity<b>235</b></div>
+    <div>commit floor<b>8000 m</b></div>
+    <div>ascent heat penalty<b>exempt</b></div>
+    <div>full hold<b>1398 kg</b></div>
+  </div>
+  <table><thead><tr><th>gate</th><th>what was measured</th><th class="n">verdict</th></tr></thead><tbody>
+  <tr><td>first launch reaches the junk</td><td>apex 56164 m against a floor of 50000 m, 97 s of EVA window</td>
+    <td class="n ok">holds</td></tr><tr><td>first launch comes home with fuel</td><td>29.5% of the tank left after the arc</td>
+    <td class="n ok">holds</td></tr><tr><td>the climb survives itself</td><td>climb peaks at 47.5 against a capacity of 235</td>
+    <td class="n ok">holds</td></tr><tr><td>orbit is something upgrades buy</td><td>base ship circularises with only 0.0% left; tank 1 makes it 10.9%</td>
+    <td class="n ok">holds</td></tr><tr><td>ordinary hauls may still plunge</td><td>empty plunges at 144.7, full hold at 203.7, both under 235</td>
+    <td class="n ok">holds</td></tr><tr><td>the endgame haul CANNOT plunge</td><td>Armstrong's Satellite plunges at 268.8, over 235</td>
+    <td class="n ok">holds</td></tr><tr><td>the endgame haul comes home on a skim</td><td>one skim brings it to 196.5</td>
+    <td class="n ok">holds</td></tr><tr><td>greed costs something</td><td>full hold 203.7 against empty 144.7, 41% hotter</td>
+    <td class="n ok">holds</td></tr>
+  </tbody></table>
+</div>
+
+<div class="card">
+  <h2>The first launch</h2>
+  <p class="note">The base ship on a ballistic arc — no circularisation, which is where the
+  fuel goes. The EVA window is the seconds spent at or above the band floor
+  (50000 m).</p>
+  <table><thead><tr><th>ship</th><th class="n">apex</th><th class="n">EVA window</th>
+    <th class="n">fuel left</th><th class="n">climb heat</th><th>orbit?</th></tr></thead><tbody>
+  <tr><td>base</td><td class="n">56164 m</td>
+    <td class="n">97 s</td><td class="n">29.5%</td>
+    <td class="n">47.5</td>
+    <td>yes, 0.0% left</td></tr><tr><td>tank 1</td><td class="n">56800 m</td>
+    <td class="n">104 s</td><td class="n">36.4%</td>
+    <td class="n">37.6</td>
+    <td>yes, 10.9% left</td></tr><tr><td>tank 1 + thruster 1</td><td class="n">56509 m</td>
+    <td class="n">101 s</td><td class="n">45.5%</td>
+    <td class="n">46.6</td>
+    <td>yes, 20.5% left</td></tr><tr><td>tank 2 + thruster 1</td><td class="n">56998 m</td>
+    <td class="n">105 s</td><td class="n">49.6%</td>
+    <td class="n">35.9</td>
+    <td>yes, 27.8% left</td></tr><tr><td>maxed</td><td class="n">56719 m</td>
+    <td class="n">102 s</td><td class="n">57.1%</td>
+    <td class="n">45.8</td>
+    <td>yes, 35.8% left</td></tr>
+  </tbody></table>
+</div>
+
+<div class="card">
+  <h2>The climb</h2>
+  <p class="note">Base ship. Heating peaks at 16103 m and
+  798 m/s — <b>not</b> at max dynamic pressure, which is five times lower at
+  2875 m. Heating goes as √density × speed³; dynamic pressure as
+  density × speed².</p>
+  <svg viewBox="0 0 640 260" class="chart" role="img" aria-label="Heat bar against altitude during the climb">
+    <line x1="56" y1="220.0" x2="620" y2="220.0" class="grid"/><text class="tick" x="48" y="224.0" text-anchor="end">0</text><line x1="56" y1="169.5" x2="620" y2="169.5" class="grid"/><text class="tick" x="48" y="173.5" text-anchor="end">13</text><line x1="56" y1="119.0" x2="620" y2="119.0" class="grid"/><text class="tick" x="48" y="123.0" text-anchor="end">26</text><line x1="56" y1="68.5" x2="620" y2="68.5" class="grid"/><text class="tick" x="48" y="72.5" text-anchor="end">38</text><line x1="56" y1="18.0" x2="620" y2="18.0" class="grid"/><text class="tick" x="48" y="22.0" text-anchor="end">51</text><text class="tick" x="56.0" y="238" text-anchor="middle">0</text><text class="tick" x="338.0" y="238" text-anchor="middle">21903</text><text class="tick" x="620.0" y="238" text-anchor="middle">43806</text>
+    <path d="M56.0,220.0L56.4,220.0L57.7,219.8L59.8,218.9L62.7,217.1L66.2,214.2L70.4,210.1L75.2,204.9L80.5,198.9L86.4,192.2L92.8,184.9L99.7,177.1L107.3,168.6L115.4,159.5L124.2,149.6L133.7,139.1L143.9,127.7L154.9,115.6L166.8,102.8L179.6,89.7L193.4,76.4L208.2,63.5L224.1,51.5L241.1,41.1L259.1,33.0L277.4,37.9L295.3,55.7L312.7,78.2L329.8,100.9L346.5,121.8L362.8,140.1L378.7,155.6L394.3,168.4L409.6,178.8L424.5,187.3L439.1,194.0L453.3,199.4L467.2,203.6L480.8,207.0L494.0,209.7L506.9,211.8L519.5,213.4L531.8,214.8L543.7,215.8L555.4,216.6L566.7,217.3L577.7,217.8L588.4,218.2L598.8,218.5L608.9,218.8L620.0,219.3" class="line"/>
+    <text class="axis" x="56" y="254">altitude, m</text>
+    <text class="axis" x="4" y="12">heat bar</text>
+  </svg>
+</div>
+
+<div class="card">
+  <h2>Coming home, from the top of the band</h2>
+  <p class="note">Coolest legal descent at each load. The commit floor is the rule doing the
+  work: the player may not commit to an entry above 8000 m, so flying shallow
+  to stay cool is off the table and skimming is the only way left to arrive slower.</p>
+  <table><thead><tr><th>load</th><th class="n">mass</th><th class="n">plunge</th>
+    <th class="n">1 skim</th><th class="n">2 skims</th><th>verdict</th></tr></thead><tbody>
+  <tr><td>empty</td><td class="n">0 kg</td>
+    <td class="n ">144.7</td>
+    <td class="n">86.2</td><td class="n">88.5</td>
+    <td>may plunge</td></tr><tr><td>half hold</td><td class="n">699 kg</td>
+    <td class="n ">177.0</td>
+    <td class="n">113.4</td><td class="n">117.0</td>
+    <td>may plunge</td></tr><tr><td>full hold</td><td class="n">1398 kg</td>
+    <td class="n ">203.7</td>
+    <td class="n">125.5</td><td class="n">129.1</td>
+    <td>may plunge</td></tr><tr><td>Armstrong's Satellite</td><td class="n">3600 kg</td>
+    <td class="n no">268.8</td>
+    <td class="n">196.5</td><td class="n">201.8</td>
+    <td><span class="ok">must skim</span></td></tr>
+  </tbody></table>
+</div>
+
+<div class="card">
+  <h2>Why the commit floor is the lever</h2>
+  <p class="note">Armstrong's Satellite on a single pass, against how deep the player
+  commits. Peak heat falls steeply as the entry gets shallower — that is the escape route the
+  floor closes. Without it the player enters at about 19,700 m, the plunge reads about 128,
+  and no capacity can tell it apart from a skimmed descent.</p>
+  <svg viewBox="0 0 640 260" class="chart" role="img" aria-label="Peak heat against committed entry altitude, single pass">
+    <line x1="56" y1="220.0" x2="620" y2="220.0" class="grid"/><text class="tick" x="48" y="224.0" text-anchor="end">0</text><line x1="56" y1="169.5" x2="620" y2="169.5" class="grid"/><text class="tick" x="48" y="173.5" text-anchor="end">83</text><line x1="56" y1="119.0" x2="620" y2="119.0" class="grid"/><text class="tick" x="48" y="123.0" text-anchor="end">166</text><line x1="56" y1="68.5" x2="620" y2="68.5" class="grid"/><text class="tick" x="48" y="72.5" text-anchor="end">248</text><line x1="56" y1="18.0" x2="620" y2="18.0" class="grid"/><text class="tick" x="48" y="22.0" text-anchor="end">331</text><text class="tick" x="56.0" y="238" text-anchor="middle">0</text><text class="tick" x="338.0" y="238" text-anchor="middle">10739</text><text class="tick" x="620.0" y="238" text-anchor="middle">21479</text><line x1="56" y1="76.6" x2="620" y2="76.6" class="rule"/><text class="rulelabel" x="616" y="70.6" text-anchor="end">capacity 235</text>
+    <path d="M56.0,33.0L84.2,35.5L112.4,38.2L140.6,41.0L168.8,44.0L197.0,47.2L225.2,50.6L253.4,54.2L281.6,58.1L309.8,62.3L338.0,66.9L366.2,71.8L394.4,77.3L422.6,83.4L450.8,90.2L479.0,98.0L507.2,106.9L535.4,117.3L563.6,129.0L591.8,141.0L620.0,127.8" class="line"/>
+    <text class="axis" x="56" y="254">committed entry altitude, m</text>
+    <text class="axis" x="4" y="12">peak heat</text>
+  </svg>
+  <p class="warn">The floor sits at 8000 m — left of this curve's cheap end.
+  Everything to the right of it is what the rule takes away.</p>
+</div>
+
+<p class="sub" style="margin-top:32px">Generated by <code>crew/probes/candidate.js</code>.
+Re-run with <code>CAPACITY=… COMMIT_FLOOR=… node probes/candidate.js</code>.
+This is the flight model driven directly, not a crew run — the agents have not seen these
+numbers and no audit has been performed against them.</p>
+
+</div></body></html>

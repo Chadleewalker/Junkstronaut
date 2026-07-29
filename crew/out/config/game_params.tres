@@ -5,12 +5,12 @@
 [resource]
 script = ExtResource("1_gameparams")
 flight = {
-	"dry_mass_kg": 1350.0,
-	"fuel_capacity_kg": 1800.0,
-	"thrust_n": 78000.0,
-	"fuel_burn_kgs": 26.0,
-	"rcs_thrust_n": 1900.0,
-	"rcs_fuel_burn_kgs": 0.4,
+	"dry_mass_kg": 1400.0,
+	"fuel_capacity_kg": 860.0,
+	"thrust_n": 57000.0,
+	"fuel_burn_kgs": 13.0,
+	"rcs_thrust_n": 2600.0,
+	"rcs_fuel_burn_kgs": 0.85,
 	"rotation_rate_degs": 90.0
 }
 cargo = {
@@ -18,54 +18,55 @@ cargo = {
 	"compactor_tier": 1
 }
 reentry = {
-	"heat_capacity": 100.0,
+	"heat_capacity": 185.0,
 	"heat_dissipation_s": 5.0,
 	"cargo_damage_interval_s": 3.0,
 	"unstaged_heat_multiplier": 3.0,
-	"off_retrograde_penalty": 1.0
+	"off_retrograde_penalty": 1.0,
+	"commit_floor_m": 8000.0
 }
 ablation = {
-	"cycle_toll_base_pct": 0.28,
-	"cycle_toll_growth": 1.8,
-	"heat_cost_coefficient": 0.0000125,
-	"heat_cost_exponent": 3.0,
-	"skim_peak": 22.0,
+	"cycle_toll_base_pct": 3.1,
+	"cycle_toll_growth": 1.17,
+	"heat_cost_coefficient": 0.0009,
+	"heat_cost_exponent": 2.0,
+	"skim_peak": 46.7,
 	"skim_heat_multiplier": [
 		1.0,
-		0.985,
-		0.971,
-		0.958
+		0.434,
+		0.434,
+		0.434
 	],
 	"heat_index": {
-		"suborbital": 78.0,
-		"low": 100.0,
-		"high": 138.0
+		"bottom": 100.0,
+		"middle": 125.0,
+		"top": 160.0
 	},
 	"cost_curve": {
-		"suborbital": [
-			6.21,
-			6.59,
-			7.39,
-			8.94
+		"bottom": [
+			12.1,
+			10.39,
+			16.59,
+			23.52
 		],
-		"low": [
-			12.78,
-			12.86,
-			13.4,
-			14.71
+		"middle": [
+			17.16,
+			11.34,
+			17.54,
+			24.47
 		],
-		"high": [
-			33.13,
-			32.31,
-			32.03,
-			32.61
+		"top": [
+			26.14,
+			13.03,
+			19.24,
+			26.16
 		]
 	},
 	"plate_capacity_pct": 100.0,
 	"optimal_skims": {
-		"suborbital": 0,
-		"low": 0,
-		"high": 2
+		"bottom": 1,
+		"middle": 1,
+		"top": 1
 	}
 }
 landing = {
@@ -73,9 +74,9 @@ landing = {
 	"damage_per_ms_over": 6.0,
 	"no_gear_multiplier": 2.0,
 	"fragile_multiplier": 2.0,
-	"parachute_area_m2": 870.0,
+	"parachute_area_m2": 630.0,
 	"parachute_drag_coefficient": 1.8,
-	"descent_speed_full_hold_ms": 4.59
+	"descent_speed_full_hold_ms": 3.99
 }
 tow_fee = {
 	"free_radius_m": 1200.0,
@@ -97,10 +98,9 @@ economy = {
 	"launch_cost": 120.0,
 	"replate_cost_per_pct": 3.0,
 	"repair_cost_per_pct": 5.0,
-	"band_value_multiplier": {
-		"suborbital": 1.0,
-		"low": 2.4,
-		"high": 5.5
+	"value_gradient": {
+		"at_bottom": 1.0,
+		"at_top": 5.5
 	},
 	"size_class_base_value": {
 		"small": 40.0,
@@ -111,425 +111,454 @@ economy = {
 }
 upgrades = [
 	{
-		"part": "fuel_tank",
+		"part": "hand_magnet",
 		"tier": 1,
-		"cost": 450.0,
-		"effect": "fuel_capacity_kg",
-		"value": 2300.0
+		"cost": 680.0,
+		"effect": "magnet_range_screens",
+		"value": 0.1875
 	},
 	{
 		"part": "fuel_tank",
-		"tier": 2,
-		"cost": 1150.0,
+		"tier": 1,
+		"cost": 750.0,
 		"effect": "fuel_capacity_kg",
-		"value": 2900.0
+		"value": 1250.0
 	},
 	{
 		"part": "thruster",
 		"tier": 1,
-		"cost": 600.0,
+		"cost": 850.0,
 		"effect": "thrust_n",
-		"value": 92000.0
-	},
-	{
-		"part": "thruster",
-		"tier": 2,
-		"cost": 1500.0,
-		"effect": "thrust_n",
-		"value": 108000.0
-	},
-	{
-		"part": "storage",
-		"tier": 1,
-		"cost": 700.0,
-		"effect": "base_slots",
-		"value": 8.0
-	},
-	{
-		"part": "storage",
-		"tier": 2,
-		"cost": 1800.0,
-		"effect": "base_slots",
-		"value": 10.0
-	},
-	{
-		"part": "heat_shield",
-		"tier": 1,
-		"cost": 500.0,
-		"effect": "plate_capacity_pct",
-		"value": 140.0
-	},
-	{
-		"part": "heat_shield",
-		"tier": 2,
-		"cost": 1300.0,
-		"effect": "plate_capacity_pct",
-		"value": 190.0
+		"value": 66000.0
 	},
 	{
 		"part": "parachute",
 		"tier": 1,
-		"cost": 550.0,
+		"cost": 1000.0,
 		"effect": "parachute_area_m2",
-		"value": 1180.0
+		"value": 900.0
 	},
 	{
-		"part": "parachute",
-		"tier": 2,
-		"cost": 1400.0,
-		"effect": "parachute_area_m2",
-		"value": 1500.0
+		"part": "storage",
+		"tier": 1,
+		"cost": 1100.0,
+		"effect": "base_slots",
+		"value": 9.0
+	},
+	{
+		"part": "heat_shield",
+		"tier": 1,
+		"cost": 1250.0,
+		"effect": "heat_capacity",
+		"value": 215.0
 	},
 	{
 		"part": "hand_magnet",
-		"tier": 1,
-		"cost": 400.0,
-		"effect": "magnet_hold_force_n",
+		"tier": 2,
+		"cost": 1500.0,
+		"effect": "magnet_range_screens",
+		"value": 0.25
+	},
+	{
+		"part": "fuel_tank",
+		"tier": 2,
+		"cost": 1600.0,
+		"effect": "fuel_capacity_kg",
+		"value": 1600.0
+	},
+	{
+		"part": "thruster",
+		"tier": 2,
+		"cost": 1900.0,
+		"effect": "thrust_n",
+		"value": 76000.0
+	},
+	{
+		"part": "parachute",
+		"tier": 2,
+		"cost": 2350.0,
+		"effect": "parachute_area_m2",
 		"value": 1400.0
 	},
 	{
-		"part": "hand_magnet",
+		"part": "storage",
 		"tier": 2,
-		"cost": 1000.0,
-		"effect": "magnet_hold_force_n",
-		"value": 2000.0
+		"cost": 2500.0,
+		"effect": "base_slots",
+		"value": 12.0
+	},
+	{
+		"part": "heat_shield",
+		"tier": 2,
+		"cost": 2950.0,
+		"effect": "heat_capacity",
+		"value": 245.0
 	}
 ]
+band = {
+	"name": "orbit",
+	"altitude_min_m": 50000.0,
+	"altitude_max_m": 280000.0
+}
 debris = [
 	{
-		"id": "bent_truss_section",
-		"display_name": "Bent Truss Section",
-		"band": "suborbital",
-		"size_class": "medium",
-		"fragile": false,
-		"mass_kg": 430.0,
-		"spawn_weight": 9,
-		"slots_crushed": 2,
-		"slots_uncrushed": 4,
-		"hand_tetherable": true
-	},
-	{
-		"id": "crumpled_foil_blanket",
-		"display_name": "Crumpled Foil Blanket",
-		"band": "suborbital",
-		"size_class": "small",
-		"fragile": false,
-		"mass_kg": 45.0,
-		"spawn_weight": 16,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
-		"hand_tetherable": true
-	},
-	{
-		"id": "burnt_panel_offcut",
-		"display_name": "Burnt Panel Offcut",
-		"band": "suborbital",
-		"size_class": "small",
-		"fragile": false,
-		"mass_kg": 85.0,
-		"spawn_weight": 13,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
-		"hand_tetherable": true
-	},
-	{
-		"id": "spent_bolt_cluster",
-		"display_name": "Spent Bolt Cluster",
-		"band": "suborbital",
-		"size_class": "small",
-		"fragile": false,
-		"mass_kg": 130.0,
-		"spawn_weight": 15,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
-		"hand_tetherable": true
-	},
-	{
-		"id": "cracked_antenna_whip",
-		"display_name": "Cracked Antenna Whip",
-		"band": "suborbital",
+		"id": "torn_foil_blanket",
+		"display_name": "Torn Foil Blanket",
+		"altitude_m": 52500.0,
 		"size_class": "small",
 		"fragile": true,
-		"mass_kg": 35.0,
-		"spawn_weight": 5,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
-		"hand_tetherable": true
-	},
-	{
-		"id": "scorched_hull_plate",
-		"display_name": "Scorched Hull Plate",
-		"band": "suborbital",
-		"size_class": "medium",
-		"fragile": false,
-		"mass_kg": 700.0,
-		"spawn_weight": 7,
-		"slots_crushed": 2,
-		"slots_uncrushed": 4,
-		"hand_tetherable": true
-	},
-	{
-		"id": "dented_pressure_bottle",
-		"display_name": "Dented Pressure Bottle",
-		"band": "suborbital",
-		"size_class": "small",
-		"fragile": false,
-		"mass_kg": 380.0,
-		"spawn_weight": 10,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
-		"hand_tetherable": true
-	},
-	{
-		"id": "shattered_lens_cowl",
-		"display_name": "Shattered Lens Cowl",
-		"band": "suborbital",
-		"size_class": "small",
-		"fragile": true,
-		"mass_kg": 70.0,
+		"mass_kg": 56.0,
 		"spawn_weight": 3,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
 	},
 	{
-		"id": "collapsed_launch_shroud",
-		"display_name": "Collapsed Launch Shroud",
-		"band": "suborbital",
-		"size_class": "oversized",
+		"id": "crumpled_panel_stack",
+		"display_name": "Crumpled Panel Stack",
+		"altitude_m": 56000.0,
+		"size_class": "small",
 		"fragile": false,
-		"mass_kg": 1100.0,
-		"spawn_weight": 2,
-		"slots_crushed": 6,
-		"slots_uncrushed": 12,
-		"hand_tetherable": false
-	},
-	{
-		"id": "reaction_wheel_housing",
-		"display_name": "Reaction Wheel Housing",
-		"band": "low",
-		"size_class": "medium",
-		"fragile": false,
-		"mass_kg": 870.0,
-		"spawn_weight": 10,
-		"slots_crushed": 2,
-		"slots_uncrushed": 4,
-		"hand_tetherable": true
-	},
-	{
-		"id": "severed_solar_wing_spar",
-		"display_name": "Severed Solar Wing Spar",
-		"band": "low",
-		"size_class": "medium",
-		"fragile": false,
-		"mass_kg": 760.0,
-		"spawn_weight": 9,
-		"slots_crushed": 2,
-		"slots_uncrushed": 4,
+		"mass_kg": 81.0,
+		"spawn_weight": 18,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
 		"hand_tetherable": true
 	},
 	{
 		"id": "cracked_solar_array",
 		"display_name": "Cracked Solar Array",
-		"band": "low",
+		"altitude_m": 61500.0,
 		"size_class": "medium",
 		"fragile": true,
-		"mass_kg": 390.0,
-		"spawn_weight": 6,
+		"mass_kg": 105.0,
+		"spawn_weight": 2,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
-		"id": "battery_pack_module",
-		"display_name": "Battery Pack Module",
-		"band": "low",
+		"id": "bent_truss_section",
+		"display_name": "Bent Truss Section",
+		"altitude_m": 67000.0,
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 1150.0,
-		"spawn_weight": 8,
+		"mass_kg": 128.0,
+		"spawn_weight": 15,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
-		"id": "thruster_nozzle_bell",
-		"display_name": "Thruster Nozzle Bell",
-		"band": "low",
+		"id": "spent_kick_motor_casing",
+		"display_name": "Spent Kick Motor Casing",
+		"altitude_m": 73500.0,
 		"size_class": "small",
 		"fragile": false,
-		"mass_kg": 340.0,
-		"spawn_weight": 11,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
-		"hand_tetherable": true
-	},
-	{
-		"id": "star_tracker_head",
-		"display_name": "Star Tracker Head",
-		"band": "low",
-		"size_class": "small",
-		"fragile": true,
-		"mass_kg": 155.0,
-		"spawn_weight": 4,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
-		"hand_tetherable": true
-	},
-	{
-		"id": "tangled_harness_bundle",
-		"display_name": "Tangled Harness Bundle",
-		"band": "low",
-		"size_class": "small",
-		"fragile": false,
-		"mass_kg": 210.0,
+		"mass_kg": 150.0,
 		"spawn_weight": 12,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
 	},
 	{
-		"id": "parabolic_dish_section",
-		"display_name": "Parabolic Dish Section",
-		"band": "low",
+		"id": "collapsed_dish_frame",
+		"display_name": "Collapsed Dish Frame",
+		"altitude_m": 86500.0,
+		"size_class": "oversized",
+		"fragile": false,
+		"mass_kg": 445.0,
+		"spawn_weight": 2,
+		"slots_crushed": 6,
+		"slots_uncrushed": 12,
+		"hand_tetherable": false
+	},
+	{
+		"id": "shredded_antenna_mesh",
+		"display_name": "Shredded Antenna Mesh",
+		"altitude_m": 93000.0,
 		"size_class": "medium",
 		"fragile": true,
-		"mass_kg": 420.0,
+		"mass_kg": 173.0,
+		"spawn_weight": 2,
+		"slots_crushed": 2,
+		"slots_uncrushed": 4,
+		"hand_tetherable": true
+	},
+	{
+		"id": "cracked_battery_pallet",
+		"display_name": "Cracked Battery Pallet",
+		"altitude_m": 99500.0,
+		"size_class": "medium",
+		"fragile": false,
+		"mass_kg": 200.0,
+		"spawn_weight": 11,
+		"slots_crushed": 2,
+		"slots_uncrushed": 4,
+		"hand_tetherable": true
+	},
+	{
+		"id": "seized_reaction_wheel_housing",
+		"display_name": "Seized Reaction Wheel Housing",
+		"altitude_m": 106000.0,
+		"size_class": "small",
+		"fragile": false,
+		"mass_kg": 218.0,
+		"spawn_weight": 12,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
+		"hand_tetherable": true
+	},
+	{
+		"id": "burst_pressurant_sphere",
+		"display_name": "Burst Pressurant Sphere",
+		"altitude_m": 113000.0,
+		"size_class": "small",
+		"fragile": false,
+		"mass_kg": 230.0,
+		"spawn_weight": 10,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
+		"hand_tetherable": true
+	},
+	{
+		"id": "delaminated_radiator_fin",
+		"display_name": "Delaminated Radiator Fin",
+		"altitude_m": 120000.0,
+		"size_class": "medium",
+		"fragile": true,
+		"mass_kg": 199.0,
+		"spawn_weight": 2,
+		"slots_crushed": 2,
+		"slots_uncrushed": 4,
+		"hand_tetherable": true
+	},
+	{
+		"id": "torn_solar_wing_spar",
+		"display_name": "Torn Solar Wing Spar",
+		"altitude_m": 131000.0,
+		"size_class": "medium",
+		"fragile": false,
+		"mass_kg": 272.0,
+		"spawn_weight": 11,
+		"slots_crushed": 2,
+		"slots_uncrushed": 4,
+		"hand_tetherable": true
+	},
+	{
+		"id": "cracked_optics_barrel",
+		"display_name": "Cracked Optics Barrel",
+		"altitude_m": 138000.0,
+		"size_class": "small",
+		"fragile": true,
+		"mass_kg": 234.0,
+		"spawn_weight": 3,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
+		"hand_tetherable": true
+	},
+	{
+		"id": "fractured_docking_collar",
+		"display_name": "Fractured Docking Collar",
+		"altitude_m": 145000.0,
+		"size_class": "medium",
+		"fragile": false,
+		"mass_kg": 311.0,
+		"spawn_weight": 10,
+		"slots_crushed": 2,
+		"slots_uncrushed": 4,
+		"hand_tetherable": true
+	},
+	{
+		"id": "dead_thruster_quad",
+		"display_name": "Dead Thruster Quad",
+		"altitude_m": 152500.0,
+		"size_class": "small",
+		"fragile": false,
+		"mass_kg": 331.0,
+		"spawn_weight": 12,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
+		"hand_tetherable": true
+	},
+	{
+		"id": "buckled_pressure_bulkhead",
+		"display_name": "Buckled Pressure Bulkhead",
+		"altitude_m": 160000.0,
+		"size_class": "oversized",
+		"fragile": false,
+		"mass_kg": 686.0,
+		"spawn_weight": 2,
+		"slots_crushed": 6,
+		"slots_uncrushed": 12,
+		"hand_tetherable": false
+	},
+	{
+		"id": "ruptured_helium_tank",
+		"display_name": "Ruptured Helium Tank",
+		"altitude_m": 167000.0,
+		"size_class": "medium",
+		"fragile": false,
+		"mass_kg": 361.0,
+		"spawn_weight": 11,
+		"slots_crushed": 2,
+		"slots_uncrushed": 4,
+		"hand_tetherable": true
+	},
+	{
+		"id": "shattered_star_tracker",
+		"display_name": "Shattered Star Tracker",
+		"altitude_m": 174000.0,
+		"size_class": "small",
+		"fragile": true,
+		"mass_kg": 324.0,
+		"spawn_weight": 4,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
+		"hand_tetherable": true
+	},
+	{
+		"id": "warped_gyro_deck",
+		"display_name": "Warped Gyro Deck",
+		"altitude_m": 181500.0,
+		"size_class": "medium",
+		"fragile": false,
+		"mass_kg": 398.0,
+		"spawn_weight": 11,
+		"slots_crushed": 2,
+		"slots_uncrushed": 4,
+		"hand_tetherable": true
+	},
+	{
+		"id": "cracked_ablative_nose_cone",
+		"display_name": "Cracked Ablative Nose Cone",
+		"altitude_m": 189000.0,
+		"size_class": "medium",
+		"fragile": true,
+		"mass_kg": 366.0,
 		"spawn_weight": 3,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
-		"id": "derelict_upper_stage_tank",
-		"display_name": "Derelict Upper Stage Tank",
-		"band": "low",
+		"id": "split_avionics_rack",
+		"display_name": "Split Avionics Rack",
+		"altitude_m": 197500.0,
+		"size_class": "medium",
+		"fragile": true,
+		"mass_kg": 388.0,
+		"spawn_weight": 2,
+		"slots_crushed": 2,
+		"slots_uncrushed": 4,
+		"hand_tetherable": true
+	},
+	{
+		"id": "torn_reactor_shield_plate",
+		"display_name": "Torn Reactor Shield Plate",
+		"altitude_m": 209000.0,
+		"size_class": "medium",
+		"fragile": false,
+		"mass_kg": 470.0,
+		"spawn_weight": 11,
+		"slots_crushed": 2,
+		"slots_uncrushed": 4,
+		"hand_tetherable": true
+	},
+	{
+		"id": "cracked_deep_space_dish",
+		"display_name": "Cracked Deep Space Dish",
+		"altitude_m": 217500.0,
+		"size_class": "medium",
+		"fragile": true,
+		"mass_kg": 428.0,
+		"spawn_weight": 3,
+		"slots_crushed": 2,
+		"slots_uncrushed": 4,
+		"hand_tetherable": true
+	},
+	{
+		"id": "fused_ion_grid_assembly",
+		"display_name": "Fused Ion Grid Assembly",
+		"altitude_m": 226000.0,
+		"size_class": "small",
+		"fragile": true,
+		"mass_kg": 462.0,
+		"spawn_weight": 2,
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
+		"hand_tetherable": true
+	},
+	{
+		"id": "severed_boom_mast",
+		"display_name": "Severed Boom Mast",
+		"altitude_m": 234000.0,
 		"size_class": "oversized",
 		"fragile": false,
-		"mass_kg": 2000.0,
+		"mass_kg": 828.0,
 		"spawn_weight": 2,
 		"slots_crushed": 6,
 		"slots_uncrushed": 12,
 		"hand_tetherable": false
 	},
 	{
-		"id": "comsat_bus_frame",
-		"display_name": "Comsat Bus Frame",
-		"band": "high",
+		"id": "scorched_fuel_cell_stack",
+		"display_name": "Scorched Fuel Cell Stack",
+		"altitude_m": 242500.0,
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 1950.0,
+		"mass_kg": 497.0,
 		"spawn_weight": 9,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
-		"id": "hardened_avionics_core",
-		"display_name": "Hardened Avionics Core",
-		"band": "high",
-		"size_class": "medium",
-		"fragile": false,
-		"mass_kg": 1600.0,
-		"spawn_weight": 8,
-		"slots_crushed": 2,
-		"slots_uncrushed": 4,
-		"hand_tetherable": true
-	},
-	{
-		"id": "cryo_propellant_sphere",
-		"display_name": "Cryo Propellant Sphere",
-		"band": "high",
-		"size_class": "medium",
-		"fragile": false,
-		"mass_kg": 2200.0,
-		"spawn_weight": 8,
-		"slots_crushed": 2,
-		"slots_uncrushed": 4,
-		"hand_tetherable": true
-	},
-	{
-		"id": "momentum_gyro_cluster",
-		"display_name": "Momentum Gyro Cluster",
-		"band": "high",
-		"size_class": "small",
-		"fragile": false,
-		"mass_kg": 1150.0,
-		"spawn_weight": 9,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
-		"hand_tetherable": true
-	},
-	{
-		"id": "sensor_boom_mast",
-		"display_name": "Sensor Boom Mast",
-		"band": "high",
-		"size_class": "small",
-		"fragile": false,
-		"mass_kg": 700.0,
-		"spawn_weight": 6,
-		"slots_crushed": 1,
-		"slots_uncrushed": 2,
-		"hand_tetherable": true
-	},
-	{
-		"id": "gallium_solar_panel",
-		"display_name": "Gallium Solar Panel",
-		"band": "high",
+		"id": "shattered_cryo_dewar",
+		"display_name": "Shattered Cryo Dewar",
+		"altitude_m": 251000.0,
 		"size_class": "medium",
 		"fragile": true,
-		"mass_kg": 920.0,
-		"spawn_weight": 6,
+		"mass_kg": 444.0,
+		"spawn_weight": 3,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
-		"id": "optical_telescope_barrel",
-		"display_name": "Optical Telescope Barrel",
-		"band": "high",
+		"id": "impact_pitted_engine_bell",
+		"display_name": "Impact Pitted Engine Bell",
+		"altitude_m": 259500.0,
 		"size_class": "medium",
-		"fragile": true,
-		"mass_kg": 1300.0,
-		"spawn_weight": 5,
+		"fragile": false,
+		"mass_kg": 523.0,
+		"spawn_weight": 7,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
 	},
 	{
-		"id": "xenon_ion_grid",
-		"display_name": "Xenon Ion Grid",
-		"band": "high",
+		"id": "cracked_command_module_hatch",
+		"display_name": "Cracked Command Module Hatch",
+		"altitude_m": 268000.0,
 		"size_class": "small",
 		"fragile": true,
-		"mass_kg": 540.0,
+		"mass_kg": 453.0,
 		"spawn_weight": 2,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
 	},
 	{
-		"id": "high_gain_dish_assembly",
-		"display_name": "High-Gain Dish Assembly",
-		"band": "high",
-		"size_class": "oversized",
+		"id": "armstrongs_module",
+		"display_name": "Armstrong's Service Module",
+		"altitude_m": 277000.0,
+		"size_class": "small",
 		"fragile": false,
-		"mass_kg": 3200.0,
-		"spawn_weight": 2,
-		"slots_crushed": 6,
-		"slots_uncrushed": 12,
-		"hand_tetherable": false
-	},
-	{
-		"id": "armstrongs_satellite",
-		"display_name": "Armstrong's Satellite",
-		"band": "high",
-		"size_class": "oversized",
-		"fragile": true,
 		"mass_kg": 3600.0,
 		"spawn_weight": 1,
-		"slots_crushed": 6,
-		"slots_uncrushed": 12,
-		"hand_tetherable": false
+		"slots_crushed": 1,
+		"slots_uncrushed": 2,
+		"hand_tetherable": true
 	}
 ]

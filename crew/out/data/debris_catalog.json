@@ -4,342 +4,440 @@
     "small": {
       "slots_crushed": 1,
       "slots_uncrushed": 2,
-      "hand_tetherable": true
+      "hand_tetherable": true,
+      "fragile_crushable": false
     },
     "medium": {
       "slots_crushed": 2,
       "slots_uncrushed": 4,
-      "hand_tetherable": true
+      "hand_tetherable": true,
+      "fragile_crushable": false
     },
     "oversized": {
       "slots_crushed": 6,
       "slots_uncrushed": 12,
-      "hand_tetherable": false
+      "hand_tetherable": false,
+      "fragile_crushable": false
     }
+  },
+  "shipping_slice": {
+    "size_classes_in_scope": false,
+    "compactor_in_scope": false,
+    "slots_per_piece": 1,
+    "slot_cost_override": {
+      "small": 1,
+      "medium": 1,
+      "oversized": 6
+    },
+    "oversized_reachable": false,
+    "hold_mass_model": "hold_mass_kg = base_slots * spawn_weighted_mean_mass_of_hand_tetherable_slice_pieces",
+    "expected_full_hold_kg_at_6_slots": 1391.5,
+    "notes": "GDD 4.3 cuts size classes, the compactor and the crane magnet from the semester slice. Inside the slice every piece is one slot, no piece is ever crushed, and no oversized piece can enter a hold. slot_cost_override is the machine-readable form of slots_per_piece: 1, added this revision because the harness was pricing the hold off size_classes.slots_crushed and getting 3.4 pieces per six slots. The oversized entry keeps its complete-catalog cost of 6 because hand_tetherable is false and oversized_reachable is false, so that cost is never exercised in the slice. The size_classes block above is the complete-catalog description the charter requires me to emit verbatim; it is not the slice's slot model. Anything pricing the slice should read base_slots as a count of pieces and should not price the oversized class at all."
   },
   "debris": [
     {
-      "id": "bent_truss_section",
-      "display_name": "Bent Truss Section",
-      "band": "suborbital",
-      "size_class": "medium",
-      "fragile": false,
-      "mass_kg": 430,
-      "spawn_weight": 9,
-      "notes": "A folded aluminium lattice off a broken solar boom — the bread-and-butter haul of the low sky, cheap per kilo but it crushes flat and never argues on the way down."
-    },
-    {
-      "id": "crumpled_foil_blanket",
-      "display_name": "Crumpled Foil Blanket",
-      "band": "suborbital",
-      "size_class": "small",
-      "fragile": false,
-      "mass_kg": 45,
-      "spawn_weight": 16,
-      "notes": "A whole satellite's worth of shredded multi-layer insulation balled up and tumbling — the lightest thing in the sky by a factor of five, which makes it the piece a beginner learns the tether on."
-    },
-    {
-      "id": "burnt_panel_offcut",
-      "display_name": "Burnt Panel Offcut",
-      "band": "suborbital",
-      "size_class": "small",
-      "fragile": false,
-      "mass_kg": 85,
-      "spawn_weight": 13,
-      "notes": "A scorched honeycomb face sheet torn off a bus panel, already half-cooked by its own decaying orbit and worth taking only because it costs almost nothing to carry."
-    },
-    {
-      "id": "spent_bolt_cluster",
-      "display_name": "Spent Bolt Cluster",
-      "band": "suborbital",
-      "size_class": "small",
-      "fragile": false,
-      "mass_kg": 130,
-      "spawn_weight": 15,
-      "notes": "A knot of frangible separation bolts still welded to their collar — dense lumps of good steel that Armstrong will always take off your hands."
-    },
-    {
-      "id": "cracked_antenna_whip",
-      "display_name": "Cracked Antenna Whip",
-      "band": "suborbital",
+      "id": "torn_foil_blanket",
+      "display_name": "Torn Foil Blanket",
+      "altitude_m": 52500,
       "size_class": "small",
       "fragile": true,
-      "mass_kg": 35,
-      "spawn_weight": 5,
-      "notes": "A hairline-split monopole that glints on a slow cycle across the whole band — the cheapest possible lesson in what fragile costs you, since it weighs nothing and still can't be crushed."
-    },
-    {
-      "id": "scorched_hull_plate",
-      "display_name": "Scorched Hull Plate",
-      "band": "suborbital",
-      "size_class": "medium",
-      "fragile": false,
-      "mass_kg": 700,
-      "spawn_weight": 7,
-      "notes": "A curved slab of pressure-vessel skin with its ring frames still attached, the heaviest thing down here that a hand magnet will hold — three and a half times the average piece, and the first load that makes the jetpack feel like it's pushing a train."
-    },
-    {
-      "id": "dented_pressure_bottle",
-      "display_name": "Dented Pressure Bottle",
-      "band": "suborbital",
-      "size_class": "small",
-      "fragile": false,
-      "mass_kg": 380,
-      "spawn_weight": 10,
-      "notes": "A spent cold-gas tank, vented and safe, packing more mass into one crushed slot than anything else in the band — the best mass-to-slot bargain the low sky offers."
-    },
-    {
-      "id": "shattered_lens_cowl",
-      "display_name": "Shattered Lens Cowl",
-      "band": "suborbital",
-      "size_class": "small",
-      "fragile": true,
-      "mass_kg": 70,
+      "crushable": false,
+      "fixed_objective": false,
+      "mass_kg": 56,
       "spawn_weight": 3,
-      "notes": "The glass sunshade off a cheap earth-imager, spidered but intact, orbiting well clear of the common clumps so reaching it is a deliberate crossing rather than a drift."
+      "notes": "A whole bale of shredded multi-layer insulation off a bus wrap — the lightest thing in the envelope, and the cheapest way to meet the fragile flag on your first launch."
     },
     {
-      "id": "collapsed_launch_shroud",
-      "display_name": "Collapsed Launch Shroud",
-      "band": "suborbital",
-      "size_class": "oversized",
+      "id": "crumpled_panel_stack",
+      "display_name": "Crumpled Panel Stack",
+      "altitude_m": 56000,
+      "size_class": "small",
       "fragile": false,
-      "mass_kg": 1100,
-      "spawn_weight": 2,
-      "notes": "Half a payload fairing, folded like a dropped umbrella — mostly enclosed air, so it is bulk rather than tonnage, and crane-cable only regardless. It sits in the sky all semester as a visible advertisement for an upgrade the shipping slice does not sell."
-    },
-    {
-      "id": "reaction_wheel_housing",
-      "display_name": "Reaction Wheel Housing",
-      "band": "low",
-      "size_class": "medium",
-      "fragile": false,
-      "mass_kg": 870,
-      "spawn_weight": 10,
-      "notes": "A cast steel gimbal block with the flywheel still seized inside — the workhorse of the low band, solid enough to shrug off a mediocre landing."
-    },
-    {
-      "id": "severed_solar_wing_spar",
-      "display_name": "Severed Solar Wing Spar",
-      "band": "low",
-      "size_class": "medium",
-      "fragile": false,
-      "mass_kg": 760,
-      "spawn_weight": 9,
-      "notes": "The load-bearing backbone of an array with the cells sheared away, long enough that it swings wide on every turn and teaches the player to stop before slewing."
+      "crushable": true,
+      "fixed_objective": false,
+      "mass_kg": 81,
+      "spawn_weight": 18,
+      "notes": "Bus panels folded together by the cascade; the commonest thing in the low envelope and the piece a break-even run is built out of."
     },
     {
       "id": "cracked_solar_array",
       "display_name": "Cracked Solar Array",
-      "band": "low",
+      "altitude_m": 61500,
       "size_class": "medium",
       "fragile": true,
-      "mass_kg": 390,
-      "spawn_weight": 6,
-      "notes": "A wing panel of intact gallium cells behind fractured cover glass — the signature fragile piece of the slice, four uncrushed slots forever and double damage from every mistake."
+      "crushable": false,
+      "fixed_objective": false,
+      "mass_kg": 105,
+      "spawn_weight": 2,
+      "notes": "Half a wing of shattered cells still on its hinge — light for its bulk, and the glass goes if the shield does."
     },
     {
-      "id": "battery_pack_module",
-      "display_name": "Battery Pack Module",
-      "band": "low",
+      "id": "bent_truss_section",
+      "display_name": "Bent Truss Section",
+      "altitude_m": 67000,
       "size_class": "medium",
       "fragile": false,
-      "mass_kg": 1150,
-      "spawn_weight": 8,
-      "notes": "A brick of lithium cells in a machined frame — the heaviest hand-tetherable piece in the shipping slice, and the one that decides whether a two-tether string is a good idea."
+      "crushable": true,
+      "fixed_objective": false,
+      "mass_kg": 128,
+      "spawn_weight": 15,
+      "notes": "Structural spine off a comms bus, kinked but sound; the first grab that visibly moves the hold-mass dial."
     },
     {
-      "id": "thruster_nozzle_bell",
-      "display_name": "Thruster Nozzle Bell",
-      "band": "low",
+      "id": "spent_kick_motor_casing",
+      "display_name": "Spent Kick Motor Casing",
+      "altitude_m": 73500,
       "size_class": "small",
       "fragile": false,
-      "mass_kg": 340,
-      "spawn_weight": 11,
-      "notes": "A niobium bell off an attitude thruster, dense and compact, the piece that makes a one-slot capture feel worth the crossing."
-    },
-    {
-      "id": "star_tracker_head",
-      "display_name": "Star Tracker Head",
-      "band": "low",
-      "size_class": "small",
-      "fragile": true,
-      "mass_kg": 155,
-      "spawn_weight": 4,
-      "notes": "A baffled optical head the size of a beer keg, light for the band and precious and utterly uncrushable — the cheapest way to learn that fragile is about bulk and risk, not weight."
-    },
-    {
-      "id": "tangled_harness_bundle",
-      "display_name": "Tangled Harness Bundle",
-      "band": "low",
-      "size_class": "small",
-      "fragile": false,
-      "mass_kg": 210,
+      "crushable": true,
+      "fixed_objective": false,
+      "mass_kg": 150,
       "spawn_weight": 12,
-      "notes": "A snarl of copper loom torn out of a bus, floppy on the cable and forgiving of every rough latch — the low band's filler, and its safety net on a thin run."
+      "notes": "An expended apogee motor, burnt through and empty — dense scrap steel in one tidy slot."
     },
     {
-      "id": "parabolic_dish_section",
-      "display_name": "Parabolic Dish Section",
-      "band": "low",
+      "id": "collapsed_dish_frame",
+      "display_name": "Collapsed Dish Frame",
+      "altitude_m": 86500,
+      "size_class": "oversized",
+      "fragile": false,
+      "crushable": true,
+      "fixed_objective": false,
+      "mass_kg": 445,
+      "spawn_weight": 2,
+      "notes": "A folded ten-metre reflector rib cage — the magnet skids off it; crane cable only, so the shipping slice sees it and cannot have it."
+    },
+    {
+      "id": "shredded_antenna_mesh",
+      "display_name": "Shredded Antenna Mesh",
+      "altitude_m": 93000,
       "size_class": "medium",
       "fragile": true,
-      "mass_kg": 420,
+      "crushable": false,
+      "fixed_objective": false,
+      "mass_kg": 173,
+      "spawn_weight": 2,
+      "notes": "Gold-plated wire mesh balled up around its former spar; worth real money by mass and it will not survive a hard flare."
+    },
+    {
+      "id": "cracked_battery_pallet",
+      "display_name": "Cracked Battery Pallet",
+      "altitude_m": 99500,
+      "size_class": "medium",
+      "fragile": false,
+      "crushable": true,
+      "fixed_objective": false,
+      "mass_kg": 200,
+      "spawn_weight": 11,
+      "notes": "A vented nickel-hydrogen pack on its mounting rails — heavy for the low band and the piece that first pushes a starter hold into amber."
+    },
+    {
+      "id": "seized_reaction_wheel_housing",
+      "display_name": "Seized Reaction Wheel Housing",
+      "altitude_m": 106000,
+      "size_class": "small",
+      "fragile": false,
+      "crushable": true,
+      "fixed_objective": false,
+      "mass_kg": 218,
+      "spawn_weight": 12,
+      "notes": "A momentum wheel welded solid by its own bearing failure; a whole lot of dense metal in a single slot."
+    },
+    {
+      "id": "burst_pressurant_sphere",
+      "display_name": "Burst Pressurant Sphere",
+      "altitude_m": 113000,
+      "size_class": "small",
+      "fragile": false,
+      "crushable": true,
+      "fixed_objective": false,
+      "mass_kg": 230,
+      "spawn_weight": 10,
+      "notes": "A titanium helium bottle split along its weld — the densest single-slot grab available to a starter hold."
+    },
+    {
+      "id": "delaminated_radiator_fin",
+      "display_name": "Delaminated Radiator Fin",
+      "altitude_m": 120000,
+      "size_class": "medium",
+      "fragile": true,
+      "crushable": false,
+      "fixed_objective": false,
+      "mass_kg": 199,
+      "spawn_weight": 2,
+      "notes": "A heat-pipe panel peeling apart at the bondline; light for its span, glass-brittle, and the last fragile piece before the shipping slice gets serious."
+    },
+    {
+      "id": "torn_solar_wing_spar",
+      "display_name": "Torn Solar Wing Spar",
+      "altitude_m": 131000,
+      "size_class": "medium",
+      "fragile": false,
+      "crushable": true,
+      "fixed_objective": false,
+      "mass_kg": 272,
+      "spawn_weight": 11,
+      "notes": "The carbon backbone of a full array wing, cells stripped away — the bread-and-butter mid-envelope haul."
+    },
+    {
+      "id": "cracked_optics_barrel",
+      "display_name": "Cracked Optics Barrel",
+      "altitude_m": 138000,
+      "size_class": "small",
+      "fragile": true,
+      "crushable": false,
+      "fixed_objective": false,
+      "mass_kg": 234,
       "spawn_weight": 3,
-      "notes": "A quarter-segment of a mesh reflector on its own faster orbit, catching the light on a slow cycle — a real ship manoeuvre to reach and a patient closing rate to latch."
+      "notes": "An imager tube with its primary mirror starred through; one slot, high value per kilo, and it cannot be crushed at any tier."
     },
     {
-      "id": "derelict_upper_stage_tank",
-      "display_name": "Derelict Upper Stage Tank",
-      "band": "low",
-      "size_class": "oversized",
-      "fragile": false,
-      "mass_kg": 2000,
-      "spawn_weight": 2,
-      "notes": "A drained kick-stage tank the length of the rocket itself — thin-walled and hollow, so it is twelve uncrushed slots of nothing much, and crane-cable only. The piece the player circles once, measures with their eyes, and files away for later."
-    },
-    {
-      "id": "comsat_bus_frame",
-      "display_name": "Comsat Bus Frame",
-      "band": "high",
+      "id": "fractured_docking_collar",
+      "display_name": "Fractured Docking Collar",
+      "altitude_m": 145000,
       "size_class": "medium",
       "fragile": false,
-      "mass_kg": 1950,
+      "crushable": true,
+      "fixed_objective": false,
+      "mass_kg": 311,
+      "spawn_weight": 10,
+      "notes": "A berthing ring sheared off its tunnel — forged alloy, awkward shape, and no argument about whether it is worth the trip."
+    },
+    {
+      "id": "dead_thruster_quad",
+      "display_name": "Dead Thruster Quad",
+      "altitude_m": 152500,
+      "size_class": "small",
+      "fragile": false,
+      "crushable": true,
+      "fixed_objective": false,
+      "mass_kg": 331,
+      "spawn_weight": 12,
+      "notes": "Four RCS nozzles on a common manifold, valves fused shut; the best mass-per-slot in the middle third."
+    },
+    {
+      "id": "buckled_pressure_bulkhead",
+      "display_name": "Buckled Pressure Bulkhead",
+      "altitude_m": 160000,
+      "size_class": "oversized",
+      "fragile": false,
+      "crushable": true,
+      "fixed_objective": false,
+      "mass_kg": 686,
+      "spawn_weight": 2,
+      "notes": "A crew-module end dome caved in on itself — crane cable only, and a standing advertisement for the hold you cannot afford yet."
+    },
+    {
+      "id": "ruptured_helium_tank",
+      "display_name": "Ruptured Helium Tank",
+      "altitude_m": 167000,
+      "size_class": "medium",
+      "fragile": false,
+      "crushable": true,
+      "fixed_objective": false,
+      "mass_kg": 361,
+      "spawn_weight": 11,
+      "notes": "A composite-overwrapped bottle blown open at the boss; heavy, sturdy, and a quarter of a starter hold's mass budget on its own."
+    },
+    {
+      "id": "shattered_star_tracker",
+      "display_name": "Shattered Star Tracker",
+      "altitude_m": 174000,
+      "size_class": "small",
+      "fragile": true,
+      "crushable": false,
+      "fixed_objective": false,
+      "mass_kg": 324,
+      "spawn_weight": 4,
+      "notes": "Navigation optics in a machined housing, baffle crushed — dense, delicate, and the piece that teaches you to deploy the chute early."
+    },
+    {
+      "id": "warped_gyro_deck",
+      "display_name": "Warped Gyro Deck",
+      "altitude_m": 181500,
+      "size_class": "medium",
+      "fragile": false,
+      "crushable": true,
+      "fixed_objective": false,
+      "mass_kg": 398,
+      "spawn_weight": 11,
+      "notes": "A whole attitude-control tray, three wheels still bolted down — a single grab that eats better than a quarter of a starter hold."
+    },
+    {
+      "id": "cracked_ablative_nose_cone",
+      "display_name": "Cracked Ablative Nose Cone",
+      "altitude_m": 189000,
+      "size_class": "medium",
+      "fragile": true,
+      "crushable": false,
+      "fixed_objective": false,
+      "mass_kg": 366,
+      "spawn_weight": 3,
+      "notes": "A charred fairing tip off an upper stage, its ablator crazed through — ironic cargo, and it burns first when the shield goes."
+    },
+    {
+      "id": "split_avionics_rack",
+      "display_name": "Split Avionics Rack",
+      "altitude_m": 197500,
+      "size_class": "medium",
+      "fragile": true,
+      "crushable": false,
+      "fixed_objective": false,
+      "mass_kg": 388,
+      "spawn_weight": 2,
+      "notes": "A flight computer bay cracked open, boards still seated; the richest fragile piece below the top third and a genuine gamble on your flying."
+    },
+    {
+      "id": "torn_reactor_shield_plate",
+      "display_name": "Torn Reactor Shield Plate",
+      "altitude_m": 209000,
+      "size_class": "medium",
+      "fragile": false,
+      "crushable": true,
+      "fixed_objective": false,
+      "mass_kg": 470,
+      "spawn_weight": 11,
+      "notes": "Tungsten-laced shadow shielding off a nuclear tug — the top third's baseline haul, and it doubles your reentry problem on its own."
+    },
+    {
+      "id": "cracked_deep_space_dish",
+      "display_name": "Cracked Deep Space Dish",
+      "altitude_m": 217500,
+      "size_class": "medium",
+      "fragile": true,
+      "crushable": false,
+      "fixed_objective": false,
+      "mass_kg": 428,
+      "spawn_weight": 3,
+      "notes": "A precision high-gain reflector, its face split across the rim — enormous value and no tolerance for a late chute."
+    },
+    {
+      "id": "fused_ion_grid_assembly",
+      "display_name": "Fused Ion Grid Assembly",
+      "altitude_m": 226000,
+      "size_class": "small",
+      "fragile": true,
+      "crushable": false,
+      "fixed_objective": false,
+      "mass_kg": 462,
+      "spawn_weight": 2,
+      "notes": "Molybdenum accelerator grids arced together into a solid brick; one slot, brutal mass, and half durability the whole way down."
+    },
+    {
+      "id": "severed_boom_mast",
+      "display_name": "Severed Boom Mast",
+      "altitude_m": 234000,
+      "size_class": "oversized",
+      "fragile": false,
+      "crushable": true,
+      "fixed_objective": false,
+      "mass_kg": 828,
+      "spawn_weight": 2,
+      "notes": "Thirty metres of deployable truss, sheared at the root — crane cable only, and the heaviest ordinary object in the envelope."
+    },
+    {
+      "id": "scorched_fuel_cell_stack",
+      "display_name": "Scorched Fuel Cell Stack",
+      "altitude_m": 242500,
+      "size_class": "medium",
+      "fragile": false,
+      "crushable": true,
+      "fixed_objective": false,
+      "mass_kg": 497,
       "spawn_weight": 9,
-      "notes": "The machined spine of a dead communications satellite, dense with fittings — the common piece of the top band and heavier on its own than most complete low-band hauls."
+      "notes": "A platinum-catalysed cell stack off a crewed vehicle, casing scorched through — the top third's honest workhorse."
     },
     {
-      "id": "hardened_avionics_core",
-      "display_name": "Hardened Avionics Core",
-      "band": "high",
-      "size_class": "medium",
-      "fragile": false,
-      "mass_kg": 1600,
-      "spawn_weight": 8,
-      "notes": "A radiation-shielded flight computer in a lead-lined box, built to survive anything the sky could do to it — which is exactly why it survives the ride down too."
-    },
-    {
-      "id": "cryo_propellant_sphere",
-      "display_name": "Cryo Propellant Sphere",
-      "band": "high",
-      "size_class": "medium",
-      "fragile": false,
-      "mass_kg": 2200,
-      "spawn_weight": 8,
-      "notes": "A thick-walled titanium sphere off a station-keeping system, the single heaviest thing a hand magnet will hold at any tier — one of these turns a routine reentry into a three-pass problem."
-    },
-    {
-      "id": "momentum_gyro_cluster",
-      "display_name": "Momentum Gyro Cluster",
-      "band": "high",
-      "size_class": "small",
-      "fragile": false,
-      "mass_kg": 1150,
-      "spawn_weight": 9,
-      "notes": "Three control-moment gyros still bolted to their pedestal, absurdly dense for one crushed slot — the piece that proves mass, not volume, is what fills the top band's holds."
-    },
-    {
-      "id": "sensor_boom_mast",
-      "display_name": "Sensor Boom Mast",
-      "band": "high",
-      "size_class": "small",
-      "fragile": false,
-      "mass_kg": 700,
-      "spawn_weight": 6,
-      "notes": "A telescoping magnetometer boom, collapsed and locked — awkward to latch square, but it crushes into a single slot and asks nothing else of the flight home."
-    },
-    {
-      "id": "gallium_solar_panel",
-      "display_name": "Gallium Solar Panel",
-      "band": "high",
+      "id": "shattered_cryo_dewar",
+      "display_name": "Shattered Cryo Dewar",
+      "altitude_m": 251000,
       "size_class": "medium",
       "fragile": true,
-      "mass_kg": 920,
-      "spawn_weight": 6,
-      "notes": "A full triple-junction wing off a high-orbit bird, worth several solid pieces of its own size class and worth nothing at all if the touchdown runs past five metres a second."
+      "crushable": false,
+      "fixed_objective": false,
+      "mass_kg": 444,
+      "spawn_weight": 3,
+      "notes": "A vacuum-jacketed helium dewar with its inner vessel collapsed; heavy, fragile, and worth the whole trip if it lands intact."
     },
     {
-      "id": "optical_telescope_barrel",
-      "display_name": "Optical Telescope Barrel",
-      "band": "high",
+      "id": "impact_pitted_engine_bell",
+      "display_name": "Impact Pitted Engine Bell",
+      "altitude_m": 259500,
       "size_class": "medium",
-      "fragile": true,
-      "mass_kg": 1300,
-      "spawn_weight": 5,
-      "notes": "A mirrored assembly in a carbon tube, heavy and fragile at once — four uncrushed slots, double heat damage, and the best payday in the catalog short of the satellite itself."
+      "fragile": false,
+      "crushable": true,
+      "fixed_objective": false,
+      "mass_kg": 523,
+      "spawn_weight": 7,
+      "notes": "A regeneratively cooled nozzle peppered by the cascade — the heaviest thing a hand magnet can legally take home."
     },
     {
-      "id": "xenon_ion_grid",
-      "display_name": "Xenon Ion Grid",
-      "band": "high",
+      "id": "cracked_command_module_hatch",
+      "display_name": "Cracked Command Module Hatch",
+      "altitude_m": 268000,
       "size_class": "small",
       "fragile": true,
-      "mass_kg": 540,
+      "crushable": false,
+      "fixed_objective": false,
+      "mass_kg": 453,
       "spawn_weight": 2,
-      "notes": "A stack of etched molybdenum accelerator grids in their mounting cage, spawning far off the clumps at real relative velocity — the purest latch-jerk test in the game."
+      "notes": "A crew hatch with its pane starred, hanging just under the module — the last thing you pass on the way to Armstrong's prize, and a real temptation to overload."
     },
     {
-      "id": "high_gain_dish_assembly",
-      "display_name": "High-Gain Dish Assembly",
-      "band": "high",
-      "size_class": "oversized",
+      "id": "armstrongs_module",
+      "display_name": "Armstrong's Service Module",
+      "altitude_m": 277000,
+      "size_class": "small",
       "fragile": false,
-      "mass_kg": 3200,
-      "spawn_weight": 2,
-      "notes": "A full reflector with its feed tower and gimbal still attached — crane-cable only, and the rehearsal piece for the satellite: same technique, same order of mass, forgiving cargo."
-    },
-    {
-      "id": "armstrongs_satellite",
-      "display_name": "Armstrong's Satellite",
-      "band": "high",
-      "size_class": "oversized",
-      "fragile": true,
+      "crushable": false,
+      "fixed_objective": true,
       "mass_kg": 3600,
       "spawn_weight": 1,
-      "notes": "The one he lost the day of the cascade, hanging above the top band — the heaviest object in the game, fragile and oversized, uncrushable at any tier, roughly doubling a fully upgraded ship on its own, and the win condition only if it comes down gently."
+      "notes": "Apollo-era service module hanging at the ceiling, older than the cascade and still whole — one slot, roughly double the ship's mass, and the only object in the catalog that degrades pristine to damaged to scrap instead of breaking. fixed_objective true: it is placed at its altitude every campaign and is never drawn from the weighted spawn pool."
     }
   ],
   "band_summary": [
     {
-      "band": "suborbital",
-      "piece_count": 9,
-      "fragile_fraction": 0.1,
-      "mean_mass_kg": 330.6
+      "sample": "bottom",
+      "altitude_m": 88333,
+      "piece_count": 11,
+      "fragile_fraction": 0.1011,
+      "mean_mass_kg": 180.45
     },
     {
-      "band": "low",
-      "piece_count": 9,
-      "fragile_fraction": 0.2,
-      "mean_mass_kg": 699.4
-    },
-    {
-      "band": "high",
+      "sample": "middle",
+      "altitude_m": 165000,
       "piece_count": 10,
+      "fragile_fraction": 0.1739,
+      "mean_mass_kg": 367.1
+    },
+    {
+      "sample": "top",
+      "altitude_m": 241667,
+      "piece_count": 9,
       "fragile_fraction": 0.25,
-      "mean_mass_kg": 1716
+      "mean_mass_kg": 856.11
     }
   ],
   "revision_notes": [
-    "Finding 1 accepted, one field moved: armstrongs_satellite goes 4,200 to 3,600 kg. The Balancer is right that 4,200 against 850 is 4.9x, but the ship the doubling is measured against is not the 850 kg starting ship — a base ship cannot reach the top of the sky at all, and GDD 2.3.7 stages the capstone explicitly 'at full upgrades'. dry_mass_kg 850 is pinned by the starting-storage case and should stay pinned; what had to move is the satellite, and 3,600 is twice the fully upgraded ship mass I am naming below.",
-    "Finding 1, the number the Balancer needs so it does not have to re-derive it: the upgrade ladder has to land a maxed ship near 1,800 kg dry, which is 2.1x the base 850. That is storage 6 to 12 slots (racking and a tier-3 compactor are the bulk of it), the hull upgrade, a thicker shield plate, and the crane magnet with its winch drum — an unbolted car-crusher magnet welded to the rocket is not a light part, and the capstone cannot be flown without it. If the upgrade table lands materially below 1,800, route it back and I will move the satellite again: it is the one piece in the catalog whose mass is a pure function of ship mass rather than of what it plausibly is.",
-    "Finding 1, why 2x and not 1x. 'Roughly doubles the ship's mass on its own' could be read as the 2.3.5 convention (cargo equals dry, total goes to 2x), which would put the satellite at 1,800 kg. I rejected that reading: at 1,800 the capstone descent is exactly as heavy as a beginner's first full hold, and GDD 2.3.7 promises 'the fattest, hottest, worst-handling descent the player will ever fly'. At 3,600 on an 1,800 kg ship the capstone flies at 3x dry mass, half again the beta of any other loaded return in the game, which is the only reading that makes the win condition the hardest flight rather than a repeat of the first one.",
-    "Finding 1, the piece I deliberately did not touch: high_gain_dish_assembly stays at 3,200. It is the rehearsal piece — same tool, same order of mass, forgiving cargo — and the satellite at 3,600 is still the heaviest object in the game, which is all GDD 2.3.7 requires. Pulling the dish down to widen the gap would re-author a piece no finding named.",
-    "Finding 2, measurement accepted, fix declined, and no mass changed. Recomputed against the 1,800 kg ship that can actually reach the high band, cryo_propellant_sphere is 1.22x the ship and comsat_bus_frame is 1.08x, not 2.6x. The 2.6x figure compares top-band junk to a starting ship that has neither the tank nor the thruster to get there, so it measures a flight nobody can fly.",
-    "Finding 2, the 6,600 kg figure is a hold the player has to construct on purpose. Six slots of nothing but cryo spheres is 6,600 kg, but the spawn-weighted high-band cargo runs 669.0 kg per crushed slot, so a representative six-slot high-band hold is 4,014 kg. Sweep the constructed worst case by all means — just do not price against it as the median.",
-    "Finding 2, the real risk restated with arithmetic, because it is worth more to the crew than a rescale would be. A maxed 12-slot hold of spawn-weighted high-band junk is 8,028 kg on an 1,800 kg ship: 9,828 kg total, which against the Researcher's shield Cd 1.5 and 3.1 m2 gives beta 2,113 kg/m2. On the Researcher's own drag ladder that is roughly 2 m/s2 at a 20 km periapsis, about 117 m/s a pass, so ten passes to shed 1,150 m/s — well outside the 2-4 pass corridor. The lever is not catalog mass. It is shield reference area and Cd at upgraded tiers (the Researcher holds 3.1 m2 fixed across every tier, which cannot be right for a plate you pay to upgrade), or band-gated ablation as GDD 4.5 risk 2 already proposes. Compressing high-band mass to fix it would delete the only band-to-band difficulty gradient the game has, since the Researcher has established that heat gives just 1.31x.",
-    "Bookkeeping correction to my own previous pass, so nobody inherits a mislabelled number: '214.5 kg per spawn-weighted cargo slot' was wrong on the label, not on the value. 214.5 kg is the spawn-weighted mean mass of a suborbital hand-tetherable piece. The per-slot figures are 164.0 kg fully crushed and 124.9 kg under a strict tier-1 compactor, which are what produce the 984 kg and 749 kg six-slot holds the Balancer used, so dry_mass_kg 850 is unaffected and remains correctly derived.",
-    "Nothing else changed. One field moved in the entire catalog — armstrongs_satellite.mass_kg — and the high band's mean_mass_kg follows it from 1,776 to 1,716. Every id, band, size_class, fragile flag, spawn_weight, note and every other mass is byte-identical to the previous catalog, and both fragile fractions and the other two band means are unchanged because nothing they depend on moved."
+    "Audit finding full_hold_doubles_mass: accepted in full and fixed by rescaling every mass in the catalog. I was wrong last pass to declare the doubling a top-of-band property; the auditor is right that GDD 2.4 speaks about the hold the harness actually loads, which is the shipping slice at starter storage. Every mass_kg outside Armstrong's module is multiplied by an altitude-dependent factor s(h) = 10.3 - 6.6*(h - 50000)/230000 — 10.2x at the floor, 8.2x at the top of the slice, 4.0x at the ceiling — and then rounded to the kilogram. Nothing else moved: no id, altitude, size class, fragile flag, crushable flag, spawn weight or fixed_objective changed anywhere in the file.",
+    "Why a declining factor rather than the flat ~5.6x the balancer proposed. A flat 5.6x lands the slice's spawn-weighted hold at 664 kg, a full_hold_mass_ratio of 1.47 — under the 1.5 bound the audit itself quotes, so it fails the check it was meant to fix. I sized the rescale against the GDD's own flown number instead: GDD 2.2 reports a full hold at approximately 1,398 kg. The rescaled slice's spawn-weighted mean hand-tetherable piece is 231.9 kg, so six slots at one piece per slot is 1,391 kg — 0.5% off the document's figure and a ratio of 1.99 against dry_mass_kg 1400. The factor declines with altitude because the floor is where the shortfall was: lifting the floor 10x and the ceiling 4x is what puts the slice's mean where the rule needs it without pushing Armstrong's module out of its position as the heaviest object in the game.",
+    "All four readings the audit and the balancer computed now pass, which is the point of sizing it this way rather than to a single number. One slot per piece over the 19 hand-tetherable slice pieces: mean 238.16 kg, hold 1429 kg, ratio 2.02. The same over all 21 slice pieces including the two oversized: mean 269.3 kg, hold 1616 kg, ratio 2.15. Spawn-weighted over the hand-tetherable slice at one slot per piece: 231.9 kg, hold 1391 kg, ratio 1.99. Spawn-weighted at the size_classes crushed slot cost — the reading the harness takes today, before concern 2 is fixed: 152.6 kg per slot, hold 916 kg, ratio 1.65. The lowest is 1.65 and the highest 2.15, so the check holds whichever slot model the harness settles on, and the disagreement between them stops being able to fail the audit on its own.",
+    "Balancer concern 2, the slot table being read where shipping_slice.slots_per_piece should be: accepted, and fixed in the only place I am allowed to fix it. The charter requires size_classes emitted as given, so I did not collapse it to 1/1 — instead shipping_slice now carries slot_cost_override {small: 1, medium: 1, oversized: 6} and hold_mass_model as an explicit formula, which is the machine-readable form of the sentence that block already contained. Oversized keeps its complete-catalog cost of 6 because hand_tetherable is false and oversized_reachable is false, so that number is never exercised against a hold. The masses above are authored for one piece per slot; the factor of 2.05 the balancer measured is now a stated override rather than an inference either of us has to make.",
+    "Balancer concern 1, floor masses: this is the same concern I declined last pass, and I was wrong to decline it. It is fixed by the rescale above. The argument I made — that a hold filled at the floor is supposed to be a cheap ride home — survives as a statement about value, not mass: the altitude value multiplier still runs 1.0 to 5.5, so a floor hold is still worth a fraction of a top-of-band one. It just is not weightless any more, and it should not have been.",
+    "Balancer concern 3, economy.size_class_base_value.oversized being vestigial: agreed, and no catalog change is needed. shipping_slice.oversized_reachable is false and all three oversized pieces are hand_tetherable false, so nothing in the slice can earn that value. Leaving the key in place to satisfy the schema is the right call. Their job — being the piece the magnet visibly refuses — is unaffected by the rescale.",
+    "band_summary recomputed from the final array, not carried over. Means are the plain averages of every piece in each third: bottom 1985/11 = 180.45, middle 3671/10 = 367.1, top 7705/9 = 856.11. fragile_fraction is unchanged in all three thirds because no spawn weight was touched: bottom 9/89 = 0.1011, middle 12/69 = 0.1739, top 10/40 = 0.250."
   ],
   "design_notes": [
-    "Mass carries the difficulty curve because the Researcher says heat cannot, and the rescale of one oversized piece left that curve untouched. Hand-tetherable mean mass is 234.4 kg suborbital, 536.9 kg low, 1,295.0 kg high — steps of 2.29x and 2.41x, 5.5x end to end. Spawn-weighted, which is what the player actually meets, it is 214.5 / 559.0 / 1,426.4 kg — steps of 2.61x and 2.55x, 6.65x end to end. Per crushed cargo slot, spawn-weighted with fragile pieces charged their uncrushable cost, the bands run 164.0 / 291.1 / 669.0 kg.",
-    "The full-hold doubling in GDD 2.3.5 is true at the case the GDD specifies and nowhere else, and that is a property of the design rather than a defect in the catalog. A beginner with six slots and a tier-1 compactor comes home with 749 kg on an 850 kg ship; crushed optimally the same hold is 984 kg. Both bracket the ship. No single dry_mass_kg can also make it true in the high band, because a band that is only 31% hotter has to be several times heavier or it is not harder at all.",
-    "Fragile fraction is spawn-weighted and lands at exactly 0.10 / 0.20 / 0.25. The counts run the other way on purpose: suborbital has 2 fragile types out of 9 but they carry weights 5 and 3 against 80, so the player meets one about one time in ten, while the high band's 4 types out of 10 carry 6+5+2+1 against 56 for a true 0.25.",
-    "Every size class and the fragile flag appear inside the shipping slice. Suborbital and low each carry small, medium, fragile-small and fragile-medium, so a player who never buys past the hand magnet still meets the whole property space, and the two crane-only pieces below the high band exist to be looked at and not taken.",
-    "Medium is distributed 2 / 5 / 5 across the bands rather than piled into the top, so 'higher bands skew toward medium' stays true as a proportion — 22% / 56% / 50% of types — without turning the low band into a small-only tutorial.",
-    "No piece is strictly best, and the greed decision is between axes rather than along one. The dense smalls (dented pressure bottle at 380 kg in one crushed slot, momentum gyro cluster at 1,150) buy mass efficiency per slot at the cost of a heavier ride home; the light bulky ones (foil blanket, harness bundle) are nearly free to tow and nearly worthless per trip; fragile pieces pay a premium the Balancer sets but forfeit crushing forever and double every damage source.",
-    "The suborbital band teaches the tow mechanic by itself: 45 kg to 700 kg is a 15.6x spread inside the first band the player ever flies, so the beat in GDD 2.3.4 where the jetpack starts feeling like it is pushing a train has a piece to land on before the low band opens. The heaviest hand-tetherable piece per band — 700 / 1,150 / 2,200 kg — is the specific case the Playtester should sweep hold force and shear against at each magnet tier.",
-    "The oversized class is a statement about which tool takes a piece and how much hold it eats, never about mass, and the numbers say so: a folded fairing half at 1,100 kg, a drained kick stage at 2,000 and a dish assembly at 3,200 each cost six crushed slots or twelve uncrushed — more hold than a starting ship has — while weighing one to three times what a hand magnet will hold. That separation is what lets Armstrong's satellite be the heaviest object in the game and roughly double the ship at the same time.",
-    "Armstrong's satellite is authored into the high band at 3,600 kg because the GDD places it above the top band and there is no fourth band name to use. It is fragile and oversized with spawn weight 1, contributing 0.018 of the band's weight, so it does not distort the fragile gradient. Treat its band field as bookkeeping placement, not a spawn location: it is a fixed object, not a member of the loot table.",
-    "Suit mass remains the one number this catalog leans on and does not own. At a 90 kg suit the 700 kg hull plate leaves 11% of clean EVA acceleration and a two-piece string 7%, which is a wall rather than a train; at a realistic MMU-class 250 kg it is 26% and 15%, which is the handling GDD 2.3.4 describes. That is a config parameter, and it is still flagged rather than fixed."
+    "The rescale reproduces GDD 2.2's flown reentry table rather than just satisfying the audit, which is the check I used to know the number was right. Peak heat scales close to the square root of total mass across the document's own three points (empty 1400 kg gives 144.7, module 5000 kg gives 268.8 — an exponent of 0.487). The rescaled full hold is 1,391 kg of cargo on a 1,400 kg ship, so 144.7 * sqrt(2791/1400) = 204.3 against the GDD's stated 203.7 for the full hold. The hold was invisible in flight at 3.5%; it is now worth 41% on the peak, which is what the design says it should be worth.",
+    "Mass still climbs monotonically with altitude and the shape of the climb is unchanged — every piece kept its position relative to its neighbours, because s(h) is smooth and every mass was multiplied rather than re-authored. The two small inversions that existed before are still there and still deliberate: the delaminated radiator fin at 120,000 m and the cracked deep space dish at 217,500 m each sit slightly under the piece below them, because both are fragile pieces that are light for their span. Adjacent ordinary pairs stay inside about 30% of each other apart from the floor's first step (56 to 81 kg), which is the same 45% step the catalog has always opened with.",
+    "The mass gradient compressed from 5.4x to 3.0x, and that is a consequence of the fix rather than a separate decision. Bottom-third hand-tetherable pieces now mean 154.0 kg against the top third's 468.1 kg. The floor could not stay where it was — the doubling rule pins the slice's mean at roughly 232 kg per piece — and the ceiling could not rise proportionally without a top-of-band hold outweighing Armstrong's module. Counting every piece in each third, including the oversized entries and the module, the bottom-to-top factor reads 4.7x. The risk-versus-reward curve the GDD is buying does not live in the mass ratio alone: the altitude value multiplier runs 1.0 to 5.5 over the same span and multiplies on top of it.",
+    "Armstrong's module is still the heaviest thing in the game by a clear margin, and the endgame rule still guards the win condition rather than a nose cone. At 3,600 kg it is 6.9x the heaviest hand-tetherable ordinary piece (the engine bell at 523 kg) and 4.3x the heaviest oversized one. More usefully, it outweighs a full six-slot hold of top-of-band hand-tetherable pieces — about 2,809 kg — by 28%, so no legal hold can reach the module's mass and the plunge-infeasibility rule cannot be satisfied by anything the player could carry instead.",
+    "One consequence of the rescale that the balancer and the sweep should see before it surprises them. The harness's full hold is the spawn-weighted slice, 1,391 kg, and that plunges from the top of the band at about 204 bar units — comfortably under the ~235 maxed capacity, exactly as GDD 2.2 requires, and nowhere near the 4%-wide coincidence window the document warns against relying on. But a hold filled entirely with top-third pieces is a different object: 2,809 kg, projecting to about 251 bar units, which is above every shield tier. A player who fills six slots at the ceiling will have to fly a braking pass. I think that is the design working — the good stuff fights you, and it fights you on the way down — but it is a new behaviour that follows from raising the masses, it is not something the harness currently flies, and it should be a deliberate call rather than a discovery.",
+    "Fragile fractions are spawn-weighted and were recomputed against the final array: bottom 9/89 = 0.1011, middle 12/69 = 0.1739, top 10/40 = 0.250. No weight moved in this revision, so the gradient is the one the last audit accepted. Counted by piece instead, the same thirds read 4/11, 4/10 and 4/9 — almost flat — which is the failure mode the charter names and the reason the weighted figure is the one reported.",
+    "The top third's mean_mass_kg of 856.11 is the plain average the charter asks for and it includes Armstrong's module at 3,600 kg. The ordinary-piece figure is 513.1 kg, and the hand-tetherable ordinary figure — the one anything reasoning about hold mass should use — is 468.1 kg. fixed_objective: true marks the module for exactly that filter.",
+    "No piece is strictly dominant, and the rescale did not change which trade each piece offers, only its scale. Density and slot cost stay anticorrelated: the smalls (kick motor casing, pressurant sphere, thruster quad, ion grid) buy mass efficiency per slot at the price of raw value, while the mediums pay better per grab and cost four slots the moment the compactor is ever restored to scope. Fragile pieces remain the high-value-per-kilo end of both classes and can never be crushed, so reaching for one is always a bet on the landing.",
+    "Every size class and the fragile flag are still met inside the shipping slice, the bottom two thirds. Small, medium and fragile all appear in the first 40 km of the band; the oversized class is met at 86,500 m as a collapsed dish frame the magnet visibly refuses, so the player learns the crane-cable limit as a rule about the tool rather than as a bug.",
+    "Altitudes are unchanged: roughly 7 km centres across the full 50,000-280,000 m envelope, deliberately avoiding the Researcher's sample altitudes of 65,000, 115,000 and 215,000 m. The samples are where the sweep measures, and a catalog that clustered there would be reintroducing three discrete bands under a continuous label."
   ]
 }

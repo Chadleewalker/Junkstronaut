@@ -18,17 +18,27 @@ extends Resource
 @export var economy: Dictionary = {}
 @export var upgrades: Array = []
 @export var debris: Array = []
+## The one altitude band (GDD 2.6). Its floor and ceiling are what the value gradient
+## interpolates between, so the game needs them alongside the economy block.
+@export var band: Dictionary = {}
 
 ## Value of one piece of debris, before landing grade and tow fee.
+## GDD 2.6: one band with a value gradient, so the multiplier interpolates on the piece's
+## altitude between the floor and the ceiling of the envelope. There are no band tiers to
+## look up — height is where the money is, continuously.
 func debris_value(entry: Dictionary) -> float:
 	var base: float = economy["size_class_base_value"][entry["size_class"]]
-	var band_mult: float = economy["band_value_multiplier"][entry["band"]]
-	var value: float = base * band_mult
+	var span: float = float(band["altitude_max_m"]) - float(band["altitude_min_m"])
+	var f: float = 0.0
+	if span > 0.0:
+		f = clampf((float(entry["altitude_m"]) - float(band["altitude_min_m"])) / span, 0.0, 1.0)
+	var g: Dictionary = economy["value_gradient"]
+	var value: float = base * lerpf(float(g["at_bottom"]), float(g["at_top"]), f)
 	if entry.get("fragile", false):
 		value *= float(economy["fragile_value_premium"])
 	return value
 
-## Tow fee as a fraction of haul value. GDD §2.3.3: zero inside the free radius, linear
+## Tow fee as a fraction of haul value. GDD §2.5: zero inside the free radius, linear
 ## beyond it, clamped at max_fee_fraction, never negative.
 func tow_fee_fraction(distance_m: float, half_circumference_m: float) -> float:
 	var free: float = tow_fee["free_radius_m"]

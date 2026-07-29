@@ -101,7 +101,12 @@ confident, wrong answer about aerobraking. Do not make it a fourth.
   Then judge the peaks, in three parts:
 
   - the endgame haul cannot stay under the bar on a single pass, at any entry depth;
-  - it can on two;
+  - it CAN on some larger number of passes — two, three, whatever the physics gives. The GDD
+    (2.2, 2.6) requires "at least one braking pass", not exactly one. **Do not fail this
+    because the module needs two skims rather than one**: a heavier module simply needs more
+    braking, and demanding a specific pass count reintroduces the retired cost rule through
+    the back door. What must be true is that a survivable multi-pass route exists at all. If
+    none does at any pass count, the module cannot come home and that IS the finding;
   - an empty ship and a full hold still can on one, from anywhere in the band.
 
   **Judge all three on `committed_descents`, and on nothing else.** Each row carries
