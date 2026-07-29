@@ -5,12 +5,12 @@
 [resource]
 script = ExtResource("1_gameparams")
 flight = {
-	"dry_mass_kg": 1400.0,
-	"fuel_capacity_kg": 860.0,
-	"thrust_n": 57000.0,
-	"fuel_burn_kgs": 13.0,
-	"rcs_thrust_n": 2600.0,
-	"rcs_fuel_burn_kgs": 0.85,
+	"dry_mass_kg": 800.0,
+	"fuel_capacity_kg": 1600.0,
+	"thrust_n": 52000.0,
+	"fuel_burn_kgs": 18.6,
+	"rcs_thrust_n": 1800.0,
+	"rcs_fuel_burn_kgs": 0.6,
 	"rotation_rate_degs": 90.0
 }
 cargo = {
@@ -18,53 +18,53 @@ cargo = {
 	"compactor_tier": 1
 }
 reentry = {
-	"heat_capacity": 185.0,
+	"heat_capacity": 219.0,
 	"heat_dissipation_s": 5.0,
 	"cargo_damage_interval_s": 3.0,
+	"commit_floor_m": 8000.0,
 	"unstaged_heat_multiplier": 3.0,
-	"off_retrograde_penalty": 1.0,
-	"commit_floor_m": 8000.0
+	"off_retrograde_penalty": 1.0
 }
 ablation = {
-	"cycle_toll_base_pct": 3.1,
-	"cycle_toll_growth": 1.17,
-	"heat_cost_coefficient": 0.0009,
-	"heat_cost_exponent": 2.0,
-	"skim_peak": 46.7,
+	"cycle_toll_base_pct": 5.35,
+	"cycle_toll_growth": 1.13,
+	"heat_cost_coefficient": 0.000007,
+	"heat_cost_exponent": 3.0,
+	"skim_peak": 43.9,
 	"skim_heat_multiplier": [
 		1.0,
-		0.434,
-		0.434,
-		0.434
+		0.405,
+		0.405,
+		0.405
 	],
 	"heat_index": {
 		"bottom": 100.0,
-		"middle": 125.0,
-		"top": 160.0
+		"middle": 125.9,
+		"top": 161.9
 	},
 	"cost_curve": {
 		"bottom": [
-			12.1,
-			10.39,
-			16.59,
-			23.52
+			12.35,
+			12.45,
+			19.88,
+			28.19
 		],
 		"middle": [
-			17.16,
-			11.34,
-			17.54,
-			24.47
+			19.32,
+			12.92,
+			20.34,
+			28.65
 		],
 		"top": [
-			26.14,
-			13.03,
-			19.24,
-			26.16
+			35.06,
+			13.96,
+			21.38,
+			29.7
 		]
 	},
 	"plate_capacity_pct": 100.0,
 	"optimal_skims": {
-		"bottom": 1,
+		"bottom": 0,
 		"middle": 1,
 		"top": 1
 	}
@@ -76,7 +76,7 @@ landing = {
 	"fragile_multiplier": 2.0,
 	"parachute_area_m2": 630.0,
 	"parachute_drag_coefficient": 1.8,
-	"descent_speed_full_hold_ms": 3.99
+	"descent_speed_full_hold_ms": 3.23
 }
 tow_fee = {
 	"free_radius_m": 1200.0,
@@ -85,8 +85,8 @@ tow_fee = {
 }
 eva = {
 	"suit_mass_kg": 110.0,
-	"jetpack_thrust_n": 240.0,
-	"jetpack_fuel_kg": 18.0,
+	"jetpack_thrust_n": 520.0,
+	"jetpack_fuel_kg": 24.0,
 	"jetpack_burn_kgs": 0.35,
 	"base_tether_slots": 2,
 	"magnet_hold_force_n": 900.0,
@@ -95,8 +95,8 @@ eva = {
 	"swing_jerk_coefficient": 1.0
 }
 economy = {
-	"launch_cost": 120.0,
-	"replate_cost_per_pct": 3.0,
+	"launch_cost": 110.0,
+	"replate_cost_per_pct": 2.0,
 	"repair_cost_per_pct": 5.0,
 	"value_gradient": {
 		"at_bottom": 1.0,
@@ -111,88 +111,88 @@ economy = {
 }
 upgrades = [
 	{
-		"part": "hand_magnet",
+		"part": "fuel_tank",
 		"tier": 1,
-		"cost": 680.0,
-		"effect": "magnet_range_screens",
-		"value": 0.1875
+		"cost": 400.0,
+		"effect": "fuel_capacity_kg",
+		"value": 2400.0
 	},
 	{
 		"part": "fuel_tank",
-		"tier": 1,
-		"cost": 750.0,
+		"tier": 2,
+		"cost": 1100.0,
 		"effect": "fuel_capacity_kg",
-		"value": 1250.0
+		"value": 3000.0
 	},
 	{
 		"part": "thruster",
 		"tier": 1,
-		"cost": 850.0,
+		"cost": 450.0,
 		"effect": "thrust_n",
-		"value": 66000.0
+		"value": 64000.0
+	},
+	{
+		"part": "thruster",
+		"tier": 2,
+		"cost": 1200.0,
+		"effect": "thrust_n",
+		"value": 75000.0
+	},
+	{
+		"part": "storage",
+		"tier": 1,
+		"cost": 600.0,
+		"effect": "base_slots",
+		"value": 8.0
+	},
+	{
+		"part": "storage",
+		"tier": 2,
+		"cost": 1500.0,
+		"effect": "base_slots",
+		"value": 10.0
+	},
+	{
+		"part": "heat_shield",
+		"tier": 1,
+		"cost": 700.0,
+		"effect": "heat_capacity",
+		"value": 221.0
+	},
+	{
+		"part": "heat_shield",
+		"tier": 2,
+		"cost": 1600.0,
+		"effect": "heat_capacity",
+		"value": 223.0
 	},
 	{
 		"part": "parachute",
 		"tier": 1,
-		"cost": 1000.0,
+		"cost": 350.0,
 		"effect": "parachute_area_m2",
 		"value": 900.0
 	},
 	{
-		"part": "storage",
-		"tier": 1,
-		"cost": 1100.0,
-		"effect": "base_slots",
-		"value": 9.0
+		"part": "parachute",
+		"tier": 2,
+		"cost": 1300.0,
+		"effect": "parachute_area_m2",
+		"value": 1250.0
 	},
 	{
-		"part": "heat_shield",
+		"part": "hand_magnet",
 		"tier": 1,
-		"cost": 1250.0,
-		"effect": "heat_capacity",
-		"value": 215.0
+		"cost": 250.0,
+		"effect": "magnet_range_screens",
+		"value": 0.1875
 	},
 	{
 		"part": "hand_magnet",
 		"tier": 2,
-		"cost": 1500.0,
+		"cost": 700.0,
 		"effect": "magnet_range_screens",
 		"value": 0.25
-	},
-	{
-		"part": "fuel_tank",
-		"tier": 2,
-		"cost": 1600.0,
-		"effect": "fuel_capacity_kg",
-		"value": 1600.0
-	},
-	{
-		"part": "thruster",
-		"tier": 2,
-		"cost": 1900.0,
-		"effect": "thrust_n",
-		"value": 76000.0
-	},
-	{
-		"part": "parachute",
-		"tier": 2,
-		"cost": 2350.0,
-		"effect": "parachute_area_m2",
-		"value": 1400.0
-	},
-	{
-		"part": "storage",
-		"tier": 2,
-		"cost": 2500.0,
-		"effect": "base_slots",
-		"value": 12.0
-	},
-	{
-		"part": "heat_shield",
-		"tier": 2,
-		"cost": 2950.0,
-		"effect": "heat_capacity",
-		"value": 245.0
 	}
 ]
 band = {
@@ -207,7 +207,7 @@ debris = [
 		"altitude_m": 52500.0,
 		"size_class": "small",
 		"fragile": true,
-		"mass_kg": 56.0,
+		"mass_kg": 15.0,
 		"spawn_weight": 3,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
@@ -219,8 +219,8 @@ debris = [
 		"altitude_m": 56000.0,
 		"size_class": "small",
 		"fragile": false,
-		"mass_kg": 81.0,
-		"spawn_weight": 18,
+		"mass_kg": 24.0,
+		"spawn_weight": 16,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
@@ -231,7 +231,7 @@ debris = [
 		"altitude_m": 61500.0,
 		"size_class": "medium",
 		"fragile": true,
-		"mass_kg": 105.0,
+		"mass_kg": 21.0,
 		"spawn_weight": 2,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
@@ -243,8 +243,8 @@ debris = [
 		"altitude_m": 67000.0,
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 128.0,
-		"spawn_weight": 15,
+		"mass_kg": 30.0,
+		"spawn_weight": 14,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
@@ -255,7 +255,7 @@ debris = [
 		"altitude_m": 73500.0,
 		"size_class": "small",
 		"fragile": false,
-		"mass_kg": 150.0,
+		"mass_kg": 36.0,
 		"spawn_weight": 12,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
@@ -267,7 +267,7 @@ debris = [
 		"altitude_m": 86500.0,
 		"size_class": "oversized",
 		"fragile": false,
-		"mass_kg": 445.0,
+		"mass_kg": 82.0,
 		"spawn_weight": 2,
 		"slots_crushed": 6,
 		"slots_uncrushed": 12,
@@ -279,7 +279,7 @@ debris = [
 		"altitude_m": 93000.0,
 		"size_class": "medium",
 		"fragile": true,
-		"mass_kg": 173.0,
+		"mass_kg": 34.0,
 		"spawn_weight": 2,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
@@ -291,8 +291,8 @@ debris = [
 		"altitude_m": 99500.0,
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 200.0,
-		"spawn_weight": 11,
+		"mass_kg": 46.0,
+		"spawn_weight": 12,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
 		"hand_tetherable": true
@@ -303,8 +303,8 @@ debris = [
 		"altitude_m": 106000.0,
 		"size_class": "small",
 		"fragile": false,
-		"mass_kg": 218.0,
-		"spawn_weight": 12,
+		"mass_kg": 50.0,
+		"spawn_weight": 13,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
@@ -315,8 +315,8 @@ debris = [
 		"altitude_m": 113000.0,
 		"size_class": "small",
 		"fragile": false,
-		"mass_kg": 230.0,
-		"spawn_weight": 10,
+		"mass_kg": 54.0,
+		"spawn_weight": 12,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
 		"hand_tetherable": true
@@ -327,7 +327,7 @@ debris = [
 		"altitude_m": 120000.0,
 		"size_class": "medium",
 		"fragile": true,
-		"mass_kg": 199.0,
+		"mass_kg": 48.0,
 		"spawn_weight": 2,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
@@ -339,7 +339,7 @@ debris = [
 		"altitude_m": 131000.0,
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 272.0,
+		"mass_kg": 58.0,
 		"spawn_weight": 11,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
@@ -351,7 +351,7 @@ debris = [
 		"altitude_m": 138000.0,
 		"size_class": "small",
 		"fragile": true,
-		"mass_kg": 234.0,
+		"mass_kg": 55.0,
 		"spawn_weight": 3,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
@@ -363,7 +363,7 @@ debris = [
 		"altitude_m": 145000.0,
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 311.0,
+		"mass_kg": 66.0,
 		"spawn_weight": 10,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
@@ -375,7 +375,7 @@ debris = [
 		"altitude_m": 152500.0,
 		"size_class": "small",
 		"fragile": false,
-		"mass_kg": 331.0,
+		"mass_kg": 70.0,
 		"spawn_weight": 12,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
@@ -387,7 +387,7 @@ debris = [
 		"altitude_m": 160000.0,
 		"size_class": "oversized",
 		"fragile": false,
-		"mass_kg": 686.0,
+		"mass_kg": 148.0,
 		"spawn_weight": 2,
 		"slots_crushed": 6,
 		"slots_uncrushed": 12,
@@ -399,7 +399,7 @@ debris = [
 		"altitude_m": 167000.0,
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 361.0,
+		"mass_kg": 76.0,
 		"spawn_weight": 11,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
@@ -411,7 +411,7 @@ debris = [
 		"altitude_m": 174000.0,
 		"size_class": "small",
 		"fragile": true,
-		"mass_kg": 324.0,
+		"mass_kg": 72.0,
 		"spawn_weight": 4,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
@@ -423,7 +423,7 @@ debris = [
 		"altitude_m": 181500.0,
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 398.0,
+		"mass_kg": 84.0,
 		"spawn_weight": 11,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
@@ -435,7 +435,7 @@ debris = [
 		"altitude_m": 189000.0,
 		"size_class": "medium",
 		"fragile": true,
-		"mass_kg": 366.0,
+		"mass_kg": 86.0,
 		"spawn_weight": 3,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
@@ -447,7 +447,7 @@ debris = [
 		"altitude_m": 197500.0,
 		"size_class": "medium",
 		"fragile": true,
-		"mass_kg": 388.0,
+		"mass_kg": 90.0,
 		"spawn_weight": 2,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
@@ -459,7 +459,7 @@ debris = [
 		"altitude_m": 209000.0,
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 470.0,
+		"mass_kg": 82.0,
 		"spawn_weight": 11,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
@@ -471,7 +471,7 @@ debris = [
 		"altitude_m": 217500.0,
 		"size_class": "medium",
 		"fragile": true,
-		"mass_kg": 428.0,
+		"mass_kg": 78.0,
 		"spawn_weight": 3,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
@@ -483,7 +483,7 @@ debris = [
 		"altitude_m": 226000.0,
 		"size_class": "small",
 		"fragile": true,
-		"mass_kg": 462.0,
+		"mass_kg": 88.0,
 		"spawn_weight": 2,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,
@@ -495,7 +495,7 @@ debris = [
 		"altitude_m": 234000.0,
 		"size_class": "oversized",
 		"fragile": false,
-		"mass_kg": 828.0,
+		"mass_kg": 165.0,
 		"spawn_weight": 2,
 		"slots_crushed": 6,
 		"slots_uncrushed": 12,
@@ -507,7 +507,7 @@ debris = [
 		"altitude_m": 242500.0,
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 497.0,
+		"mass_kg": 104.0,
 		"spawn_weight": 9,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
@@ -519,7 +519,7 @@ debris = [
 		"altitude_m": 251000.0,
 		"size_class": "medium",
 		"fragile": true,
-		"mass_kg": 444.0,
+		"mass_kg": 98.0,
 		"spawn_weight": 3,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
@@ -531,7 +531,7 @@ debris = [
 		"altitude_m": 259500.0,
 		"size_class": "medium",
 		"fragile": false,
-		"mass_kg": 523.0,
+		"mass_kg": 122.0,
 		"spawn_weight": 7,
 		"slots_crushed": 2,
 		"slots_uncrushed": 4,
@@ -543,7 +543,7 @@ debris = [
 		"altitude_m": 268000.0,
 		"size_class": "small",
 		"fragile": true,
-		"mass_kg": 453.0,
+		"mass_kg": 112.0,
 		"spawn_weight": 2,
 		"slots_crushed": 1,
 		"slots_uncrushed": 2,

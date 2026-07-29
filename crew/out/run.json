@@ -1,8 +1,8 @@
 {
   "crew": "junkstronaut-tuning-crew",
   "mode": "live",
-  "finished_at": "2026-07-29T00:37:30.596Z",
-  "duration_s": 4763.2,
+  "finished_at": "2026-07-28T22:59:35.404Z",
+  "duration_s": 5968.5,
   "design_document": "Junkstronaut GDD Short.txt",
   "models": [
     "claude-opus-5"
@@ -24,7 +24,7 @@
     {
       "name": "playtester",
       "verdict": "targets_missed",
-      "findings": 11
+      "findings": 8
     },
     {
       "name": "spec-auditor",
@@ -35,13 +35,13 @@
   "audit": {
     "verdict": "fail",
     "checks_total": 21,
-    "checks_failed": 1,
-    "observations": 9
+    "checks_failed": 3,
+    "observations": 7
   },
   "catalog_concerns": [
-    "The whole shipping slice, mass_kg: the bottom two thirds cannot make GDD 2.4's full-hold doubling true against any ship the GDD's own canopy can land. The harness loads six slots at 17.357 kg per slot — spawn-weighted over the hand-tetherable slice at the size_classes slot cost — for a 104.1 kg hold. Doubling wants roughly 97-125 kg per slot, a 5.6x rescale of the bottom two thirds (a crumpled panel stack near 45 kg rather than 8, a warped gyro deck near 340 rather than 61), or the same effect via the slot model below. Re-filed unchanged from the last pass with the number attached rather than the argument.",
-    "size_classes block, slots_crushed / slots_uncrushed: shipping_slice.slots_per_piece says 1, but the harness prices the hold off slots_crushed and slots_uncrushed and gets 3.4 pieces per six slots, not six. That single disagreement is worth a factor of 2.05 on every hold mass in this file (17.36 kg per slot against a 35.57 kg mean piece). Either the size-class slot table should collapse to 1/1 inside the slice so a slot is a piece, as the shipping_slice object says, or the slice's masses need to carry the crush factor. Both fixes are yours; neither is reachable from the params.",
-    "collapsed_dish_frame, buckled_pressure_bulkhead, severed_boom_mast, size_class: all three are oversized and hand_tetherable false, so shipping_slice.oversized_reachable false is correct and economy.size_class_base_value.oversized (320) prices something no hold can contain. I have left the value in place because the schema requires the key, but nothing in the slice can earn it. Flagging it as vestigial rather than asking for the pieces to move — their job as the piece the magnet visibly refuses is a good one."
+    "The shipping slice's mass per slot, against GDD 2.5's full-hold doubling and GDD 2.3's parachute margin at the same time. Spawn-weighted over the bottom two thirds, hand-tetherable only, at compactor_tier 1, the catalog prices out at 30.43 kg per slot, so six base slots is a 182.6 kg hold. For GDD 2.5's 'a full hold roughly doubles the rocket's mass' to be true, dry_mass_kg would have to be 183 — a staged ballistic coefficient of 37, below the ~50 cliff where the atmosphere stops the ship instead of braking it, which deletes the skim mechanic and crashes the ascent. I balanced against the catalog as it stands and left the rule broken at 1.23x rather than satisfy it from dry mass. The same shortfall costs the parachute its headroom: at 630 m2 and Cd 1.8 the full hold lands at 3.23 m/s, 0.28 m/s under the ~3.5 the audit wants, because there is not enough cargo mass to load the canopy. Both close at once if the slice averages about 133 kg per slot — a full hold would then be 800 kg on an 800 kg ship, exactly 2.00x, and land at 4.11 m/s, in the middle of the soft band. That is a 4.4x raise on the pieces below 203,333 m and it is a much bigger ask than the 2.2x of the last revision; the honest alternative, if the floor cannot carry that, is for the GDD to withdraw the doubling sentence, because no dry mass satisfies it and the flight at once.",
+    "Storage tier 2 has no effect on landing difficulty, which is the pair GDD 2.5 designs around. At 30.43 kg per slot, going from 6 slots to 10 adds 121.7 kg to a 800 kg ship and moves the full-hold touchdown from 3.23 to 3.42 m/s — both soft, on the base canopy, with no purchase required. GDD 2.5's 'storage raises the profit ceiling and the difficulty of the flight home' is currently only the first half: the profit ceiling rises 67%, the difficulty does not move. This is the same per-slot mass finding as above seen from the shop's side, and it is why Armstrong's module rather than a maxed hold is doing all of the Parachute track's work.",
+    "armstrongs_module at 3,600 kg against the heaviest ordinary piece, recorded as a property to protect rather than a defect. severed_boom_mast at 165 kg is 21.8x lighter and impact_pitted_engine_bell at 122 kg is the heaviest the magnet can legally take, so the module is 4.5x a maxed ten-slot hold on its own. That ratio is what keeps every ordinary haul under 164 on the bar while the module plunges at 223.7-335.5, and it is the only reason a capacity window exists at all — at drag_coefficient_shield 1.4 that window is (217.8, 223.7), 2.7% wide, and it closes from below the moment the top of the catalog drifts toward a full hold's mass. If a future pass rescales masses, the quantity to hold is module_mass / (base_slots * shipping_slice_mean), currently 19.7."
   ],
   "artifacts": [
     "params/baseline.json",

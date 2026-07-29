@@ -1,181 +1,116 @@
 {
   "agent": "playtester",
   "verdict": "targets_missed",
-  "summary": "The config flies, but the endgame's whole gate — base heat capacity above a full hold's plunge and below the module's best skimmed descent — is a measured window only 8.8 bar units wide (180.1 to 188.9), narrower than the skim-altitude scan's own noise, and three params claims (optimal_skims, cost_curve, full-hold descent speed) are contradicted by the flight.",
+  "summary": "The config flies: the base ship survives its own launch, both routes reach the band, and the module can only come home aerobraked — but the capacity window that carries the endgame is 2.7% wide, the module needs two skims from the top rather than one, the full hold is 1.23x the ship's mass instead of the promised 2x, and no measured configuration anywhere in the grid survives an unstaged braking pass.",
   "findings": [
     {
-      "id": "endgame_capacity_window_is_8_8_bar_units",
+      "id": "capacity_window_is_2_7_percent_wide",
       "gdd_ref": "2.2",
-      "claim": "GDD 2.2: a 32% window separates the full hold's plunge (203.7) from the module's (268.8), 'bounded by a rule rather than by how finely anyone searched, which is why it is safe to build on'; the same section rejects a 4%-wide window as 'a coincidence and not a mechanic'. reentry.heat_capacity 185 is supposed to sit comfortably inside it.",
-      "measured": "Flown from the top of the band at commit_floor_m 8000: full hold (805.5 kg) plunges at 180.1 and the module's cheapest skimmed descent is 188.9 (2 skims; 265.3 plunge, 203.4 at 1 skim, 200.9 at 3). The base capacity must exceed 180.1 and stay under 188.9 — a window of 8.8 units, 4.9%. 185 clears the full hold by 2.7% and undercuts the module by 2.1%. The heaviest ordinary piece (828 kg) plunges at 181.0, 2.2% under the bar. The balancer's 23%/7.7% margins were computed against a 104.1 kg hold; the simulator flew 805.5 kg.",
+      "claim": "GDD 2.2 states a 32% window between the full hold's plunge peak (203.7) and the module's (268.8), bounded by a rule rather than by how finely anyone searched, and calls that why it is safe to build on.",
+      "measured": "Flown at the commit floor the window is (217.8, 223.7) — 2.7% wide. The module's best skimmed peak from the top is 217.8 and its bottom-sample plunge is 223.7, and the whole shield ladder (219 / 221 / 223) is squeezed inside those two numbers. The full hold's plunge is not the lower bound at all: it peaks at 104.3 / 128.6 / 163.4, less than half the module's, so ordinary cargo is nowhere near the constraint. The balancer's own note records the window closing to 0.8% at dry mass 900 and going negative at 1,000, so the mechanic survives on a 100 kg margin in a parameter nobody is guarding.",
       "severity": "blocking",
       "kind": "tuning"
     },
     {
-      "id": "full_hold_doubling_excludes_the_endgame_gate",
-      "gdd_ref": "2.4",
-      "claim": "GDD 2.4/2.6: a full hold roughly doubles ship mass, and the module (3,600 kg) is the piece that 'costs a maxed hold's mass budget'. The params' catalog concern proposes rescaling slot mass upward to make this true.",
-      "measured": "The sweep's own hold model gives kg_per_slot 134.25, full_hold_kg 805.5, full_hold_mass_ratio 1.58 — against the params' 17.357 kg/slot and 1.074. Neither reaches 2.0, and making it true is worse than leaving it: top-of-band plunge peak measures 144.7 at 0 kg, 163.5 at 402.8 kg, 180.1 at 805.5 kg and 265.3 at 3,600 kg, so a doubling hold (~1,400 kg of cargo) extrapolates to roughly 200 bar units on a plunge — above the module's best skimmed descent of 188.9. No heat capacity can then permit the full hold's plunge and forbid the module's. The two claims are mutually exclusive at any dry mass.",
+      "id": "module_needs_two_skims_from_the_top",
+      "gdd_ref": "2.6",
+      "claim": "GDD 2.2's table and 2.6's finale describe the module coming home on one braking pass — 196.5 against a ~235 capacity — and 2.6 calls the finale an aerobraking flight of that shape.",
+      "measured": "From the top sample the module peaks at 335.5 on a plunge, 243.2 with one skim and 217.8 with two. 243.2 is above every purchasable capacity (219 / 221 / 223), so one skim does not bring it home from where it actually hangs; two does. From the middle the same pattern holds — 268.5 / 224.4 / 213.9, with the one-skim figure again above the ladder. Only from the bottom sample does a single skim work (208.2). The finale is a three-cycle descent, not a two-cycle one.",
       "severity": "significant",
       "kind": "design"
     },
     {
-      "id": "optimal_skims_and_cost_curve_contradicted_by_flight",
+      "id": "unstaged_pass_survivable_nowhere_in_the_grid",
       "gdd_ref": "2.2",
-      "claim": "ablation.optimal_skims is 1 at bottom, middle and top, and ablation.cost_curve gives bottom [12.10, 10.39, 16.59, 23.52] — an argmin at one skim.",
-      "measured": "cheapest_pass_count is 1 pass (i.e. zero skims, a plunge) in all 15 flown descent cells, at every altitude and every load including the 3,600 kg endgame haul. The flown plate cost for an empty ship at the bottom runs [7.6, 11.6, 16.0, 20.9] against the emitted [12.10, 10.39, 16.59, 23.52]: the plunge is overstated by 4.5 points, the one-skim descent understated by 1.2, and the argmin is inverted. The flight agrees with GDD Rev-3's own statement that one pass is cheapest under every ablation keying; the params are the outlier, inherited from pricing the bottom sample off the top sample's 0.434 multiplier when the bottom's own measured value is 0.700.",
+      "claim": "GDD 2.2 makes staged-versus-unstaged braking a real choice: the hull takes each pass at 3x heat but keeps the engine for between-pass periapsis control.",
+      "measured": "The exploration grid satisfies unstaged_pass_survivable in 8.0% of 5,184 configurations — the lowest rate of any target, and not one of the twelve best-scoring worlds satisfies it (every top entry reports false, with unstaged peaks of 247, 311 and 376 against capacities in the low hundreds). The verification sweep does report the crew's own shallow unstaged pass surviving at 71 and 78 for bottom and middle, and no row at all for the top — so the choice exists in shallow passes low in the band and vanishes exactly where the endgame is flown. This is the rule, not the numbers: 92% of the space cannot buy it.",
+      "severity": "significant",
+      "kind": "design"
+    },
+    {
+      "id": "full_hold_is_1_23x_not_2x",
+      "gdd_ref": "2.5",
+      "claim": "GDD 2.5 and 2.6 both lean on a full hold roughly doubling the rocket's mass; 2.6 sizes the module against that as 'a maxed hold's mass budget'.",
+      "measured": "Six slots at the catalog's 30.43 kg/slot is a 182.6 kg hold on an 800 kg ship — 1.23x. The consequences are all measured, not argued: the full hold lands at 3.22 m/s where an empty ship lands at 2.91, a 0.31 m/s spread across the entire greed decision; storage tier 2 moves ten slots' touchdown to 3.42 m/s, still soft on the base canopy with no purchase required; and the full hold's plunge peaks at 163.4 from the top against the empty ship's 147.8. Satisfying the doubling from dry mass needs 183 kg, a staged ballistic coefficient of 37 — under the ~50 floor where first air contact erases the orbit and the skim mechanic ceases to exist. The catalog is the only lever that closes it.",
       "severity": "significant",
       "kind": "tuning"
     },
     {
-      "id": "full_hold_descent_speed_claim_off_by_21_percent",
+      "id": "one_pass_is_cheapest_everywhere_confirmed",
+      "gdd_ref": "2.2",
+      "claim": "GDD 2.2 and Revision 3 withdraw the old 2-4 pass cost optimum and assert one pass is the cheapest descent under every ablation keying measured, making multi-pass a feasibility rule rather than a cost rule.",
+      "measured": "Confirmed in all twelve descent rows: cheapest_pass_count is 1 everywhere, from 7.3% of plate (top, empty) to 40.9% (bottom, endgame haul), and cost rises monotonically with pass count in every row — the bottom full hold runs 8.8 / 15.2 / 22.1 / 29.9 / 38.6 / 72.2 / 253.7 across 1 through 16 passes. The grid agrees that the benefit saturates: skim_benefit_saturates holds in 88.9% of configurations, the highest rate of any target, and every measured multiplier array is flat after index 1 or 2. The design's own withdrawal of the cost target is the correct call and should not be reopened.",
+      "severity": "minor",
+      "kind": "design"
+    },
+    {
+      "id": "middle_sample_circularises_on_fumes",
+      "gdd_ref": "2.5",
+      "claim": "GDD 2.5 makes the first tank upgrade the buy that turns a hop into a stay, with the base ship able to circularise only at the floor and arriving with nothing to deorbit on.",
+      "measured": "The base ship circularises at the bottom sample with 6.9% of tank (109.83 kg) and at the middle with 2.9% (46.36 kg), and cannot circularise at the top at all ('out of fuel before circularising', 19.2% left on the arc). The middle sample's 2.9% is a circularisation the sweep scores as reached but which leaves no deorbit budget — a route the player can take that strands them, one band above where the design says it should already be impossible. The arc margins are healthy throughout: 29.4% / 23.8% / 18.0%, with EVA windows of 125.9 / 202.1 / 368.3 s, so the arc is genuinely the first launch's route as designed and GDD 4.5's 97-second question is answered generously at 125.9 s.",
+      "severity": "significant",
+      "kind": "tuning"
+    },
+    {
+      "id": "parachute_prediction_now_holds",
       "gdd_ref": "2.3",
-      "claim": "landing.descent_speed_full_hold_ms 3.99, computed from the stated canopy (630 m2 at Cd 1.8) on a 1,504.1 kg all-up ship.",
-      "measured": "4.83 m/s, delta 0.84 (21%), spread 0.0 across all three sample altitudes. The canopy is not implicated — the sweep flew the stated 630 m2 at Cd 1.8 independently — the disagreement is entirely the hold: 2,205.5 kg all-up against the params' 1,504.1. The design rule still passes (4.83 < 5.0 soft line) with 3.4% of margin instead of 20%, and empty lands at 3.85.",
-      "severity": "significant",
-      "kind": "tuning"
-    },
-    {
-      "id": "altitude_difficulty_gradient_exists_only_because_of_the_commit_floor",
-      "gdd_ref": "2.6",
-      "claim": "GDD 2.6: 'the good stuff fights you on the tether and on the way down — height is where the money is, and the reentry risk rises with it on its own. That is the difficulty curve.'",
-      "measured": "It does not rise on its own. With entry depth free, an empty ship's cheapest descent gets *easier* with altitude: 7.6% of plate and peak 70 from the bottom, 7.2% and 67 from the middle, 6.9% and 65 from the top — the planner simply picks a better braking altitude from a higher, slower orbit. Only with the entry pinned at commit_floor_m 8000 does the gradient invert to the designed direction: 93.2 / 114.2 / 144.7. The commit floor is not just the endgame's gate, it is the sole source of the campaign's difficulty curve, which is a stronger reason for its never-cut status than the GDD currently gives.",
-      "severity": "significant",
-      "kind": "design"
-    },
-    {
-      "id": "top_of_band_unreachable_at_base_config_and_no_upgraded_ship_was_flown",
-      "gdd_ref": "2.5",
-      "claim": "GDD 2.5 and the balancer: the arc is the first launch's route, fuel tank tier 1 buys orbit at the floor and tier 2 circularises at the top with 9% left — the finale's ride.",
-      "measured": "Bottom and middle confirm the balancer exactly: arc reached with 13.3% margin and a 125.9 s EVA window, and 5.1% at the middle (which also settles GDD 4.5's open 97 s question upward, to 125.9 s). The top sample fails outright — 'crashed on ascent', arc apex 192,203 m against a 215,000 m sample, 10.6% short, with climb_peak_heat logged as 0. Every top-of-band descent in this sweep was therefore flown from an altitude the flown ship cannot reach, and no upgraded flight configuration (tank, shield or parachute tier) was flown at all, so §3's questions 6 and 8 — module infeasible-as-plunge at every shield tier, module run beatable at full upgrades — remain unmeasured.",
-      "severity": "significant",
-      "kind": "tuning"
-    },
-    {
-      "id": "module_lands_hard_on_every_canopy_flown",
-      "gdd_ref": "2.6",
-      "claim": "GDD 2.6: a hard touchdown degrades the module exactly one state, so 'a pristine module cannot be lost to a single bad flare'; pristine is a first-attempt-only triumph reachable near full upgrades.",
-      "measured": "The module touches down at 7.28 m/s from all three sample altitudes on the base 630 m2 canopy — 46% over the 5.0 soft line, in a descent the sweep itself grades soft_landing false. Since the sweep flies a perfect pilot with no flare error, a competently-flown module delivery on the starter canopy loses a state on touchdown regardless of heat, so pristine is unreachable without parachute tier 2 (1,400 m2, unflown; predicted 4.88 m/s). This makes the parachute track, not the shield track, the gate on the triumph ending — which the GDD does not say anywhere.",
-      "severity": "significant",
-      "kind": "tuning"
-    },
-    {
-      "id": "ordinary_cargo_never_lands_hard",
-      "gdd_ref": "2.5",
-      "claim": "GDD 2.5: 'Storage is double-edged: a bigger hold raises the profit ceiling and the difficulty of the flight home', with the hold-mass scale painted green/amber/red for soft/hard/destructive.",
-      "measured": "Across the entire ordinary load range the touchdown speed moves 3.85 (empty) → 4.37 (half) → 4.83 (full) → 4.86 (heaviest ordinary piece, 828 kg), a 1.01 m/s spread that never crosses the 5.0 line. Only the 3,600 kg module (7.28) lands hard. At this canopy the mass scale has one zone for everything a player can actually haul, and greed is paid for in plate (7.6% → 10.4% at the bottom) and heat (70 → 90), not in landings.",
+      "claim": "GDD 2.3 requires parachute_area_m2 to be a stated constant so the predicted descent speed is a claim the flight can contradict, and predicts 4.4 m/s at base storage with a full hold.",
+      "measured": "With area 630 m2 at Cd 1.8 stated in the params, the closed form predicts 3.23 m/s and the integrator lands the full hold at 3.22 m/s at all three sample altitudes — delta 0.01 m/s, spread across bands 0.00, independent true. The tautology is genuinely gone. But the predicted number is 3.22, not the GDD's 4.4, because the mass under the canopy is 982.6 kg rather than the ~2x hold the document assumes — the same shortfall as the doubling finding, seen through the chute. The module lands at 6.83 m/s on the base canopy and needs parachute tier 2 (1,250 m2, 4.84 m/s) for a soft touchdown, so the Parachute track is what buys a pristine delivery.",
       "severity": "minor",
-      "kind": "design"
+      "kind": "tuning"
     },
     {
-      "id": "starter_shield_lesson_is_20_percent_of_the_bar",
+      "id": "fuel_margin_sane_is_rare_in_the_grid",
       "gdd_ref": "4.4",
-      "claim": "GDD 4.4 risk 3: the climb's peak is meant to be 'a visible, alarming, entirely survivable fraction' of the starter shield — 47.5 against the old capacity of 100, i.e. half the bar, chosen deliberately for the first-flight lesson.",
-      "measured": "The climb peaks at 37.5 (bottom route) and 36.0 (middle) against reentry.heat_capacity 185 — 20.3% of the bar, a fifth rather than a half. The obvious fix is blocked: capacity 185 is pinned inside the 180.1–188.9 endgame window (finding 1) and cannot be lowered to sharpen the lesson without deleting the gate. The lever has to be the climb's heat, not the bar's capacity.",
-      "severity": "minor",
-      "kind": "tuning"
-    },
-    {
-      "id": "skim_peak_constant_has_no_measured_support",
-      "gdd_ref": "2.2",
-      "claim": "ablation.skim_peak 46.7 charges every skim k * 0.0009 * 46.7^2 = 1.96% of plate in the cost curve; the balancer left it untouched because no measured value was reported.",
-      "measured": "One is now reported and it is zero: skim_peak_heat is 0.0 in every row of every skim study at all three samples (bottom scanned to 27,950 m, middle 25,800 m, top 23,650 m), while entry_peak_heat matches ablation.heat_index exactly (100 / 125 / 160, delta 0.000). Either skims deposit no bar heat in this model or the field is unpopulated; in both readings 46.7 is unsupported, and the per-skim heat term is roughly 12% of a one-skim descent's emitted cost.",
-      "severity": "minor",
-      "kind": "tuning"
-    },
-    {
-      "id": "unstaged_pass_survives_here_but_almost_nowhere_in_the_grid",
-      "gdd_ref": "2.2",
-      "claim": "GDD 2.2: staged vs unstaged braking is 'a real choice' — 3x heat bought with retained steering.",
-      "measured": "On this planet the choice exists: a shallow unstaged pass peaks at 52 (bottom) and 58 (middle) against a 185 bar, comfortably survivable at reentry.unstaged_heat_multiplier 3. Across the 5,184-cell world grid the same target holds in only 8.0% of configurations, and all twelve of the grid's best configurations (score 8 of 9) fail it — no world in the grid scores 9. The mechanic is a property of the locked planet, not of the rule, so it should not be traded away for anything, and the top of the band was never flown unstaged.",
+      "claim": "The design assumes a workable fuel margin is a tuning matter once the world is locked.",
+      "measured": "fuel_margin_sane holds in 18.7% of 5,184 grid configurations and launch_survives_itself in 34.0% — the second and third rarest targets after unstaged_pass_survivable at 8.0%. The crew's config hits both, and the climb peaks at 50.0 / 47.5 / 46.7 bar units against capacity 219, reproducing GDD 2.2's stated 47.5 exactly at the middle sample. That is a real achievement on a thin part of the space, and it is also a warning: the locked planet sits somewhere only a fifth of worlds reach, so any future change to radius, gravity or sea-level density is very likely to break the ascent rather than adjust it.",
       "severity": "minor",
       "kind": "design"
     }
   ],
   "proposed_changes": [
     {
-      "path": "cargo.base_slots",
-      "current": 6,
-      "proposed": 3,
-      "reason": "Halves the flown hold from 805.5 kg to 402.8 kg — an already-measured cell — dropping the top-of-band full-hold plunge from 180.1 to 163.5 and widening the endgame capacity window from 8.8 to 25.4 bar units; the identical effect is available by halving the catalog's 134.25 kg/slot, which is strictly better because it keeps the GDD walkthrough's on-screen six slots, so take this one only if the catalog cannot move. Cost: halves the per-run profit ceiling and forces the storage tiers (9/12) down with it."
+      "path": "debris_catalog.mass_per_slot_kg",
+      "current": 30.43,
+      "proposed": 133,
+      "reason": "Raising the shipping slice's mean piece mass to about 133 kg makes a six-slot hold 800 kg on an 800 kg ship — GDD 2.5's doubling satisfied from the catalog rather than from a dry mass that would delete aerobraking — and loads the canopy to 4.11 m/s, mid-soft-band, at the cost of a 4.4x revaluation pass across every piece below 203,333 m."
     },
     {
       "path": "reentry.heat_capacity",
-      "current": 185,
-      "proposed": 175,
-      "reason": "Centres the base shield in that widened window — 7.0% above a full hold's 163.5 plunge and 7.4% below the module's best skimmed 188.9 — instead of the current 2.7%/2.1%, which is inside the scan's own resolution. Costs nothing to the ladder (215 and 245 unchanged, both still under the module's 265.3 plunge) and leaves the climb at 21% of the bar. Do not apply without the hold change: at 805.5 kg a 175 bar forbids the full hold's own plunge."
+      "current": 219,
+      "proposed": 210,
+      "reason": "Dropping the base capacity below the module's two-skim peak from the top (217.8) while staying far above the full hold's worst plunge (163.4) widens the useful ladder span and makes the shield track buy something measurable, at the cost of requiring tier 1 before any module attempt at all."
     },
     {
-      "path": "ablation.optimal_skims",
-      "current": {
-        "bottom": 1,
-        "middle": 1,
-        "top": 1
-      },
-      "proposed": {
-        "bottom": 0,
-        "middle": 0,
-        "top": 0
-      },
-      "reason": "The flight's cheapest_pass_count is one pass — zero skims — in all 15 descent cells; this restores agreement with GDD Rev-3's own finding that one pass is cheapest under every ablation keying, and costs nothing because skimming's job is feasibility (the module cannot plunge), not cost."
+      "path": "upgrades.heat_shield.tier_2.value",
+      "current": 223,
+      "proposed": 220,
+      "reason": "With the base at 210 the ladder becomes 210 / 215 / 220, every tier still under the module's 223.7 bottom-sample plunge and the top two above its 217.8 two-skim peak, so the purchase decides the finale instead of three near-identical numbers sharing a 2.7% band."
     },
     {
-      "path": "ablation.cost_curve",
-      "current": {
-        "bottom": [
-          12.1,
-          10.39,
-          16.59,
-          23.52
-        ],
-        "middle": [
-          17.16,
-          11.34,
-          17.54,
-          24.47
-        ],
-        "top": [
-          26.14,
-          13.03,
-          19.24,
-          26.16
-        ]
-      },
-      "proposed": {
-        "bottom": [
-          7.6,
-          11.6,
-          16,
-          20.9
-        ],
-        "middle": [
-          7.2,
-          11.9,
-          16.3,
-          21.3
-        ],
-        "top": [
-          6.9,
-          12.6,
-          17.3,
-          22.5
-        ]
-      },
-      "reason": "Replaces a curve derived from the top sample's skim multiplier applied to all three with the flown empty-ship plate cost per pass count at each sample; fixes both the inverted argmin and a 4.5-point overstatement of the plunge. Cost: the six-constant closed form in the balance notes no longer reproduces it, so either the constants or the note must be re-derived."
+      "path": "upgrades.heat_shield.tier_1.value",
+      "current": 221,
+      "proposed": 215,
+      "reason": "Places tier 1 below the module's two-skim requirement so the first shield buy is a real step rather than a 2-unit rounding, and keeps the whole track under the plunge ceiling the GDD makes non-negotiable."
     },
     {
-      "path": "landing.descent_speed_full_hold_ms",
-      "current": 3.99,
-      "proposed": 4.37,
-      "reason": "Measured, not computed: 4.37 m/s is the flown touchdown at a 402.8 kg hold, which is what a full hold becomes under change #1. If the hold stays at 805.5 kg this value is 4.83, and either way the claim of 3.99 is contradicted by the flight."
+      "path": "upgrades.parachute.tier_1.cost",
+      "current": 350,
+      "proposed": 500,
+      "reason": "The Parachute track is the only thing standing between a 6.83 m/s module touchdown and a pristine delivery, so it is carrying the endgame's landing gate and is underpriced relative to the heat shield at 700; costs an earlier canopy upgrade in the mid campaign."
+    },
+    {
+      "path": "flight.fuel_capacity_kg",
+      "current": 1600,
+      "proposed": 1500,
+      "reason": "Trimming base tank capacity pushes the middle sample's 2.9% circularisation below the reachable line so the base ship can only circularise at the floor as GDD 2.5 describes, removing a route that strands the player, at the cost of shaving the bottom sample's orbit margin from 6.9% toward ~4%."
     }
   ],
   "confidence_notes": [
-    "The skim-altitude scan is coarser than the margins finding 1 turns on. Two committed series are non-monotonic in skim count — middle/full hold reads 143.0, 108.2, 118.2, 105.2 and top/empty reads 144.7, 83.6, 102.3, 108.8 — so the scan resolves peak heat to something like plus or minus 10-12 bar units. That is larger than the 8.8-unit endgame window itself. Treat any capacity margin under roughly 15 units as unresolved rather than measured, and re-fly the top/endgame column at a finer skim-altitude resolution before trusting 188.9 as the number the shield ladder is built against.",
-    "Two hold models are live in this crew and they differ by 7.7x: the params compute 17.357 kg per slot from the catalog's crushed/uncrushed slot table, the simulator computes 134.25. Every heat, plate and touchdown figure I quote is on the simulator's model. Which one is correct is a catalog question I cannot settle from here, and it decides whether the endgame window is 4.9% or roughly 30% wide — it is the single highest-value thing for the auditor to resolve.",
-    "The simulator is a point mass with a perfect pilot: no attitude error, no flare, no debris collisions, and EVA is not flown at all. The 125.9 s arc window at the band floor is time above the floor, not a demonstration that a piece can be reached, tethered and stowed inside it; GDD 4.5's open question survives this sweep. Likewise the module's 7.28 m/s touchdown assumes an optimal chute deploy, so it is a floor on how hard the module lands, not an average.",
-    "No upgraded ship was flown. Tank tier 1 and 2, shield tiers 215 and 245, and parachute tiers 900 and 1400 m2 appear in my findings only through interpolation from base-config flights, and the top-of-band ascent failed outright at base (apex 192,203 m). The finale's feasibility at full upgrades — §3's headline question — is still unmeasured, and one upgraded-config sweep would answer more than any re-tune of the numbers I did measure.",
-    "The exploration grid's satisfaction rates are a statement about the target set, not a menu of alternative worlds: its best-scoring configurations are 800 m-radius planets with 224 m of atmosphere and staged ballistic coefficients as low as 11.9 kg/m2, well under the 50 kg/m2 floor below which aerobraking cannot exist. planet.lock.json forbids moving the world in any case, so none of my proposals touch baseline.json. What the rates are good for is the classification: skimming_cools_the_entry at 84.6% and skim_benefit_saturates at 88.9% say the skim mechanic is robust and its shortfalls here are tuning; unstaged_pass_survivable at 8.0% says that one is a property of this planet and must not be traded.",
-    "I believe the simulator, not the params, on skim_peak: the flown study reports skim_peak_heat as 0.0 in every row at every sample. But zero is also what an unpopulated field looks like, so I have flagged 46.7 as unsupported rather than proposing a replacement. If the field is real, the cost curve is overcharging each skim by 1.96% of plate; if it is a gap in the harness, the constant is untested and should be measured before the next audit prices anything off it."
+    "The simulator is a point mass with a perfect pilot. Every skim altitude in the committed_descents table was found by scanning — the module's two-skim survival from the top rests on hitting 24,585 m, and a human flying by the CHUTE lamp and an aim indicator has no instrument that reads that number. The 2.7% capacity window is measured, but its playable width is smaller than its measured width by an amount only a human can determine.",
+    "The unstaged_braking table has rows for bottom and middle only — no top-sample row was flown. I read the missing row as unflown rather than as a failure, so the claim that the unstaged choice vanishes at the top of the band is inference from the grid's 8.0% satisfaction rate, not a direct measurement of this config.",
+    "The 133 kg/slot proposal is arithmetic on the catalog's own mean, not a flown result. It closes the doubling and the canopy margin simultaneously in closed form; whether the resulting value economy still clears the shop in 12-15 runs has not been simulated, and the balancer's pricing notes would all need recomputing against it.",
+    "The heat capacity ladder proposal (210 / 215 / 220) is derived from the same committed_descents peaks the current ladder was fitted to, so it inherits whatever bias those measurements carry. If the module's 217.8 two-skim peak moves under a different scan resolution, the proposed ladder breaks in the same direction the current one does — it is a wider spacing of the same fragile window, not an escape from it.",
+    "I did not evaluate whether one skim versus two changes how the finale feels. The measured difference is roughly six minutes of wall clock per pass at warp and one more heat cycle at an escalating toll; whether a three-cycle finale reads as a climactic sequence or as a chore is exactly the judgement the charter says belongs to a human."
   ]
 }

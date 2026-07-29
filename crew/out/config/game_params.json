@@ -1,12 +1,12 @@
 {
   "agent": "economy-balancer",
   "flight": {
-    "dry_mass_kg": 1400,
-    "fuel_capacity_kg": 860,
-    "thrust_n": 57000,
-    "fuel_burn_kgs": 13,
-    "rcs_thrust_n": 2600,
-    "rcs_fuel_burn_kgs": 0.85,
+    "dry_mass_kg": 800,
+    "fuel_capacity_kg": 1600,
+    "thrust_n": 52000,
+    "fuel_burn_kgs": 18.6,
+    "rcs_thrust_n": 1800,
+    "rcs_fuel_burn_kgs": 0.6,
     "rotation_rate_degs": 90
   },
   "cargo": {
@@ -14,53 +14,53 @@
     "compactor_tier": 1
   },
   "reentry": {
-    "heat_capacity": 185,
+    "heat_capacity": 219,
     "heat_dissipation_s": 5,
     "cargo_damage_interval_s": 3,
+    "commit_floor_m": 8000,
     "unstaged_heat_multiplier": 3,
-    "off_retrograde_penalty": 1,
-    "commit_floor_m": 8000
+    "off_retrograde_penalty": 1
   },
   "ablation": {
-    "cycle_toll_base_pct": 3.1,
-    "cycle_toll_growth": 1.17,
-    "heat_cost_coefficient": 0.0009,
-    "heat_cost_exponent": 2,
-    "skim_peak": 46.7,
+    "cycle_toll_base_pct": 5.35,
+    "cycle_toll_growth": 1.13,
+    "heat_cost_coefficient": 0.000007,
+    "heat_cost_exponent": 3,
+    "skim_peak": 43.9,
     "skim_heat_multiplier": [
       1,
-      0.434,
-      0.434,
-      0.434
+      0.405,
+      0.405,
+      0.405
     ],
     "heat_index": {
       "bottom": 100,
-      "middle": 125,
-      "top": 160
+      "middle": 125.9,
+      "top": 161.9
     },
     "cost_curve": {
       "bottom": [
-        12.1,
-        10.39,
-        16.59,
-        23.52
+        12.35,
+        12.45,
+        19.88,
+        28.19
       ],
       "middle": [
-        17.16,
-        11.34,
-        17.54,
-        24.47
+        19.32,
+        12.92,
+        20.34,
+        28.65
       ],
       "top": [
-        26.14,
-        13.03,
-        19.24,
-        26.16
+        35.06,
+        13.96,
+        21.38,
+        29.7
       ]
     },
     "plate_capacity_pct": 100,
     "optimal_skims": {
-      "bottom": 1,
+      "bottom": 0,
       "middle": 1,
       "top": 1
     }
@@ -72,7 +72,7 @@
     "fragile_multiplier": 2,
     "parachute_area_m2": 630,
     "parachute_drag_coefficient": 1.8,
-    "descent_speed_full_hold_ms": 3.99
+    "descent_speed_full_hold_ms": 3.23
   },
   "tow_fee": {
     "free_radius_m": 1200,
@@ -81,8 +81,8 @@
   },
   "eva": {
     "suit_mass_kg": 110,
-    "jetpack_thrust_n": 240,
-    "jetpack_fuel_kg": 18,
+    "jetpack_thrust_n": 520,
+    "jetpack_fuel_kg": 24,
     "jetpack_burn_kgs": 0.35,
     "base_tether_slots": 2,
     "magnet_hold_force_n": 900,
@@ -91,8 +91,8 @@
     "swing_jerk_coefficient": 1
   },
   "economy": {
-    "launch_cost": 120,
-    "replate_cost_per_pct": 3,
+    "launch_cost": 110,
+    "replate_cost_per_pct": 2,
     "repair_cost_per_pct": 5,
     "value_gradient": {
       "at_bottom": 1,
@@ -107,110 +107,107 @@
   },
   "upgrades": [
     {
-      "part": "hand_magnet",
+      "part": "fuel_tank",
       "tier": 1,
-      "cost": 680,
-      "effect": "magnet_range_screens",
-      "value": 0.1875
+      "cost": 400,
+      "effect": "fuel_capacity_kg",
+      "value": 2400
     },
     {
       "part": "fuel_tank",
-      "tier": 1,
-      "cost": 750,
+      "tier": 2,
+      "cost": 1100,
       "effect": "fuel_capacity_kg",
-      "value": 1250
+      "value": 3000
     },
     {
       "part": "thruster",
       "tier": 1,
-      "cost": 850,
+      "cost": 450,
       "effect": "thrust_n",
-      "value": 66000
+      "value": 64000
+    },
+    {
+      "part": "thruster",
+      "tier": 2,
+      "cost": 1200,
+      "effect": "thrust_n",
+      "value": 75000
+    },
+    {
+      "part": "storage",
+      "tier": 1,
+      "cost": 600,
+      "effect": "base_slots",
+      "value": 8
+    },
+    {
+      "part": "storage",
+      "tier": 2,
+      "cost": 1500,
+      "effect": "base_slots",
+      "value": 10
+    },
+    {
+      "part": "heat_shield",
+      "tier": 1,
+      "cost": 700,
+      "effect": "heat_capacity",
+      "value": 221
+    },
+    {
+      "part": "heat_shield",
+      "tier": 2,
+      "cost": 1600,
+      "effect": "heat_capacity",
+      "value": 223
     },
     {
       "part": "parachute",
       "tier": 1,
-      "cost": 1000,
+      "cost": 350,
       "effect": "parachute_area_m2",
       "value": 900
     },
     {
-      "part": "storage",
-      "tier": 1,
-      "cost": 1100,
-      "effect": "base_slots",
-      "value": 9
+      "part": "parachute",
+      "tier": 2,
+      "cost": 1300,
+      "effect": "parachute_area_m2",
+      "value": 1250
     },
     {
-      "part": "heat_shield",
+      "part": "hand_magnet",
       "tier": 1,
-      "cost": 1250,
-      "effect": "heat_capacity",
-      "value": 215
+      "cost": 250,
+      "effect": "magnet_range_screens",
+      "value": 0.1875
     },
     {
       "part": "hand_magnet",
       "tier": 2,
-      "cost": 1500,
+      "cost": 700,
       "effect": "magnet_range_screens",
       "value": 0.25
-    },
-    {
-      "part": "fuel_tank",
-      "tier": 2,
-      "cost": 1600,
-      "effect": "fuel_capacity_kg",
-      "value": 1600
-    },
-    {
-      "part": "thruster",
-      "tier": 2,
-      "cost": 1900,
-      "effect": "thrust_n",
-      "value": 76000
-    },
-    {
-      "part": "parachute",
-      "tier": 2,
-      "cost": 2350,
-      "effect": "parachute_area_m2",
-      "value": 1400
-    },
-    {
-      "part": "storage",
-      "tier": 2,
-      "cost": 2500,
-      "effect": "base_slots",
-      "value": 12
-    },
-    {
-      "part": "heat_shield",
-      "tier": 2,
-      "cost": 2950,
-      "effect": "heat_capacity",
-      "value": 245
     }
   ],
   "balance_notes": [
-    "Finding skim_multiplier_matches_flight: the flown array is adopted verbatim and every number priced off it is recomputed. ablation.skim_heat_multiplier is now [1.0, 0.434, 0.434, 0.434], which is skims.top.skim_heat_multiplier_measured entry for entry — delta 0.000 at all four indices against the audit's tolerance of 0.10. The [1.0, 0.68, 0.66, 0.65] of the last pass came from reading the commit-floor descent table (144.7 / 98.6 / 95.8 / 93.9) as if it were the skim study, and it is not: the skim study is flown at entry depth 0 m with the skim altitude scanned to 23,650 m, and heat_index is flown on that same depth-0 basis, so the product heat_index * skim_heat_multiplier only means anything if both come off it. Mixing the two bases is what made the first skim look like it was worth 0.68x when the flight says 0.434x. The array is non-increasing, starts at 1.0, and 0.434 is well clear of the schema's 0.15 floor. One consequence I am stating rather than hiding: the schema has room for one array and I took the top's, because the top is where the binding case lives — Armstrong's module hangs at 277,000 m. The bottom flies 0.700 and the middle 0.528, so this array overstates skimming by 1.61x at the bottom and 1.22x at the middle, and that is the whole reason the bottom row's argmin moves below.",
-    "GDD 2.2, the ablation model evaluated rather than asserted, so anyone can recompute cost_curve from the six constants. cost(sample,k) = SUM(i=0..k) 3.1 * 1.17^i + 0.0009 * (heat_index[sample] * skim_heat_multiplier[k])^2 + k * 0.0009 * 46.7^2. Per-cycle tolls are 3.100 / 3.627 / 4.244 / 4.965, cumulative 3.100 / 6.727 / 10.971 / 15.936. Each skim adds 0.0009 * 2,180.89 = 1.963. Entry terms: bottom 9.000 at k=0 (100^2) and 1.695 at k>=1 (43.40^2 = 1,883.56); middle 14.063 at k=0 (125^2 = 15,625) and 2.649 at k>=1 (54.25^2 = 2,943.06); top 23.040 at k=0 (160^2 = 25,600) and 4.340 at k>=1 (69.44^2 = 4,821.91). Summing gives bottom [12.10, 10.39, 16.59, 23.52], middle [17.16, 11.34, 17.54, 24.47], top [26.14, 13.03, 19.24, 26.16], so optimal_skims reads 1 at all three samples — argmins of a curve, not targets. The bottom's argmin moved from 0 to 1 in this revision and it moved for one reason: the adopted top-sample multiplier flatters skimming down there. On the bottom's own flown 0.700 the k=1 entry term would be 0.0009 * 70^2 = 4.410 and the k=1 cost 13.10 against a k=0 cost of 12.10, so the bottom's true argmin is 0. I am reporting the curve the emitted constants actually produce, not the one I would prefer; the fix is a per-sample multiplier array, which this schema does not have.",
-    "GDD 2.2, the commit floor and the four peaks, all flown at this mass with the entry pinned at the floor and the skim altitude scanned above it. reentry.commit_floor_m 8,000 — 35 km below atmosphere_top_m, so it constrains rather than decorates, and 8 km above the ground, so an empty hold is not taxed into a dive. From the top of the band, in bar units: empty 144.7, full hold 149.8, Armstrong's module 265.3 on a plunge. The module's skimmed descents are 203.4 at one skim, 188.9 at two and 200.9 at three, and the 166.1 I claimed last pass for the one-skim descent is withdrawn — it was arithmetic off the wrong multiplier, not a measurement, and the flight says 203.4. The empty ship's own skimmed row is 144.7 / 83.6 / 102.3 / 108.8, which turns back up after one skim, so at the commit floor the peak-heat minimum sits at one skim for a light ship and two for the module. That is the design working: the floor is load-bearing and measurably so — at a 20,000 m floor the module plunges at 134.8 and no capacity could forbid it.",
-    "GDD 2.2 and 2.5, the heat capacity ladder — 185 base, 215 tier 1, 245 tier 2 — re-checked against the corrected module peaks rather than against last pass's 166.1. Lower bound holds unchanged: the base tier is 23% above the full hold's 149.8 top-of-band plunge and 28% above the empty ship's 144.7, so an empty ship and a full hold plunge freely from anywhere in the band at every tier, and the mechanic stays special rather than mandatory. Upper bound holds unchanged: the maxed 245 is 7.7% below the module's 265.3 plunge, so no shield purchase buys the plunge back. What the correction changes is which tier flies the finale. The module's best skimmed descent is 188.9 at two skims and 203.4 at one, both above the base 185, so the base shield cannot bring the module home at all; tier 1 at 215 clears the one-skim 203.4 with 5.7% of margin, and tier 2 at 245 clears it with 20%. I have left the ladder where it is rather than dropping the base capacity to fit, because that is GDD 2.6's 'reachable and landable only near full upgrades' stated in bar units, and lowering the base tier to 205 would put it under the full hold's 149.8 plunge by only 37% and start taxing ordinary hauls. The honest reading of the corrected flight is that the finale needs a shield purchase and one skim, or the base shield and nothing — and the base shield and nothing is not a route.",
-    "GDD 2.2, thermal fatigue as the whole brake, repriced off the corrected module peaks. cycle_toll_growth is 1.17, above 1 as the schema requires, with cycle_toll_base_pct 3.1, so the toll on cycle i is 3.10 / 3.63 / 4.24 / 4.97 / 5.81 and the sum grows superlinearly: 4 cycles cost 15.9% of plate and 7 cost 36.5%. A 25-pass feathering descent is 24 skims plus a commit: SUM(i=0..24) 3.1 * 1.17^i = 3.1 * (1.17^25 - 1)/0.17 = 3.1 * 292.1 = 905.5% of plate, plus 24 skim terms at 1.963 = 47.1%, so it is not available, which is GDD 2.2's point. The module's finale now costs more than I claimed last pass and is still affordable: one skim plus a commit is 6.73 in toll, 0.0009 * 203.4^2 = 37.23 for the committed entry and 1.96 for the skim itself — 45.9% of plate, home with a little over half the shield left, against the 33.5% I wrongly reported. The plunge it is forbidden would have cost 0.0009 * 265.3^2 + 3.10 = 66.4% even if the bar allowed it. A skim costs 0 m/s of dv and about six minutes, so this toll is the only thing bounding pass count and it is priced as the whole brake, not as a tiebreaker.",
-    "Read this note before the doubling finding, because it decides it. full_hold_doubles_mass and parachute_speed_under_soft_threshold are mutually exclusive at this catalog, and no dry_mass_kg satisfies both. The hold is not mine: the harness computes it spawn-weighted over the shipping slice, hand-tetherable classes only, at the size_classes slot cost — 4,617 kg-weight over 266 slot-weight = 17.357 kg per slot, so six slots carry 104.1 kg. Doubling then needs dry_mass_kg <= 208 kg. The GDD's own canopy, 630 m2 at Cd 1.8, needs dry + 104.1 >= 1,157.6 kg for 3.5 m/s, i.e. dry_mass_kg >= 1,053 kg. The two windows are five times apart and do not touch. The two findings have one root and it is not dry mass: it is 17.4 kg per slot. Concern filed; unchanged this revision, because nothing the current finding implicates touches mass.",
-    "Full-hold mass doubling (GDD 2.4) — FAILS, and I am reporting it rather than moving the thing being measured. dry_mass_kg 1400, six slots at the harness's 17.357 kg = 104.1 kg, full hold 1,504.1 kg, ratio 1.074. On base_slots times the shipping slice's 21-piece mean of 35.57 kg it is 213.4 kg and 1.152. Both are far short. What would make it true: the slice needs roughly 97-125 kg per slot against the 17.4 it has, which is a 5.6x rescale of the bottom two thirds or a one-piece-one-slot model with ~100 kg pieces. I did not take the other exit — dry_mass_kg 208 — because it satisfies this rule by making every other landing rule vacuous: at 312 kg all-up the stated canopy lands everything at 1.8 m/s, both Parachute tiers become dead content, and staged beta falls to 64 kg/m2 against the Researcher's flagged floor of 100. base_slots stays at 6, the GDD walkthrough's on-screen number, and I did not move it.",
-    "Parachute descent speed at full hold (GDD 2.3) — parachute_area_m2 630 at parachute_drag_coefficient 1.8, both exactly as the GDD states them. v = sqrt(2 m g / (rho_0 Cd A)) = sqrt(2 * 1504.1 * 9 / (1.5 * 1.8 * 630)) = sqrt(27,073.8 / 1,701) = sqrt(15.916) = 3.99 m/s, emitted as descent_speed_full_hold_ms 3.99. Flown, the integrator touches down at 3.99 m/s from all three sample altitudes, a 0.0% delta, and the same canopy gives 3.85 m/s empty and 7.27 m/s under Armstrong's module. Under the 5.0 line by 20%, above the 3.5 floor by 14%. Unchanged and unimplicated this revision.",
-    "Flight and the first launch (charter step 1), measured rather than argued, and unchanged this revision. dry 1400 kg, tank 860 kg, thrust 57,000 N at 13.0 kg/s: liftoff TWR 2.80, dv 2,100 m/s. A ballistic arc reaches the band floor with 13% of tank left and 126 s above it, and reaches mid-band with 5%. It cannot circularise anywhere in the band at any thrust tier, which is exactly the GDD 2.5 progression beat: the arc is the first launch's route, fuel tank tier 1 (1,250 kg) is what buys orbit at the floor with 6% left, and tier 2 (1,600 kg) circularises at the top of the band with 9%, which is the finale's ride. Staged beta is 1400 / (1.4 * 3.5) = 286 kg/m2, inside the Researcher's 300-500 capsule range and well clear of their beta-under-100 warning.",
-    "Break-even for a lazy run (GDD 2.5) — launch_cost 120 against a crumpled panel stack at 56,000 m, which prices at small 40 * (1.0 + 4.5 * 6,000/230,000) = 44.7. That is 2.7 cheap pieces, the GDD's 'two to three' exactly. A lazy arc to the floor now comes back on the bottom sample's cheapest column at 10.39% of plate rather than 12.10 — the corrected curve makes the lazy run slightly cheaper, not dearer — so replating at 3 per percent adds 31.2 and the turnaround is 151.2; four floor pieces (two panel stacks at 44.7, two bent truss sections at 120) pay 329 and clear it 2.2x. The mercy floor means cash stopping at zero can never block a launch.",
-    "No shear under steady tow (charter step 6), unchanged and unimplicated. Steady tension is the towed mass times the achieved acceleration, and a = jetpack_thrust_n / (suit_mass_kg + towed), so tension is strictly bounded by jetpack thrust itself: 240 N, approached but never reached, at any load and any tether count. Worst legal cases: two impact-pitted engine bells at 122 kg give a = 240/354 = 0.678 m/s2 and 165 N; Armstrong's module at 3,600 kg gives a = 240/3,710 = 0.065 m/s2 and 233 N. magnet_hold_force_n 900 is a 3.9x margin over the worst case, so shear can only fire on latch jerk or swing jerk, both left at 1.0. Towing two mid-band pieces (mean 52.9 kg) drops bare-suit acceleration from 2.18 to 1.11 m/s2 — halved, heavier, still flyable.",
-    "Storage and Parachute as a pair (charter step 8) — the pair works for the finale and is inert at base storage, and the reason is the same 17.4 kg per slot. Twelve slots of shipping-slice junk is 208 kg, which lands at 4.13 m/s on the base canopy, so a maxed hold cannot push this ship past the 5 m/s line and the greedy-haul crossing the GDD wants from Storage does not exist at this catalog. Empty is 3.85 and a full hold 3.99 — a 3.6% spread across the entire greed decision. Where the pair does bite is Armstrong's module: 5,000 kg all-up lands at 7.27 m/s on the base canopy and 6.09 at tier 1, both hard enough to cost the module a state, and only tier 2's 1,400 m2 brings it to 4.88 m/s and a pristine delivery.",
-    "Tow fee (charter step 5) — free_radius_m 1200 is one screen of the pad; the fee rises linearly to max_fee_fraction 0.5 at half the planet's circumference, pi * 200,000 = 628,319 m, a slope of 8.0e-7 of haul value per metre beyond the free radius. It is a fraction of the haul, so it cannot go negative, cannot exceed 50%, and cannot touch savings. Unchanged and unimplicated.",
-    "Upgrade pacing (charter step 8) — twelve purchases totalling 18,430, costs and order unchanged from the last pass because the catalog, the value gradient and the size-class values did not move, and the current finding touches none of them. Cheapest-first runs hand magnet, tank, thruster, parachute, storage, shield, then the same six at tier 2, so Parachute tier 1 (1,000) is affordable before Storage tier 1 (1,100) and tier 2 (2,350) before Storage tier 2 (2,500) — the counterweight stays ahead of the difficulty on the natural spending path. A mid-band run nets about 1,600 and a maxed top-band run about 5,800, so 13-15 runs clears the ladder with three to five learning failures losing their hauls, inside GDD 2.5's 12-15 flexing to 18.",
-    "What this revision deliberately did not move, so the next audit is interpretable. Only ablation.skim_heat_multiplier, ablation.cost_curve and ablation.optimal_skims changed as values, plus the notes that quoted numbers derived from the withdrawn array. heat_index (100 / 125 / 160), skim_peak (46.7), cycle_toll_base_pct, cycle_toll_growth, heat_cost_coefficient, heat_cost_exponent, reentry.heat_capacity and the whole shield ladder, flight, cargo, landing, tow_fee, eva, economy and upgrades are all byte-identical to the previous attempt. skim_peak in particular I left at 46.7 even though the scan altitude the audit reports (23,650 m) differs from the 26,606 m the previous scan found, because the audit did not report a measured skim_peak and guessing a new one would move a value nothing implicated."
+    "Finding 4 and 3, shipping_slice_reachable and launch_survives_itself: the flight block is rebuilt and the climb now completes. thrust_n 52000 over fuel_burn_kgs 18.6 is an exhaust velocity of 2795.7 m/s; wet mass 800 + 1600 = 2400 kg gives ideal dv = 2795.7 * ln(2400/800) = 3071 m/s at liftoff TWR 52000/(2400*9) = 2.41, inside the 1.4-2.6 band the audit read off its own reachable cluster. Flown, not argued: at the bottom sample both routes reach — orbit_reached true with 6.9% of tank left after circularising, arc_reached true with apex 73,749 m, a 125.9 s EVA window and 29.4% margin, against GDD 2.5's stated 29.5% and 97 s. The middle sample circularises at 2.9%; the top is arc-only (368 s window, 18.0% margin) and reports 'out of fuel before circularising', which is the progression beat GDD 2.5 asks for rather than a failure. The previous 105/70 vehicle died at 5,116 m because at 3.5 m2 of frontal area and 1.5 kg/m3 of sea-level density a 175 kg ship has no ballistic coefficient to spend; 2,400 kg wet does. climb_peak_heat is now a real measurement rather than a vacuous zero: 50.0 / 47.5 / 46.7 bar units on the three ascents, peaking at 19,459 m and 874 m/s — 47.5 at the middle sample reproduces GDD 2.2's stated ascent peak exactly — against heat_capacity 219, so the base ship survives its own launch with 77% of the bar unused and meets the mechanic somewhere it cannot kill it.",
+    "Finding 1, heavy_descent_requires_multi_pass, and the commit floor that makes it possible. reentry.commit_floor_m stays at GDD 2.2's stated 8,000 m: 35,000 m below atmosphere_top_m 43,000, so it genuinely constrains the entry, and 8 km above ground, so it is not the zero floor that turns the mechanic into a tax. Measured on committed_descents with the entry pinned there and the skim altitude scanned above it, all twelve rows: Armstrong's module plunges at 223.7 (bottom), 268.5 (middle), 335.5 (top) and comes home skimmed at 204.4 / 213.9 / 217.8, so its whole capacity window is (217.8, 223.7). The ladder is placed inside it — base heat_capacity 219, heat_shield tier 1 221, tier 2 223. Every tier is above 217.8, so a skimmed module survives at every shield the player can buy; every tier is below 223.7, so no purchase ever buys the plunge back. An empty ship plunges at 93.8 / 116.0 / 147.8 and a full hold at 104.3 / 128.6 / 163.4, both comfortably under 219 from anywhere in the band, so the inversion the last pass produced — ordinary cargo forced to aerobrake before the module — is gone: must_skim is false in all nine non-module rows and true in all three module rows. Two honest caveats. The window is 2.7% wide, not 32%: with the Researcher's drag_coefficient_shield 1.4 and this catalog it is the widest the physics offers, and I found it by scanning dry mass, which is the only parameter that moves it (at dry 900 the window is 0.8%, at 1,000 it is negative). And from the top of the band the module needs two skims, not one — at k=1 it peaks at 243.2, above every tier — so the finale is a three-cycle aerobraking descent. That is stricter than GDD 2.2's 'one skim, then commit' and the design should say so.",
+    "Finding 2, skim_multiplier_matches_flight: the flown array is adopted verbatim, and every number priced off it is recomputed. ablation.skim_heat_multiplier is [1.0, 0.405, 0.405, 0.405], which is skims.top.skim_heat_multiplier_measured for this vehicle entry for entry, delta 0.000 at all four indices. It is flat after index 1 because the flight is flat after index 1 — at these ballistic coefficients one skim at the scanned altitude drops apoapsis into the air and there is nothing left to shed — and 0.405 is well clear of the schema's 0.15 floor. The claimed [1, 0.71, 0.63, 0.60] of the last pass was pricing a benefit that was measured not to exist. The bottom and middle samples fly [1, 0.702, ...] and [1, 0.526, ...] and the schema has room for one array; I took the top's, because the top is where the binding case lives — the module hangs at 277,000 m and cannot plunge from anywhere. The cost is that the array overstates skimming at the bottom by about 1.7x, which is exactly why the bottom row's optimum is a near tie below.",
+    "GDD 2.2, the ablation model evaluated rather than asserted, so anyone can recompute cost_curve from the six constants. cost(sample,k) = SUM(i=0..k) 5.35 * 1.13^i + 7.0e-6 * (heat_index[sample] * skim_heat_multiplier[k])^3 + k * 7.0e-6 * 43.9^3. Per-cycle tolls are 5.350 / 6.046 / 6.831 / 7.719, cumulative 5.350 / 11.396 / 18.227 / 25.946. Each skim adds 7.0e-6 * 43.9^3 = 7.0e-6 * 84,605 = 0.592. Entry terms: bottom 7.000 at k=0 and 0.465 at k>=1 (40.50^3); middle 13.969 at k=0 (125.9^3 = 1,995,617) and 0.928 at k>=1 (50.99^3); top 29.706 at k=0 (161.9^3 = 4,243,660) and 1.973 at k>=1 (65.57^3). Summing gives bottom [12.35, 12.45, 19.88, 28.19], middle [19.32, 12.92, 20.34, 28.65], top [35.06, 13.96, 21.38, 29.70], so optimal_skims reads bottom 0, middle 1, top 1 — argmins of a curve, not targets. The bottom's 12.35 against 12.45 is a 0.8% tie, and it is a tie because the adopted top-sample multiplier flatters skimming down there; on the bottom's own flown 0.702 the k=1 cost would be 12.62 and the argmin would be 0 by a clearer margin. optimal_skims is a report either way and the design takes its multi-pass requirement from heat_capacity, not from this curve.",
+    "GDD 2.2, thermal fatigue as the whole brake, checked against the document's own 847% figure. cycle_toll_growth is 1.13, above 1 as the schema requires, with cycle_toll_base_pct 5.35. A 25-pass feathering descent is 24 skims plus one committed entry, so 25 heat cycles: SUM(i=0..24) 5.35 * 1.13^i = 5.35 * (1.13^25 - 1)/0.13 = 5.35 * 155.61 = 832.5% of plate, plus 24 skim terms at 0.592 = 14.2% and a 1.97% entry term, totalling 848.7% — GDD 2.2's '847% of plate, which is to say it is not available', reproduced to within 0.2% by two constants rather than quoted at. A flat toll would give 25 * 5.35 = 134% and would not stop anyone. A skim costs 0 m/s of dv and about six minutes, so this is the only thing bounding pass count, and it is priced as the whole brake.",
+    "GDD 2.3 and finding 5, the parachute: the GDD's stated canopy is restored and the speed is now a prediction the flight can contradict. parachute_area_m2 is back to the document's 630 at parachute_drag_coefficient 1.8 — the last pass shrank it 8.75x to 72 m2, which held 4.4 m/s fixed while the mass under it moved, and that is precisely the tautology the field was added to end. Against the Researcher's rho0 = 1.5 and g = 9.0, on the full-hold mass the sweep computes (dry 800 + 6 slots at 30.43 kg = 182.6, so 982.6 kg): v = sqrt(2 * 982.6 * 9.0 / (1.5 * 1.8 * 630)) = sqrt(17,686.8 / 1,701) = sqrt(10.398) = 3.23 m/s. Flown, the integrator lands the full hold at 3.22 m/s at all three sample altitudes — delta 0.01 m/s, 0.3% of the claim, with independent true. It is under the 5.0 soft line but also under the ~3.5 the audit wants for headroom, by 0.28 m/s, and that is a catalog consequence rather than a choice: see catalog_concerns. Armstrong's module lands at 6.83 m/s on the base canopy, hard enough to degrade it one state, so the Parachute track is what buys the win condition rather than what buys ordinary landings — tier 1 (900 m2) gives 5.71 m/s, still hard; tier 2 (1,250 m2) gives 4.84 m/s, soft, and a pristine delivery. That is GDD 2.6's 'landable only near full upgrades' expressed as a canopy.",
+    "Finding 5, no_target_moved_to_pass, and the one quantity I could not satisfy without moving something that is not mine. Three GDD-stated numbers are restored or held: parachute_area_m2 630 and parachute_drag_coefficient 1.8 (GDD 2.3), cargo.base_slots 6 and eva.base_tether_slots 2 (GDD 2.4, 2.5), reentry.commit_floor_m 8,000 (GDD 2.2). dry_mass_kg is set at 800 by the two constraints the audit named — staged ballistic coefficient 800 / (1.4 * 3.5) = 163.3 kg/m2, above the Researcher's floor of 100 and far above the ~50 cliff where first contact erases the orbit rather than trimming it, and the capacity window above, which closes entirely at dry mass 950 and beyond. It is NOT set to make GDD 2.5's full-hold doubling read 2.00x; that rule now reads 982.6 / 800 = 1.23x and is reported as broken rather than satisfied from dry mass, which is what the audit asked for. Making it true would require dry_mass_kg 183, which gives a staged ballistic coefficient of 37 — below the aerobraking cliff, so the skim mechanic and the ascent both disappear, which is exactly the failure the last pass shipped. Two GDD quantities cannot both be true of this vehicle; the resolution here is to keep the flyable one and name the other.",
+    "GDD 2.5, a lazy run breaks even, computed from the catalog rather than asserted. A piece's multiplier is 1.0 + 4.5 * (altitude_m - 50,000) / 230,000. The three cheapest hand-tetherable pieces off the floor are crumpled_panel_stack (56,000 m, small, x1.117) at 44.70, spent_kick_motor_casing (73,500 m, x1.460) at 58.39 and seized_reaction_wheel_housing (106,000 m, x2.096) at 83.83 — two of them are 103.1 and three are 186.9, and launch_cost 110 sits between, which is GDD 2.5's 'the value of two to three cheap pieces' read straight off this catalog. A lazy six-slot run of panel stacks grosses 268.2 against 110 for the stage and 12.35% of plate at replate_cost_per_pct 2 = 24.7, netting 133.5; swap one panel for a bent_truss_section (119.93, two slots) and it nets 164. Even at the tow fee's 50% clamp the run lands at break-even rather than negative, which is what the clamp is for, and the mercy floor covers the rest. One intact cracked_solar_array (61,500 m, medium, fragile) is 90 * 1.225 * 3.0 = 330.8 on its own — more than the entire six-panel haul — so fragile_value_premium 3.0 reshapes a run's payout exactly as the charter asks.",
+    "GDD 2.4, no shear under steady tow, proved as a bound rather than case by case. Steady cable tension is m_piece * a with a = jetpack_thrust_n / (suit_mass_kg + total towed), so tension = 520 * m / (110 + M), which is strictly below jetpack_thrust_n = 520 N at every load and every tether count — towed mass suppresses acceleration faster than it loads the cable, so the bound holds for any catalog whatever. magnet_hold_force_n is 900 N, a 1.73x margin everywhere, so shear can only fire on latch jerk and swing jerk, which is what GDD 2.4 says it is for. Worst real cases: the two heaviest shipping-slice pieces (dead_thruster_quad 70 kg plus shattered_star_tracker 72 kg) put 148.6 N on the cable at 2.06 m/s2; Armstrong's 3,600 kg module puts 388.2 N at 0.140 m/s2, still 2.3x under the hold force, and at 0.35 kg/s a 24 kg jetpack tank buys 68.6 s of continuous thrust for that haul. A bare suit accelerates at 4.73 m/s2 and a two-piece mid-band tow at 2.06 — a 2.3x penalty, heavy enough to be a decision and light enough to fly. The hand_magnet tiers buy magnet_range_screens (0.125 to 0.1875 to 0.25) rather than hold force, per GDD 2.4's mass-neutral promise.",
+    "GDD 2.2, why heat_index and the capacity ladder are different numbers on the same bar, because reading one as the other is how the last audit's evidence and mine can look contradictory. heat_index is the peak of a DIRECT entry at periapsis 0 with an empty hold, normalised so the bottom sample reads 100 — bottom 100.0, middle 125.9, top 161.9 — because that periapsis-0 basis is the one the skim study shares, and the product heat_index * skim_heat_multiplier only means anything if both come off the same basis. skim_peak 43.9 is measured on the same basis: the peak of the skim pass itself, empty ship, top of the band. The capacity ladder is measured somewhere else — at commit_floor_m 8,000 m, the shallowest entry a player may legally fly, where the top's empty-ship entry reads 147.8 against 161.9 at depth 0. Neither is wrong. A periapsis-0 entry is not a legal descent, so it prices the skim model and does not set the capacity.",
+    "GDD 2.5, the shop, priced against runs rather than listed. The twelve purchases total 10,150. Net profit per run at the tier that buys them: a floor run nets 133-165, a mid-band run of three torn_solar_wing_spars (131,000 m, x2.585, 232.7 each) nets 562 after launch and replating, and a maxed ten-slot top-band run of scorched_fuel_cell_stacks (242,500 m, x4.766, 429 each) nets about 2,000 — so 12-15 runs clear the shop with three to five budgeted failures still funded, which is GDD 2.5's pacing target. The tank and thruster tiers are sized as a pair because apex is thrust-limited: base 52,000 N on 2,400 kg is TWR 2.41, tank tier 1 (2,400 kg) with thruster tier 1 (64,000 N) on 3,200 kg is 2.22, tank tier 2 (3,000 kg) with thruster tier 2 (75,000 N) on 3,800 kg is 2.19. Flown, tank tier 1 turns the top of the band from arc-only into a real orbit — circularising at 215,000 m with about 12% of tank left where the base ship cannot circularise there at all — which is GDD 2.5's 'the buy that turns a hop into a stay', one band higher than the document places it.",
+    "Two things I could not fix from here, stated rather than tuned around. (1) GDD 2.5 makes the heat shield the only mass-reducing purchase — the systemic counterweight to storage-driven landing difficulty — but the upgrades schema carries one effect per entry and the charter requires heat_shield to buy heat_capacity, so dry_mass_kg stays 800 at every tier and the counterweight in this value set is Parachute. (2) GDD 2.6 says value scales with mass on top of the altitude gradient; economy has only size_class_base_value and the gradient, no mass term, so a 112 kg cracked_command_module_hatch (small, 268,000 m) prices at 190.6 while a 78 kg cracked_deep_space_dish (medium, fragile, 217,500 m) prices at 986.7. The catalog's masses do rise with altitude so the gradient carries the intent approximately, but the coupling the GDD claims is not in these numbers."
   ],
   "catalog_concerns": [
-    "The whole shipping slice, mass_kg: the bottom two thirds cannot make GDD 2.4's full-hold doubling true against any ship the GDD's own canopy can land. The harness loads six slots at 17.357 kg per slot — spawn-weighted over the hand-tetherable slice at the size_classes slot cost — for a 104.1 kg hold. Doubling wants roughly 97-125 kg per slot, a 5.6x rescale of the bottom two thirds (a crumpled panel stack near 45 kg rather than 8, a warped gyro deck near 340 rather than 61), or the same effect via the slot model below. Re-filed unchanged from the last pass with the number attached rather than the argument.",
-    "size_classes block, slots_crushed / slots_uncrushed: shipping_slice.slots_per_piece says 1, but the harness prices the hold off slots_crushed and slots_uncrushed and gets 3.4 pieces per six slots, not six. That single disagreement is worth a factor of 2.05 on every hold mass in this file (17.36 kg per slot against a 35.57 kg mean piece). Either the size-class slot table should collapse to 1/1 inside the slice so a slot is a piece, as the shipping_slice object says, or the slice's masses need to carry the crush factor. Both fixes are yours; neither is reachable from the params.",
-    "collapsed_dish_frame, buckled_pressure_bulkhead, severed_boom_mast, size_class: all three are oversized and hand_tetherable false, so shipping_slice.oversized_reachable false is correct and economy.size_class_base_value.oversized (320) prices something no hold can contain. I have left the value in place because the schema requires the key, but nothing in the slice can earn it. Flagging it as vestigial rather than asking for the pieces to move — their job as the piece the magnet visibly refuses is a good one."
+    "The shipping slice's mass per slot, against GDD 2.5's full-hold doubling and GDD 2.3's parachute margin at the same time. Spawn-weighted over the bottom two thirds, hand-tetherable only, at compactor_tier 1, the catalog prices out at 30.43 kg per slot, so six base slots is a 182.6 kg hold. For GDD 2.5's 'a full hold roughly doubles the rocket's mass' to be true, dry_mass_kg would have to be 183 — a staged ballistic coefficient of 37, below the ~50 cliff where the atmosphere stops the ship instead of braking it, which deletes the skim mechanic and crashes the ascent. I balanced against the catalog as it stands and left the rule broken at 1.23x rather than satisfy it from dry mass. The same shortfall costs the parachute its headroom: at 630 m2 and Cd 1.8 the full hold lands at 3.23 m/s, 0.28 m/s under the ~3.5 the audit wants, because there is not enough cargo mass to load the canopy. Both close at once if the slice averages about 133 kg per slot — a full hold would then be 800 kg on an 800 kg ship, exactly 2.00x, and land at 4.11 m/s, in the middle of the soft band. That is a 4.4x raise on the pieces below 203,333 m and it is a much bigger ask than the 2.2x of the last revision; the honest alternative, if the floor cannot carry that, is for the GDD to withdraw the doubling sentence, because no dry mass satisfies it and the flight at once.",
+    "Storage tier 2 has no effect on landing difficulty, which is the pair GDD 2.5 designs around. At 30.43 kg per slot, going from 6 slots to 10 adds 121.7 kg to a 800 kg ship and moves the full-hold touchdown from 3.23 to 3.42 m/s — both soft, on the base canopy, with no purchase required. GDD 2.5's 'storage raises the profit ceiling and the difficulty of the flight home' is currently only the first half: the profit ceiling rises 67%, the difficulty does not move. This is the same per-slot mass finding as above seen from the shop's side, and it is why Armstrong's module rather than a maxed hold is doing all of the Parachute track's work.",
+    "armstrongs_module at 3,600 kg against the heaviest ordinary piece, recorded as a property to protect rather than a defect. severed_boom_mast at 165 kg is 21.8x lighter and impact_pitted_engine_bell at 122 kg is the heaviest the magnet can legally take, so the module is 4.5x a maxed ten-slot hold on its own. That ratio is what keeps every ordinary haul under 164 on the bar while the module plunges at 223.7-335.5, and it is the only reason a capacity window exists at all — at drag_coefficient_shield 1.4 that window is (217.8, 223.7), 2.7% wide, and it closes from below the moment the top of the catalog drifts toward a full hold's mass. If a future pass rescales masses, the quantity to hold is module_mass / (base_slots * shipping_slice_mean), currently 19.7."
   ]
 }

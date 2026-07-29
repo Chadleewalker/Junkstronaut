@@ -132,7 +132,7 @@ Then everything downstream re-runs and the Auditor checks again, up to twice.
 
 **Why it routes instead of always going to the Balancer.** The first version of this crew
 sent every failure to the Balancer, and it went wrong in a way worth keeping in the README.
-The audit failed because fragile junk was spawning too often in the high band — that's the
+The audit failed because fragile junk was spawning too often near the top of the band — that's the
 Designer's data. But the Balancer was the only agent in the loop, so it did the only thing
 it could: it wrote a corrected copy of the junk list inside its own output. The next audit
 passed. Everything looked green, and the project now had two junk lists that disagreed,
@@ -152,7 +152,7 @@ the finished game. The Auditor turns each one into a check and does the arithmet
 
 - A full cargo hold roughly doubles the ship's mass
 - The cheapest way down is 2 to 4 aerobraking passes — never one dive, never a dozen
-- The skim cost curve bottoms out at 1 to 2 skims from the high band, and reproduces its own
+- The skim cost curve bottoms out at 1 to 2 skims from the top of the band, and reproduces its own
   coefficients — a separate question from the one above, and checked separately, because a
   skim and a pass are different things and mixing them up produced three wrong answers before
   anyone noticed
@@ -248,7 +248,7 @@ It keeps a hard line between two kinds of number:
 
 Then it sweeps. 5,184 worlds, varying planet radius, gravity, air density, the ship's frontal
 area, its dry mass, its tank size and its engine, each scored against eight targets pulled
-from the design: are both bands reachable, is the fuel margin sane, does skimming actually
+from the design: is the band reachable at every sample altitude, is the fuel margin sane, does skimming actually
 cool the committed entry, does that benefit saturate, is an unstaged braking pass survivable,
 does a full hold land soft, does greed cost something, does the return leg get harder with
 altitude. (`node bench.js --targets` prints them with what each one asks for.)
