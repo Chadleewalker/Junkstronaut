@@ -1,0 +1,262 @@
+{
+  "agent": "debris-designer",
+  "size_classes": {
+    "small": {
+      "slots_crushed": 1,
+      "slots_uncrushed": 2,
+      "hand_tetherable": true
+    },
+    "medium": {
+      "slots_crushed": 2,
+      "slots_uncrushed": 4,
+      "hand_tetherable": true
+    },
+    "oversized": {
+      "slots_crushed": 6,
+      "slots_uncrushed": 12,
+      "hand_tetherable": false
+    }
+  },
+  "debris": [
+    {
+      "id": "torn_foil_blanket",
+      "altitude_m": 52500,
+      "size_class": "small",
+      "fragile": true,
+      "mass_kg": 110,
+      "spawn_weight": 3
+    },
+    {
+      "id": "crumpled_panel_stack",
+      "altitude_m": 56000,
+      "size_class": "small",
+      "fragile": false,
+      "mass_kg": 155,
+      "spawn_weight": 18
+    },
+    {
+      "id": "cracked_solar_array",
+      "altitude_m": 61500,
+      "size_class": "medium",
+      "fragile": true,
+      "mass_kg": 200,
+      "spawn_weight": 2
+    },
+    {
+      "id": "bent_truss_section",
+      "altitude_m": 67000,
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 330,
+      "spawn_weight": 15
+    },
+    {
+      "id": "spent_kick_motor_casing",
+      "altitude_m": 73500,
+      "size_class": "small",
+      "fragile": false,
+      "mass_kg": 249,
+      "spawn_weight": 12
+    },
+    {
+      "id": "collapsed_dish_frame",
+      "altitude_m": 86500,
+      "size_class": "oversized",
+      "fragile": false,
+      "mass_kg": 520,
+      "spawn_weight": 2
+    },
+    {
+      "id": "shredded_antenna_mesh",
+      "altitude_m": 93000,
+      "size_class": "medium",
+      "fragile": true,
+      "mass_kg": 360,
+      "spawn_weight": 2
+    },
+    {
+      "id": "cracked_battery_pallet",
+      "altitude_m": 99500,
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 448,
+      "spawn_weight": 11
+    },
+    {
+      "id": "seized_reaction_wheel_housing",
+      "altitude_m": 106000,
+      "size_class": "small",
+      "fragile": false,
+      "mass_kg": 275,
+      "spawn_weight": 12
+    },
+    {
+      "id": "burst_pressurant_sphere",
+      "altitude_m": 113000,
+      "size_class": "small",
+      "fragile": false,
+      "mass_kg": 285,
+      "spawn_weight": 10
+    },
+    {
+      "id": "delaminated_radiator_fin",
+      "altitude_m": 120000,
+      "size_class": "medium",
+      "fragile": true,
+      "mass_kg": 480,
+      "spawn_weight": 2
+    },
+    {
+      "id": "torn_solar_wing_spar",
+      "altitude_m": 131000,
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 560,
+      "spawn_weight": 11
+    },
+    {
+      "id": "cracked_optics_barrel",
+      "altitude_m": 138000,
+      "size_class": "small",
+      "fragile": true,
+      "mass_kg": 500,
+      "spawn_weight": 3
+    },
+    {
+      "id": "fractured_docking_collar",
+      "altitude_m": 145000,
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 574,
+      "spawn_weight": 10
+    },
+    {
+      "id": "dead_thruster_quad",
+      "altitude_m": 152500,
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 576,
+      "spawn_weight": 12
+    },
+    {
+      "id": "buckled_pressure_bulkhead",
+      "altitude_m": 160000,
+      "size_class": "oversized",
+      "fragile": false,
+      "mass_kg": 900,
+      "spawn_weight": 2
+    },
+    {
+      "id": "ruptured_helium_tank",
+      "altitude_m": 167000,
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 578,
+      "spawn_weight": 11
+    },
+    {
+      "id": "shattered_star_tracker",
+      "altitude_m": 174000,
+      "size_class": "small",
+      "fragile": true,
+      "mass_kg": 560,
+      "spawn_weight": 4
+    },
+    {
+      "id": "warped_gyro_deck",
+      "altitude_m": 181500,
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 580,
+      "spawn_weight": 11
+    },
+    {
+      "id": "cracked_ablative_nose_cone",
+      "altitude_m": 189000,
+      "size_class": "medium",
+      "fragile": true,
+      "mass_kg": 1000,
+      "spawn_weight": 3
+    },
+    {
+      "id": "split_avionics_rack",
+      "altitude_m": 197500,
+      "size_class": "medium",
+      "fragile": true,
+      "mass_kg": 1120,
+      "spawn_weight": 2
+    },
+    {
+      "id": "torn_reactor_shield_plate",
+      "altitude_m": 209000,
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 580,
+      "spawn_weight": 11
+    },
+    {
+      "id": "cracked_deep_space_dish",
+      "altitude_m": 217500,
+      "size_class": "medium",
+      "fragile": true,
+      "mass_kg": 1140,
+      "spawn_weight": 3
+    },
+    {
+      "id": "fused_ion_grid_assembly",
+      "altitude_m": 226000,
+      "size_class": "small",
+      "fragile": true,
+      "mass_kg": 580,
+      "spawn_weight": 2
+    },
+    {
+      "id": "severed_boom_mast",
+      "altitude_m": 234000,
+      "size_class": "oversized",
+      "fragile": false,
+      "mass_kg": 1100,
+      "spawn_weight": 2
+    },
+    {
+      "id": "scorched_fuel_cell_stack",
+      "altitude_m": 242500,
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 580,
+      "spawn_weight": 9
+    },
+    {
+      "id": "shattered_cryo_dewar",
+      "altitude_m": 251000,
+      "size_class": "medium",
+      "fragile": true,
+      "mass_kg": 1160,
+      "spawn_weight": 3
+    },
+    {
+      "id": "impact_pitted_engine_bell",
+      "altitude_m": 259500,
+      "size_class": "medium",
+      "fragile": false,
+      "mass_kg": 580,
+      "spawn_weight": 7
+    },
+    {
+      "id": "cracked_command_module_hatch",
+      "altitude_m": 268000,
+      "size_class": "small",
+      "fragile": true,
+      "mass_kg": 580,
+      "spawn_weight": 2
+    },
+    {
+      "id": "armstrongs_module",
+      "altitude_m": 277000,
+      "size_class": "small",
+      "fragile": false,
+      "mass_kg": 3600,
+      "spawn_weight": 1
+    }
+  ]
+}

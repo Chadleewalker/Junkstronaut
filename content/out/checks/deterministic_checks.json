@@ -1,0 +1,506 @@
+{
+  "generated_at": "2026-07-28T22:31:46.721Z",
+  "design_document": "Junkstronaut GDD Short.txt",
+  "pipeline": "content/run-content.js",
+  "note": "Generated from passages retrieved from the design document, then checked against those same passages by the lore critic. Corrections and the drafts they replaced are in critique/critique_log.json.",
+  "checks": {
+    "barks": [
+      {
+        "id": "barks",
+        "check": "coverage",
+        "result": "pass",
+        "detail": "18 of 18, no duplicates, no inventions"
+      },
+      {
+        "id": "first_launch",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.5d, 2.6a"
+      },
+      {
+        "id": "climb_heat_first",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.2a, 5b"
+      },
+      {
+        "id": "staged",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.2b, 2.2c"
+      },
+      {
+        "id": "commit_floor_blocked",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.2d, 4.4b"
+      },
+      {
+        "id": "skim_complete",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.2f, 2.2c"
+      },
+      {
+        "id": "first_plasma",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.2g, 2.2f"
+      },
+      {
+        "id": "chute_green",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.2g"
+      },
+      {
+        "id": "shield_spent",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.2g"
+      },
+      {
+        "id": "hold_mass_amber",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.4a, 2.4b"
+      },
+      {
+        "id": "hold_mass_red",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.4a, 2.4b, 2.1"
+      },
+      {
+        "id": "return_lamp_red",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.4b, 2.4c"
+      },
+      {
+        "id": "tow_fee_charged",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.5a, 2.5b — 2.5b came from the shared pool, not this item's own retrieval"
+      },
+      {
+        "id": "hard_landing",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.3"
+      },
+      {
+        "id": "module_tethered",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6b, 2.6d"
+      },
+      {
+        "id": "module_degraded",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6c"
+      },
+      {
+        "id": "burned_up",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.4c, 1b"
+      },
+      {
+        "id": "ending_pristine",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "1a, 2.6c"
+      },
+      {
+        "id": "ending_refused",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6c, 2.7a"
+      }
+    ],
+    "debris": [
+      {
+        "id": "debris",
+        "check": "coverage",
+        "result": "pass",
+        "detail": "25 of 25, no duplicates, no inventions"
+      },
+      {
+        "id": "scorched_hull_panel",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "bent_truss_section",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "cracked_solar_array",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a, 4.3"
+      },
+      {
+        "id": "dented_fuel_bladder",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "foil_insulation_bale",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "collapsed_antenna_dish",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a, 4.3"
+      },
+      {
+        "id": "reaction_wheel_housing",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "snapped_boom_arm",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "shattered_camera_mast",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a, 4.3"
+      },
+      {
+        "id": "battery_pallet",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "torn_radiator_panel",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a, 4.3"
+      },
+      {
+        "id": "cryo_tank_girdle",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "gyro_package",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "docking_collar",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "buckled_truss_node",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "optics_bench",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a, 4.3"
+      },
+      {
+        "id": "deployable_mast_cassette",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a, 4.3"
+      },
+      {
+        "id": "ion_thruster_cluster",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "cracked_pressure_dome",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "reactor_shield_plug",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "comsat_bus_frame",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "telescope_mirror_segment",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "isotope_cask",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "solar_wing_spine",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a"
+      },
+      {
+        "id": "scorched_reentry_cone",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.6a, 5b"
+      },
+      {
+        "id": "scorched_hull_panel",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "light, low, cheap, small against 62 kg at 52,000 m, small"
+      },
+      {
+        "id": "bent_truss_section",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "low, cheap, solid, medium against 91 kg at 58,000 m, medium"
+      },
+      {
+        "id": "cracked_solar_array",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "fragile, low, cheap, medium against 74 kg at 63,000 m, medium, fragile"
+      },
+      {
+        "id": "dented_fuel_bladder",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "light, low, cheap, small against 107 kg at 71,000 m, small"
+      },
+      {
+        "id": "foil_insulation_bale",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "light, low, cheap, small against 99 kg at 79,000 m, small"
+      },
+      {
+        "id": "collapsed_antenna_dish",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "low, cheap, oversized against 165 kg at 88,000 m, oversized"
+      },
+      {
+        "id": "reaction_wheel_housing",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "low, cheap, solid, small against 182 kg at 97,000 m, small"
+      },
+      {
+        "id": "snapped_boom_arm",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "low, cheap, solid, medium against 173 kg at 108,000 m, medium"
+      },
+      {
+        "id": "shattered_camera_mast",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "fragile, low, cheap, medium against 157 kg at 118,000 m, medium, fragile"
+      },
+      {
+        "id": "battery_pallet",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "low, cheap, solid, small against 215 kg at 124,000 m, small"
+      },
+      {
+        "id": "torn_radiator_panel",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "fragile, medium against 215 kg at 132,000 m, medium, fragile"
+      },
+      {
+        "id": "cryo_tank_girdle",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "solid, medium against 264 kg at 141,000 m, medium"
+      },
+      {
+        "id": "gyro_package",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "solid, small against 289 kg at 149,000 m, small"
+      },
+      {
+        "id": "docking_collar",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "solid, medium against 314 kg at 157,000 m, medium"
+      },
+      {
+        "id": "buckled_truss_node",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "solid, medium against 330 kg at 166,000 m, medium"
+      },
+      {
+        "id": "optics_bench",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "fragile, medium against 305 kg at 175,000 m, medium, fragile"
+      },
+      {
+        "id": "deployable_mast_cassette",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "solid, heavy, oversized against 429 kg at 186,000 m, oversized"
+      },
+      {
+        "id": "ion_thruster_cluster",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "solid, heavy, small against 413 kg at 196,000 m, small"
+      },
+      {
+        "id": "cracked_pressure_dome",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "fragile, high, valuable, medium against 510 kg at 209,000 m, medium, fragile"
+      },
+      {
+        "id": "reactor_shield_plug",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "heavy, high, valuable, small against 680 kg at 220,000 m, small"
+      },
+      {
+        "id": "comsat_bus_frame",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "heavy, high, valuable, medium against 840 kg at 232,000 m, medium"
+      },
+      {
+        "id": "telescope_mirror_segment",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "fragile, high, heavy, medium against 930 kg at 244,000 m, medium, fragile"
+      },
+      {
+        "id": "isotope_cask",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "heavy, high, valuable, small against 1220 kg at 255,000 m, small"
+      },
+      {
+        "id": "solar_wing_spine",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "heavy, high, valuable, oversized against 1500 kg at 266,000 m, oversized"
+      },
+      {
+        "id": "scorched_reentry_cone",
+        "check": "reads_as_matches_mechanics",
+        "result": "pass",
+        "detail": "heavy, high, fragile, medium against 1600 kg at 276,000 m, medium, fragile"
+      },
+      {
+        "id": "scorched_reentry_cone",
+        "check": "extreme_reads_right",
+        "result": "pass",
+        "detail": "1600 kg is the heaviest piece and reads heavy"
+      },
+      {
+        "id": "scorched_hull_panel",
+        "check": "extreme_reads_right",
+        "result": "pass",
+        "detail": "62 kg is the lightest piece and reads light"
+      }
+    ],
+    "postmortems": [
+      {
+        "id": "postmortems",
+        "check": "coverage",
+        "result": "pass",
+        "detail": "9 of 9, no duplicates, no inventions"
+      },
+      {
+        "id": "landed",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.7a, 2.3"
+      },
+      {
+        "id": "refused",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.7a, 2.6c, 1b"
+      },
+      {
+        "id": "zero_hp",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.7a, 2.2g, 2.3 — 2.3 came from the shared pool, not this item's own retrieval"
+      },
+      {
+        "id": "burned_up",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.4c, 2.7a, 1b"
+      },
+      {
+        "id": "stranded",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.7b"
+      },
+      {
+        "id": "stranded_a",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.7b, 3b — 3b came from the shared pool, not this item's own retrieval"
+      },
+      {
+        "id": "stranded_b",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.4b, 2.4a, 2.7b"
+      },
+      {
+        "id": "stranded_c",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.7a, 2.4c, 3b"
+      },
+      {
+        "id": "stranded_d",
+        "check": "citations_exist",
+        "result": "pass",
+        "detail": "2.7b, 2.2g, 2.4b — 2.2g came from the shared pool, not this item's own retrieval"
+      }
+    ]
+  }
+}

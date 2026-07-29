@@ -1,5 +1,6 @@
 crew/out/logs/
 board/out/logs/
+content/out/logs/
 node_modules/
 .env*
 
