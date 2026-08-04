@@ -69,8 +69,20 @@ function checkCoverage(items, expectedIds, label) {
 // Checked against the catalog rather than against the text, so this cannot be satisfied by
 // writing more confidently. A piece the catalog flags fragile must have claimed `fragile`;
 // a piece in the top third of the band must not have claimed `low`; and so on.
-function checkReadsAs(pieces, catalogById, band) {
+// `artVerdicts` is optional and never changes an outcome — a failing check still fails. It only
+// attributes one, and that distinction is the whole reason it is here.
+//
+// The `fragile` flag belongs to a piece's id, and the art audit exists because some of those ids
+// are wrong. `torn_foil_blanket` is flagged fragile, which is right for foil; its sprite is a
+// cracked steel plate, which is not fragile at all. The writer described the plate — correctly —
+// and could not honestly claim `fragile`. So the check fails on a piece where the writing is right,
+// the check is right, and the DATA is wrong. Retrying the writer cannot fix that; it can only make
+// it lie. The failure stands, says which conflict it came from, and a human reconciles the table.
+function checkReadsAs(pieces, catalogById, band, artVerdicts = null) {
   const out = [];
+  const disputed = new Map((artVerdicts || [])
+    .filter((v) => v.verdict !== 'match')
+    .map((v) => [v.id, v]));
   // The size vocabulary comes from the catalog, never from a list written here. The catalog
   // calls its top class `oversized`, and a hardcoded `small|medium|large` failed three pieces
   // for describing an oversized dish as large — a finding about this file, not about the
@@ -106,6 +118,16 @@ function checkReadsAs(pieces, catalogById, band) {
     // wrong size claim is a problem.
     const wrongSize = [...sizeWords].filter((s) => claim.has(s) && s !== c.size_class);
     if (wrongSize.length) problems.push(`claims ${wrongSize.join('/')}, catalog says ${c.size_class}`);
+
+    // Where the art audit disputes this piece's id, say so on the failure. A reader seeing
+    // "catalog says fragile, reads_as does not claim it" has no way to tell a careless writer
+    // from a table that disagrees with its own artwork, and those need opposite responses.
+    const d = disputed.get(p.id);
+    if (problems.length && d) {
+      problems.push(
+        `the art audit disputes this piece's id (${d.verdict}${d.suggested_id ? ` — suggests ${d.suggested_id}` : ''}), ` +
+        'so the flag may belong to a name the sprite does not support — reconcile the catalogue rather than the writing');
+    }
 
     out.push(problems.length
       ? bad(p.id, 'reads_as_matches_mechanics', problems.join('; '))

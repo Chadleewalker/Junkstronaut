@@ -1,0 +1,466 @@
+{
+  "generated_at": "2026-08-04T21:53:12.888Z",
+  "design_document": "Junkstronaut GDD Short.txt",
+  "pipeline": "content/run-content.js",
+  "note": "What each sprite shows, described by an agent that was shown the picture and NOT the piece's name. Blind on purpose: a reader told the name confirms the name.",
+  "art_directory": "assets/asteroid and Space junks",
+  "sprite_map": "config/debris_sprites.json",
+  "sheets": [
+    {
+      "id": "sheet1",
+      "cells": 15,
+      "cols": 5
+    },
+    {
+      "id": "sheet2",
+      "cells": 15,
+      "cols": 5
+    }
+  ],
+  "readings": [
+    {
+      "id": "torn_foil_blanket",
+      "sheet": "sheet1",
+      "cell": 1,
+      "depicts": "A cracked metal plate",
+      "detail": "An irregular hexagonal grey slab with dark fracture lines running across its face and a chipped notch out of the upper right edge; bevelled highlight along the top-left.",
+      "condition": "cracked",
+      "bulk": "flat",
+      "palette": [
+        "grey",
+        "steel blue",
+        "charred black"
+      ],
+      "legible": "clear"
+    },
+    {
+      "id": "crumpled_panel_stack",
+      "sheet": "sheet1",
+      "cell": 2,
+      "depicts": "A layered mat or blanket",
+      "detail": "A quilted pale beige top sheet drawn in perspective over stacked coloured under-layers (white, rust red, dark blue), with a ragged dark hole burnt through the middle of the top face.",
+      "condition": "torn",
+      "bulk": "flat",
+      "palette": [
+        "cream",
+        "rust",
+        "steel blue"
+      ],
+      "legible": "partial"
+    },
+    {
+      "id": "cracked_solar_array",
+      "sheet": "sheet1",
+      "cell": 3,
+      "depicts": "Broken shards of blue glass",
+      "detail": "Two angular flat fragments with gridded blue faces and pale edges, tilted apart from each other as if split from one gridded panel.",
+      "condition": "fragmentary",
+      "bulk": "flat",
+      "palette": [
+        "blue",
+        "steel blue",
+        "white"
+      ],
+      "legible": "clear"
+    },
+    {
+      "id": "bent_truss_section",
+      "sheet": "sheet1",
+      "cell": 4,
+      "depicts": "A tangle of rusty rods",
+      "detail": "Roughly a dozen thin straight bars crossing at random angles in a loose flat mat, drawn in mottled brown with lighter speckling along their lengths.",
+      "condition": "bent",
+      "bulk": "flat",
+      "palette": [
+        "rust",
+        "brown",
+        "tan"
+      ],
+      "legible": "partial"
+    },
+    {
+      "id": "spent_kick_motor_casing",
+      "sheet": "sheet1",
+      "cell": 5,
+      "depicts": "A metal nozzle or bell",
+      "detail": "A symmetrical hourglass form flaring wide at the top and again at the base, with vertical shading bands and a darker throat at the narrow waist; upright, viewed side-on.",
+      "condition": "intact",
+      "bulk": "compact",
+      "palette": [
+        "grey",
+        "charred black",
+        "steel blue"
+      ],
+      "legible": "clear"
+    },
+    {
+      "id": "collapsed_dish_frame",
+      "sheet": "sheet1",
+      "cell": 6,
+      "depicts": "A dish on a stand",
+      "detail": "A shallow concave grey dish tilted up on a small trapezoid base, with a thin arm reaching from the rim to a knob suspended over the centre; the dish rim is dented and split on the lower right.",
+      "condition": "bent",
+      "bulk": "bulky",
+      "palette": [
+        "grey",
+        "steel blue",
+        "brass"
+      ],
+      "legible": "clear"
+    },
+    {
+      "id": "shredded_antenna_mesh",
+      "sheet": "sheet1",
+      "cell": 7,
+      "depicts": "A rod with crossbars",
+      "detail": "One long diagonal shaft carrying about ten short bars set across it at intervals, several of them kinked or snapped off short, with a small blue-grey lump near the lower end.",
+      "condition": "bent",
+      "bulk": "long",
+      "palette": [
+        "grey",
+        "steel blue",
+        "white"
+      ],
+      "legible": "partial"
+    },
+    {
+      "id": "cracked_battery_pallet",
+      "sheet": "sheet1",
+      "cell": 8,
+      "depicts": "A boxy unit in a yellow frame",
+      "detail": "A dark grey slab body wrapped in a thick yellow border, tilted on its side; a small square inset with a pale dot sits at the upper left of the dark face.",
+      "condition": "intact",
+      "bulk": "compact",
+      "palette": [
+        "yellow",
+        "charred black",
+        "grey"
+      ],
+      "legible": "partial"
+    },
+    {
+      "id": "seized_reaction_wheel_housing",
+      "sheet": "sheet1",
+      "cell": 9,
+      "depicts": "A spoked wheel",
+      "detail": "Eight spokes running from a small central hub to a wide flat rim, shown flat-on; a short notch breaks the rim at the lower right.",
+      "condition": "intact",
+      "bulk": "compact",
+      "palette": [
+        "grey",
+        "steel blue"
+      ],
+      "legible": "clear"
+    },
+    {
+      "id": "burst_pressurant_sphere",
+      "sheet": "sheet1",
+      "cell": 10,
+      "depicts": "A cluster of broken rock",
+      "detail": "Three or four angular chunks with dark pitted faces and pale chipped edges pressed together, the largest wedge leaning right; no flat or manufactured surfaces.",
+      "condition": "fragmentary",
+      "bulk": "compact",
+      "palette": [
+        "charred black",
+        "grey",
+        "steel blue"
+      ],
+      "legible": "partial"
+    },
+    {
+      "id": "delaminated_radiator_fin",
+      "sheet": "sheet1",
+      "cell": 11,
+      "depicts": "A flat metal bracket plate",
+      "detail": "An irregular stepped grey plate with six small bolt holes near its corners and two short scratch lines scored across the middle; seen face-on.",
+      "condition": "intact",
+      "bulk": "flat",
+      "palette": [
+        "grey",
+        "steel blue"
+      ],
+      "legible": "clear"
+    },
+    {
+      "id": "torn_solar_wing_spar",
+      "sheet": "sheet1",
+      "cell": 12,
+      "depicts": "Two solar panels",
+      "detail": "A pair of tall rectangular wings side by side, each ruled into a grid of dark blue cells with pale dividing lines and a light frame; the right wing is tilted slightly out of line with the left.",
+      "condition": "intact",
+      "bulk": "flat",
+      "palette": [
+        "blue",
+        "navy",
+        "grey"
+      ],
+      "legible": "clear"
+    },
+    {
+      "id": "cracked_optics_barrel",
+      "sheet": "sheet1",
+      "cell": 13,
+      "depicts": "A camera lens",
+      "detail": "A short cylinder lying on its side with a ringed barrel and a round dark front element holding a bright cyan glint; a separate stubby ring section sits behind it to the right.",
+      "condition": "intact",
+      "bulk": "compact",
+      "palette": [
+        "grey",
+        "charred black",
+        "cyan"
+      ],
+      "legible": "clear"
+    },
+    {
+      "id": "fractured_docking_collar",
+      "sheet": "sheet1",
+      "cell": 14,
+      "depicts": "A thick ring or hatch rim",
+      "detail": "A heavy circular band drawn in outline with a hollow centre, thicker and lighter on the left side, with a gap broken out of the upper right and three small loose specks floating beside it.",
+      "condition": "cracked",
+      "bulk": "compact",
+      "palette": [
+        "grey",
+        "steel blue"
+      ],
+      "legible": "partial"
+    },
+    {
+      "id": "dead_thruster_quad",
+      "sheet": "sheet1",
+      "cell": 15,
+      "depicts": "A ribbed cylinder with a hose",
+      "detail": "A stack of pale ridged discs forming a corrugated drum on the right, joined to a blocky tan housing on the left from which a dark brown tube loops up over the top and back down.",
+      "condition": "intact",
+      "bulk": "compact",
+      "palette": [
+        "tan",
+        "grey",
+        "brown"
+      ],
+      "legible": "partial"
+    },
+    {
+      "id": "buckled_pressure_bulkhead",
+      "sheet": "sheet2",
+      "cell": 1,
+      "depicts": "A torn sheet of grey metal",
+      "detail": "An irregular ragged-edged plate with a crease running through it and small loose chips floating off to the right; shown at an angle.",
+      "condition": "torn",
+      "bulk": "flat",
+      "palette": [
+        "grey",
+        "steel blue"
+      ],
+      "legible": "clear"
+    },
+    {
+      "id": "ruptured_helium_tank",
+      "sheet": "sheet2",
+      "cell": 2,
+      "depicts": "A rolled-up mat or blanket",
+      "detail": "A cylindrical roll banded around the middle with tan straps, blue quilted material at both ends, lying diagonally.",
+      "condition": "intact",
+      "bulk": "long",
+      "palette": [
+        "blue",
+        "tan",
+        "grey"
+      ],
+      "legible": "partial"
+    },
+    {
+      "id": "shattered_star_tracker",
+      "sheet": "sheet2",
+      "cell": 3,
+      "depicts": "A shattered window pane",
+      "detail": "A rounded rectangular frame with bevelled corners holding pale blue glass, cracks radiating from a dark star-shaped hole in the centre.",
+      "condition": "cracked",
+      "bulk": "flat",
+      "palette": [
+        "pale blue",
+        "charred black",
+        "grey"
+      ],
+      "legible": "clear"
+    },
+    {
+      "id": "warped_gyro_deck",
+      "sheet": "sheet2",
+      "cell": 4,
+      "depicts": "A control box with wires",
+      "detail": "An upright grey cabinet with a blue screen, a grid of small holes, two rows of coloured indicator strips and buttons, with a red and a blue cable looping out of the bottom and a yellow rod jutting from the top right.",
+      "condition": "intact",
+      "bulk": "compact",
+      "palette": [
+        "grey",
+        "steel blue",
+        "red",
+        "yellow"
+      ],
+      "legible": "clear"
+    },
+    {
+      "id": "cracked_ablative_nose_cone",
+      "sheet": "sheet2",
+      "cell": 5,
+      "depicts": "A pointed shield-shaped shell",
+      "detail": "A tapering grey cone or nose piece with a narrow raised rib down the middle and a jagged broken edge along the bottom.",
+      "condition": "fragmentary",
+      "bulk": "compact",
+      "palette": [
+        "grey",
+        "steel blue"
+      ],
+      "legible": "partial"
+    },
+    {
+      "id": "split_avionics_rack",
+      "sheet": "sheet2",
+      "cell": 6,
+      "depicts": "A circuit board",
+      "detail": "A green rectangular board with two large black chips, a red component, small blue and yellow parts, and a row of gold contact fingers along the bottom edge; a metal tab sticks out at the left.",
+      "condition": "intact",
+      "bulk": "flat",
+      "palette": [
+        "green",
+        "black",
+        "brass"
+      ],
+      "legible": "clear"
+    },
+    {
+      "id": "torn_reactor_shield_plate",
+      "sheet": "sheet2",
+      "cell": 7,
+      "depicts": "A broken circuit board piece",
+      "detail": "A jagged green fragment with two yellow stripes and a couple of small chips, a separated splinter floating to its left and a curled rust-brown wire hanging below.",
+      "condition": "fragmentary",
+      "bulk": "flat",
+      "palette": [
+        "green",
+        "rust",
+        "yellow"
+      ],
+      "legible": "partial"
+    },
+    {
+      "id": "cracked_deep_space_dish",
+      "sheet": "sheet2",
+      "cell": 8,
+      "depicts": "A parabolic dish on a mount",
+      "detail": "A grey dish seen at a three-quarter angle with a strut-mounted feed arm crossing its face, sitting on a blocky base; the rim is dented and irregular.",
+      "condition": "bent",
+      "bulk": "bulky",
+      "palette": [
+        "grey",
+        "steel blue"
+      ],
+      "legible": "clear"
+    },
+    {
+      "id": "fused_ion_grid_assembly",
+      "sheet": "sheet2",
+      "cell": 9,
+      "depicts": "An empty picture frame with broken glass",
+      "detail": "A square dark-blue frame whose interior holds only pale cyan shards angled inward from the corners, leaving a hollow middle.",
+      "condition": "cracked",
+      "bulk": "flat",
+      "palette": [
+        "cyan",
+        "navy",
+        "pale blue"
+      ],
+      "legible": "partial"
+    },
+    {
+      "id": "severed_boom_mast",
+      "sheet": "sheet2",
+      "cell": 10,
+      "depicts": "A length of tangled cable",
+      "detail": "A twisted braided rope-like strand running diagonally, frayed and splayed into a bristly knot at the upper right end.",
+      "condition": "fragmentary",
+      "bulk": "long",
+      "palette": [
+        "tan",
+        "brown",
+        "grey"
+      ],
+      "legible": "partial"
+    },
+    {
+      "id": "scorched_fuel_cell_stack",
+      "sheet": "sheet2",
+      "cell": 11,
+      "depicts": "A tray of batteries",
+      "detail": "A grey open-topped case divided into compartments holding blocky cells, each with coloured bars — yellow, red, orange — marking charge levels.",
+      "condition": "intact",
+      "bulk": "compact",
+      "palette": [
+        "grey",
+        "yellow",
+        "red"
+      ],
+      "legible": "clear"
+    },
+    {
+      "id": "shattered_cryo_dewar",
+      "sheet": "sheet2",
+      "cell": 12,
+      "depicts": "A water tank",
+      "detail": "A bright cyan rounded tank lying on its side with stub fittings at each end and a small nozzle on top; `H2O` is stencilled in dark letters across the middle panel.",
+      "condition": "intact",
+      "bulk": "compact",
+      "palette": [
+        "cyan",
+        "teal",
+        "black"
+      ],
+      "legible": "clear"
+    },
+    {
+      "id": "impact_pitted_engine_bell",
+      "sheet": "sheet2",
+      "cell": 13,
+      "depicts": "A bell-shaped nozzle",
+      "detail": "A flared cone standing upright with stacked ring ridges down its body, a dark sooty throat, and a rust-brown crusted rim at the base.",
+      "condition": "scorched",
+      "bulk": "compact",
+      "palette": [
+        "grey",
+        "charred black",
+        "rust"
+      ],
+      "legible": "clear"
+    },
+    {
+      "id": "cracked_command_module_hatch",
+      "sheet": "sheet2",
+      "cell": 14,
+      "depicts": "A hex nut",
+      "detail": "A small six-sided ring seen face-on with a round hole through the middle and a light highlight on the upper left; nothing else in the cell.",
+      "condition": "intact",
+      "bulk": "compact",
+      "palette": [
+        "grey",
+        "steel blue"
+      ],
+      "legible": "clear"
+    },
+    {
+      "id": "armstrongs_module",
+      "sheet": "sheet2",
+      "cell": 15,
+      "depicts": "A metal canister",
+      "detail": "A grey cylinder lying diagonally with rimmed ends and two yellow bands around its body; the lower left end is dented and a small chip is broken off beside it.",
+      "condition": "bent",
+      "bulk": "long",
+      "palette": [
+        "grey",
+        "yellow",
+        "steel blue"
+      ],
+      "legible": "clear"
+    }
+  ]
+}

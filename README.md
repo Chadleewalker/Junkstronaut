@@ -37,7 +37,7 @@ output without spending tokens. Drop `stub` / `--stub` to run the agents live in
 | **`out/report/dashboard.html`** | **Start here.** The whole run as charts in a browser — what the agents decided, what the simulator measured, and a plain-English verdict at the top. |
 | `out/config/game_params.tres` | The point of the whole thing: the config file Godot loads at runtime. Every tunable in the game — gravity, thrust, heat, prices — in one file. |
 | `out/audit/audit_report.md` | Per-rule pass/fail against the design document, with the arithmetic. Read this before trusting the numbers. |
-| `out/data/debris_catalog.json` | The loot table — 25 junk types with mass, size and fragility. |
+| `out/data/debris_catalog.json` | The loot table — 30 junk types with mass, size and fragility. |
 | `out/playtest/playtest_report.json` | What the ship actually did when flown: claimed vs. measured, and proposed fixes. |
 | `out/run.json` | Run summary — which agents ran, how many retries, the final verdict. |
 
@@ -109,7 +109,7 @@ Full detail on every agent, every schema and both gates: [`crew/README.md`](crew
 ## `content/` — the content pipeline · **Assignment #4 submission**
 
 **Retrieval-grounded writing, with a critic on the gate.** The design document promises three
-kinds of written content the game does not have — Armstrong's radio barks, flavour for the 25
+kinds of written content the game does not have — Armstrong's radio barks, flavour for the 30
 junk types, and the post-mortem screen that names how a run ended. This pipeline chunks the
 GDD by section, retrieves the passages that answer each individual game state, writes from
 those passages *and nothing else about the game*, and then hands the result to a critic that
@@ -120,7 +120,7 @@ reads every line back against the same passages and never sees the writer's reas
 | chunk + index | 48 sentence-bounded chunks over 15 sections, BM25, no embedding service |
 | retrieve | one query per game state, every query and score logged |
 | **bark-writer** | 18 state-triggered radio lines → `content/armstrong_barks.json` |
-| **debris-flavourist** | display names and flavour for all 25 pieces → `content/debris_flavour.json` |
+| **debris-flavourist** | display names and flavour for all 30 pieces → `content/debris_flavour.json` |
 | **postmortem-writer** | 5 terminal states + 4 stranded sub-cases → `content/postmortem_screens.json` |
 | **lore-critic** | reads each item against its sources; corrections applied, drafts kept |
 

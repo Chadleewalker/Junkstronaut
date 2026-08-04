@@ -1,151 +1,152 @@
-# Build the Assignment #4 content pipeline
+# Assignment #4 — Dynamic Content Pipeline
 
-Paste this to the agent that will build it. It assumes nothing about the conversation.
+Working brief. The authoritative text is `Assignment #4_ Dynamic Content Pipeline.txt` at the
+repository root; this file records what the assignment asks for and where the work stands against
+it.
+
+**Due:** before session 7 — 30 July 2026, 11:59 ET.
 
 ---
 
-## What you are building
+## What the assignment asks for
 
-A **dynamic content pipeline** for **Junkstronaut**, a 2D pixel-art game about salvaging
-space junk. It reads the game's design document, retrieves the relevant passages, generates
-written content grounded in them, and runs a critic agent that catches lore breaks and tone
-drift before anything ships.
+> Build a pipeline that generates content for your game using your GDD as the source material.
+> Your agent reads your game docs before generating — so the output sounds like your game, not
+> generic content.
 
-This is course Assignment #4, due **30 July 2026, 11:59 ET**. The rubric is at the bottom —
-read it before you design anything, because two criteria are about *demonstrating* the
-pipeline, not just building it.
+Deliverables, verbatim:
 
-Build it in a new directory `content/` at the repository root, beside `crew/` and `board/`.
+1. **The pipeline** — however it was built: script, notebook, or LLM-assisted workflow.
+2. **Three generated outputs that your game actually needs.**
+3. **A short ReadMe** answering three questions by name: what content did you generate, does it
+   sound like your game, and what did the critic agent catch?
 
-## The repository you are working in
+Two constraints carry real weight:
 
-`C:\Code\Projects\Junkstronaut` — public at https://github.com/Chadleewalker/Junkstronaut
+- *"Submissions using placeholder lore receive no credit on Content Quality or Game Connection."*
+  The knowledge base must be the actual GDD.
+- *"Code that does not run receives 0 across all criteria."* Verify from a clean copy the way a
+  grader will.
 
-| path | what it is |
-|---|---|
-| `Junkstronaut GDD Short.txt` | **The design document. This is your knowledge base.** ~44,500 characters, sections 1 through 5. Document of record — do not edit it. |
-| `crew/` | Assignment #3: five agents plus a flight simulator that write the game's config. |
-| `board/` | Assignment #2: nine agents that review the design document. |
-| `docs/` | Design decisions and the measurements behind them. |
-
-Both existing crews are **raw Node orchestration — no framework, no dependencies, no
-`npm install`.** Match that. It is what makes them runnable by a grader in one command, and
-it is a deliberate choice, not an accident.
-
-## Reuse these — do not rewrite them
-
-Read each before using it. They are small and commented.
-
-| file | what it gives you |
-|---|---|
-| `crew/lib/agent.js` | Runs an agent: prompt on stdin, JSON on stdout, strips CLI chatter, retries on malformed output. |
-| `crew/lib/schema.js` | The schema gate. Validates an agent's output and feeds the exact validation errors back on retry. |
-| `crew/lib/envelope.js` | Parses an agent's JSON envelope out of noisy stdout. |
-| `board/lib/render.js` | Renders a deterministic HTML report from data. Look at how it separates data from presentation. |
-| `board/agents/narrative-critic.md` | **Closest thing to your critic agent.** Already judges tone and fiction against the GDD. Read it before writing yours. |
-| `crew/agents/spec-auditor.md` | The structural pattern for a critic: it is given the spec and the artifact, never the other agents' reasoning, so it cannot be talked into agreeing. Copy that discipline. |
-| `crew/run-crew.js` | The orchestrator pattern: deterministic control flow, `--stub` replay, `--record`, per-agent logs. |
-
-Follow `crew/`'s conventions: a `--stub` flag that replays a recorded run in about a second
-with no API key, and `--record` to refresh the fixtures. A grader must be able to see real
-output without signing in. This is worth real points and both existing crews do it.
-
-## The three content types to generate
-
-These are chosen because the GDD promises them and the game does not have them. Each one is
-a gap the design document names itself — say so in the ReadMe, because the rubric rewards
-naming the gap.
-
-**1 · Armstrong's radio barks.** The GDD (§1) promises "a dozen state-triggered one-liners"
-from Mr. Armstrong, the junkyard owner, carrying both tutorial hints and the characterisation
-that the graded endings pay off. Only two exist in the document:
-
-- "Chute stays packed while she's glowing, kid"
-- "See her glinting up there? That's the one. Not yet, kid."
-
-Generate the remaining ten or more, each tied to a specific game state — first launch, first
-plasma, hold-mass into amber, module tethered, hard landing, burn-up, the three endings.
-Armstrong's voice: blue-collar, terse, calls the player "kid", fond but never soft. He fronts
-every launch against your next haul, so he is a creditor as much as a mentor.
-
-**2 · Debris flavour text.** `crew/out/data/debris_catalog.json` holds 25 junk types with
-mechanical fields — mass, altitude, size class, fragile — and a short `notes` line each.
-Generate proper `display_name` and flavour for each, so the loot table reads like a scrapyard
-rather than a spreadsheet. Constraint: a piece's fiction must match its mechanics. A 1,600 kg
-piece at 276,000 m has to read as heavy and high; a fragile piece has to read as fragile.
-**Read the catalog and use the real pieces** — inventing your own is placeholder lore and
-scores zero.
-
-**3 · Post-mortem screens.** GDD §2.7 defines five terminal states, each with a detector:
-`Landed`, `Refused`, `0 HP`, `Burned up`, `Stranded`. §1 says the first run teaches reentry
-through "one cheap, legible failure — a post-mortem screen names the cause of death and the
-rule broken." Generate that screen text for each state, plus the stranded sub-cases (a)-(d).
-Each must name the rule the player broke, in Armstrong's voice, without blaming them.
-
-## What the pipeline must do
-
-**Chunk and index the GDD.** Section-aware — §2.2 is one retrievable unit, not fragments
-split mid-sentence. No external embedding service is required and none is available offline;
-a local scoring function over terms is fine and easier to defend, but whatever you choose,
-**log the query, the chunks retrieved, and their scores.** You cannot demonstrate retrieval
-you did not record.
-
-**Generate**, with the retrieved chunks in the prompt and nothing else about the game. That
-is the point: the output should sound like Junkstronaut because it was grounded in
-Junkstronaut, not because you pasted the whole document in.
-
-**Criticise.** A critic agent reads each generated item **against the retrieved source** and
-flags: contradicts the GDD; wrong voice; invents a mechanic that does not exist; states a
-number that disagrees with the design. It returns a verdict plus a corrected version.
-
-**Record the correction.** The rubric wants at least one lore break *caught and corrected*,
-shown rather than claimed. Keep the before, the critic's reasoning, and the after. Do not
-overwrite the rejected draft — it is the evidence.
-
-**Report.** An HTML page and a ReadMe. For at least three items, show **query → retrieved
-chunk → generated output** side by side. That layout is 2 points on its own.
-
-## Deliverables
-
-1. The pipeline, runnable — `--stub` replay and a live mode
-2. Three generated outputs, each a file the game could load
-3. A ReadMe answering three questions the rubric asks by name:
-   - What content did you generate, and what gap does it fill?
-   - Does it sound like the game? Your own honest assessment.
-   - What did the critic catch? Show the correction.
-4. At least one **concrete prompt or retrieval tweak** you made to improve game-fit, with
-   before and after. The rubric asks for this explicitly and it is easy to forget until the
-   end — so keep notes as you go rather than reconstructing them.
-
-## Rubric — 10 points
+### Rubric — 10 points
 
 | criterion | points | what earns it |
 |---|---|---|
-| Game-Anchored Source | 2.0 | Knowledge base is the actual GDD. Placeholder lore scores 0 here **and** on Content Fit. |
-| Content Fit | 2.5 | The three types are ones this game specifically needs. Name the gap. |
-| RAG Implementation | 2.0 | Retrieval is accurate, shown as query + retrieved chunk + output side by side. |
-| Consistency Checking | 2.0 | Critic catches and corrects at least one lore break or tone drift. Correction shown. |
-| Voice Judgment | 1.5 | Self-assessment plus one concrete prompt or retrieval tweak. |
+| Game-Anchored Source | 2.0 | Knowledge base is the student's GDD or a direct extension. Placeholder lore scores 0 here **and** on Content Fit. |
+| Content Fit | 2.5 | The three content types are ones this game specifically needs. The submission **names the gap** and the output fills it. |
+| RAG Implementation | 2.0 | Retrieval is accurate and the output reflects it, shown as **query, retrieved chunk and output side by side**. |
+| Consistency Checking | 2.0 | The critic catches and corrects at least one lore break or tone drift. The correction is **shown, not claimed**. |
+| Voice Judgment | 1.5 | Self-assessment, plus at least one **concrete prompt or retrieval tweak** made to improve game-fit. |
 
-**Code that does not run scores 0 on every criterion.** Verify from a clean copy of the
-repository before you call it done — no `.git`, nothing prebuilt — the way a grader will.
+---
+
+## Where the work lives
+
+Two copies, and the difference matters.
+
+| | |
+|---|---|
+| `Junkstronaut_Final/content/` | **The working copy.** Beside the game, the art and the sprite map. This is where the art stage can actually run. |
+| [`Junkstronaut-Content-Pipeline`](https://github.com/Chadleewalker/Junkstronaut-Content-Pipeline) | **The public repo — what the teacher is given.** Same pipeline, plus the GDD and the config it reads. No art, and neither of the other two agent crews. |
+
+There is a third copy in this repository (`Junkstronaut/content/`), which is where the pipeline was
+originally built. It is the odd one out now; the working copy is the one in the game.
+
+Both runnable copies must stay identical. Any change lands in `Junkstronaut_Final/content/` first,
+then syncs.
+
+## Running it
+
+```bash
+node run-content.js --stub     replay a recorded run, ~1s, no API key, no art needed
+node run-content.js            live: 10-20 min, needs Claude Code signed in
+node --test "test/*.test.js"   47 tests, no credentials
+```
+
+---
+
+## The content, and the gap each one fills
+
+The GDD names its own content gaps in one sentence, §4.2:
+
+> "UI/content is a budget line, not a remainder: HUD, shop labels, post-mortem screen, the two
+> lamps, the mass scale, the ablating-shield readout, and landing grades are three Coder sessions
+> (~40k each), and the narrative layer — **the dozen barks and the three ending screens** — is a
+> fourth."
+
+**1 · Armstrong's radio barks.** §1 promises "a dozen state-triggered one-liners ... carrying both
+the tutorial hints and, later, the characterization the graded endings pay off." The document
+contains three — one of them buried parenthetically in §2.5 where it does not look like a bark.
+18 generated, each tied to a state with a real detector; the three canon lines ship flagged
+`source: "gdd"`.
+
+**2 · Debris flavour.** 30 junk types with mass, altitude, size class and a fragile flag, and a
+loot table that reads like a spreadsheet. **Grounded in the sprite as well as the numbers** — see
+the art stage below, which is the whole reason this type is worth generating rather than
+duplicating fields the tuning crew already writes.
+
+**3 · Post-mortem screens.** §2.7 defines five terminal states with a detector each, plus four
+stranded sub-cases. §1 wants the first run to teach reentry through "one cheap, legible failure —
+a post-mortem screen names the cause of death and the rule broken." Nine screens, each naming the
+rule without blaming the player.
+
+> **A type that was considered and dropped: shop labels for the twelve upgrade purchases.** §2.5
+> literally instructs someone to write one — *"Say it in the shop label: this is the buy that turns
+> a hop into a stay"* — and the tiers exist with real numbers in `game_params.json`. It is the
+> strongest remaining gap in the document and the obvious next content type if a fourth is ever
+> wanted. It lost to the art stage because the art was the live problem.
+
+---
+
+## The art stage
+
+**The problem it was built for.** The pipeline originally wrote each piece's flavour from its
+`id` — `torn_foil_blanket` — and never saw the sprite. The id is a name somebody typed, and the
+mapping from names to sprites was made by eye and never checked. `debris_sprites.json` says so
+itself: *"Assignments were made by eye from the pack's own contact sheets."* So where a name was
+wrong, the pipeline wrote confident, fluent prose about an object the player will never see, and
+the lore critic could not catch it: an art mismatch is not a contradiction with any passage, and
+there was no image in any prompt.
+
+**The shape of the fix is two agents that are deliberately kept apart.**
+
+1. **The reader** is shown contact sheets — the pipeline renders its own, 7× on a neutral ground,
+   numbered cells — and is **not told any names**. It says what is drawn.
+2. **The matcher** is shown the names and the reader's words, and **never an image**. It returns
+   `match` / `loose` / `mismatch` with the reading quoted as evidence.
+
+A single agent given both would read the picture through the name and confirm it. The split costs
+one extra call and buys a verdict whose evidence is quotable. It is the same discipline the lore
+critic runs on — it never sees the writer's reasoning — applied to a second kind of source.
+
+Two tests enforce the seam: one asserts the reader's prompt contains no piece name, the other that
+the matcher's prompt contains no image path. Without them the property is one prompt edit from
+disappearing silently.
+
+**The findings are text and they ship. The pixels do not.** `out/art/art_reading.json` and
+`out/art/art_match.json` are published; `out/report/art.html` embeds the sprites and is excluded
+everywhere, because a base64 sprite is the same bytes as the PNG.
+
+## Standing cautions
+
+- **The sprite pack cannot be redistributed.** RehanDev's grant is *"free to use ... in personal or
+  commercial projects without restrictions"* **and** *"You may not resell or redistribute the
+  asset."* The permissive first half is what makes the second half easy to miss. The pipeline runs
+  without art on purpose; `--stub` needs none.
+- **Do not edit the GDD.** It is the document of record and the knowledge base.
+- **Do not write into `crew/`.** A live tuning-crew run owns that directory.
+- **Never hardcode a count.** "25 pieces" was typed into four files and went stale the day the
+  catalog grew to 30 — including inside a writer's own charter, where it argued with its input.
+- **One continuous orbital band**, value rising by altitude — not three bands. Twelve upgrade
+  purchases across six parts. Any prose describing three bands is stale; the GDD wins.
+- **Keep the tweak notes as you go.** Voice Judgment wants a concrete before/after, and it is easy
+  to reconstruct badly at the end.
 
 ## Getting the voice right
 
-Read GDD §1 and §2.6 first. The game's register is blue-collar spaceflight: scrap, salvage,
-debt, a junkyard owner who fronts your launches and wants one specific Apollo-era module back
-for reasons that are personal. Nothing is sleek. Instruments are *salvaged* — the CHUTE lamp,
-the RETURN lamp, a painted mass dial. Failure is cheap and repeatable, and the tone treats it
-as a lesson rather than a punishment.
+Read GDD §1 and §2.6 first. Blue-collar spaceflight: scrap, salvage, debt, a junkyard owner who
+fronts your launches and wants one specific Apollo-era module back for reasons that are personal.
+Nothing is sleek. Instruments are *salvaged* — the CHUTE lamp, the RETURN lamp, a painted mass
+dial. Failure is cheap and repeatable, and the tone treats it as a lesson rather than a punishment.
 
-Avoid: heroic sci-fi, corporate polish, "commander", anything that sounds like a mission
-patch. Armstrong runs a junkyard.
-
-## Two things to check before you start
-
-- **The design document changed on 28 July 2026.** One continuous orbital band with value
-  rising by altitude (not three bands); twelve upgrade purchases across six parts; reentry
-  has a commit floor and the endgame requires aerobraking. If you find prose describing three
-  bands anywhere, it is stale — the GDD wins.
-- **`crew/out/` may be mid-run.** A live crew run writes there. Read the catalog from it, but
-  do not write anything into `crew/`.
+Avoid heroic sci-fi, corporate polish, "commander", anything that sounds like a mission patch.

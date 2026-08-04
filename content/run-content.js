@@ -43,6 +43,10 @@ const { chunkDocument } = require('./lib/chunk');
 const { buildIndex } = require('./lib/retrieve');
 const { plan, sourceBlock, itemBlock } = require('./lib/prompt');
 const { renderReport } = require('./lib/render');
+const { renderArtReview } = require('./lib/artsheet');
+const {
+  findArtDir, resolveSprites, planSheets, renderSheets, sheetInputs, attachReading, matchInputs,
+} = require('./lib/art');
 const {
   checkCitations, checkCoverage, checkReadsAs, checkExtremes, scoreRetrieval,
 } = require('./lib/verify');
@@ -57,7 +61,7 @@ const VOICE_K = 2;   // passages retrieved for the one standing voice query
 // ---------------------------------------------------------------- arguments
 
 function parseArgs(argv) {
-  const args = { mode: 'live', record: false, out: null, gdd: null, catalog: null, reuse: [] };
+  const args = { mode: 'live', record: false, out: null, gdd: null, catalog: null, art: null, reuse: [] };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--stub') args.mode = 'stub';
@@ -65,6 +69,8 @@ function parseArgs(argv) {
     else if (a === '--out') args.out = argv[++i];
     else if (a === '--gdd') args.gdd = argv[++i];
     else if (a === '--catalog') args.catalog = argv[++i];
+    else if (a === '--art') args.art = argv[++i];
+    else if (a === '--no-art') args.art = false;
     else if (a === '--reuse') args.reuse = String(argv[++i] || '').split(',').map((s) => s.trim()).filter(Boolean);
     else if (a === '--help' || a === '-h') args.help = true;
     else {
@@ -83,6 +89,9 @@ Junkstronaut content pipeline — retrieval-grounded writing, with a critic on t
   node run-content.js --record      run for real, then save the logs as replay fixtures
   node run-content.js --gdd <file>  point at a different design document
   node run-content.js --catalog <f> point at a different debris catalog
+  node run-content.js --art <dir>   read the sprites in this folder and audit them against the
+                                    catalogue's names (default: found beside the game's assets)
+  node run-content.js --no-art      skip the art stage even if art is present
   node run-content.js --out <dir>   write artifacts somewhere else (default: content/out)
   node run-content.js --reuse a,b   replay these agents from stubs, run the rest live
                                     (e.g. --reuse bark-writer, while iterating on the critic)
@@ -276,7 +285,10 @@ async function main() {
     : (args.mode === 'stub' && fs.existsSync(snapshot))
       ? snapshot
       : findFile(null, [
+        // The tuning-crew repo writes it here; the game repo carries it as shipped config.
+        // Listing both is what lets the same pipeline run unmodified in either tree.
         path.join(ROOT, '..', 'crew', 'out', 'data', 'debris_catalog.json'),
+        path.join(ROOT, '..', 'config', 'debris_catalog.json'),
         snapshot,
       ], 'the debris catalog');
   const catalog = readJson(catalogPath);
@@ -286,13 +298,21 @@ async function main() {
     max: Math.max(...pieces.map((p) => p.altitude_m)),
   };
 
+  // Which sprite belongs to which piece. Metadata, not art — it ships everywhere the catalog
+  // does, and the art stage exists precisely because nothing has ever checked it.
+  const spriteMapPath = [
+    path.join(ROOT, '..', 'config', 'debris_sprites.json'),
+    path.join(ROOT, 'data', 'debris_sprites.json'),
+  ].find((p) => fs.existsSync(p));
+  const spriteMap = spriteMapPath ? readJson(spriteMapPath) : null;
+
   log(`Junkstronaut content pipeline — ${args.mode === 'stub' ? 'REPLAY (no model calls)' : 'live'}`);
   log(`design document: ${path.basename(gddPath)} (${gddText.length.toLocaleString()} chars)`);
   log(`debris catalog:  ${path.relative(ROOT, catalogPath)} (${pieces.length} pieces)`);
   console.log('');
 
   // -- 1. chunk and index ---------------------------------------------------
-  log('1/5  Chunking the design document and building the index');
+  log('1/6  Chunking the design document and building the index');
   const chunks = chunkDocument(gddText);
   const index = buildIndex(chunks, 'bm25');
   const sections = [...new Set(chunks.map((c) => c.section))];
@@ -300,7 +320,7 @@ async function main() {
       `mean ${Math.round(chunks.reduce((a, c) => a + c.chars, 0) / chunks.length)} chars`);
 
   // -- 2. retrieve ----------------------------------------------------------
-  log('2/5  Retrieving per item — one query per game state, logged with its scores');
+  log('2/6  Retrieving per item — one query per game state, logged with its scores');
 
   const debrisItems = pieces.map((p) => ({
     id: p.id,
@@ -361,8 +381,68 @@ async function main() {
     return r;
   };
 
-  // -- 3. generate ----------------------------------------------------------
-  log('3/5  Writing — each agent sees the retrieved passages and nothing else about the game');
+  // -- 3. read the art ------------------------------------------------------
+  // Optional, and it has to be. The sprite pack is licensed for use and not for redistribution, so
+  // a published copy of this project has no art in it — but the readings and the verdicts are text
+  // and they ship. In a replay those come back out of the recorded envelopes, which is why the
+  // sheet plan is computed from the catalogue rather than from whatever files happen to be present.
+  const artSheets = planSheets(pieces);
+  let artReadings = [];
+  let artVerdicts = [];
+  let artRendered = null;
+  const artDir = findArtDir(args.art, ROOT);
+  // In a replay the art is optional but the recording is not: a published copy has the readings in
+  // stubs/ and no pixels, so the stage runs from those. A tree with neither just skips.
+  const hasArtStubs = fs.existsSync(path.join(stubDir, 'art-reader.sheet1.attempt1.log'));
+  const runArt = args.art !== false && (artDir || (args.mode === 'stub' && hasArtStubs));
+
+  if (runArt) {
+    log('3/6  Reading the art — described blind, then matched against the names');
+    if (artDir) {
+      const { resolved, missing } = resolveSprites(pieces, artDir, spriteMap);
+      if (missing.length) {
+        // An unmapped piece would silently shift every later cell number, so this is fatal rather
+        // than a warning. The whole point of the stage is that the mapping gets audited.
+        throw new Error(
+          `art: ${missing.length} catalogue piece(s) have no sprite in ${artDir} — ${missing.join(', ')}.\n` +
+          `  Fix the mapping in the sprite map, or run with --no-art.`);
+      }
+      const byId = new Map(resolved.map((p) => [p.id, p]));
+      artRendered = renderSheets(artSheets, byId, path.join(outDir, 'art', 'sheets'));
+      log(`     ${resolved.length} sprites from ${path.basename(artDir)} across ` +
+          `${artRendered.length} contact sheet(s) at 7x`);
+    } else {
+      log('     no art on disk — replaying the recorded readings, sheets not rendered');
+    }
+
+    const readingSchema = readJson(path.join(ROOT, 'schemas', 'art-reading.schema.json'));
+    const gaps = [];
+    for (let i = 0; i < artSheets.length; i++) {
+      const sheet = artRendered ? artRendered[i] : artSheets[i];
+      const run = call('art-reader', sheetInputs(sheet), readingSchema, `art-reader.${sheet.id}`);
+      if (run.object.unreadable) throw new Error(`art-reader could not open ${sheet.id}`);
+      const { rows, gaps: g } = attachReading(artSheets[i], run.object);
+      artReadings.push(...rows);
+      gaps.push(...g);
+    }
+    if (gaps.length) log(`     ${gaps.length} cell(s) came back unread: ${gaps.join(', ')}`);
+    const clear = artReadings.filter((r) => r.legible === 'clear').length;
+    log(`     art-reader         ${artReadings.length} sprites described, ${clear} read clearly`);
+
+    const matchSchema = readJson(path.join(ROOT, 'schemas', 'art-match.schema.json'));
+    const matchRun = call('art-matcher', matchInputs(pieces, artReadings), matchSchema, 'art-matcher');
+    artVerdicts = matchRun.object.verdicts;
+    const tally = artVerdicts.reduce((a, v) => { a[v.verdict] = (a[v.verdict] || 0) + 1; return a; }, {});
+    log(`     art-matcher        ${tally.match || 0} match, ${tally.loose || 0} loose, ` +
+        `${tally.mismatch || 0} disagree`);
+    console.log('');
+  } else {
+    log('3/6  Reading the art — skipped, no art present (point at a folder with --art <dir>)');
+    console.log('');
+  }
+
+  // -- 4. generate ----------------------------------------------------------
+  log('4/6  Writing — each agent sees the retrieved passages and nothing else about the game');
 
   const canonBlock = CANON_BARKS
     .map((c) => `- ${c.source} — "${c.line}"\n  fires: ${c.state}`).join('\n');
@@ -383,9 +463,50 @@ async function main() {
     `${p.id}\n   ${Math.round(p.mass_kg)} kg | ${p.altitude_m.toLocaleString()} m (${altitudeThird(p.altitude_m, band)}) | ` +
     `${p.size_class}${p.fragile ? ' | FRAGILE' : ''}`).join('\n');
 
+  // What is actually drawn, where the art stage ran. Until this existed the writer was handed an
+  // id and nothing else, so it described the NAME — which is why a sprite of a dented steel plate
+  // shipped with a sentence about foil that tears. The id is a label somebody typed; the reading
+  // is evidence about the picture the player will see, and it wins.
+  const readingById = new Map(artReadings.map((r) => [r.id, r]));
+  const verdictById = new Map(artVerdicts.map((v) => [v.id, v]));
+  const artInputs = {};
+
+  // The writer gets the pictures themselves, not just a description of them. It used to work from
+  // the reader's paraphrase, which is a game of telephone: the reader saw "a chipped notch out of
+  // the upper right edge and a fracture across the face" and the writer, one hop downstream, wrote
+  // "cracked end to end". The detail that makes a piece recognisable on screen is exactly what a
+  // paraphrase drops, so the agent writing the words a player reads while looking at the sprite is
+  // now the agent looking at the sprite.
+  //
+  // The reader and the matcher stay blind. They are the audit, and an audit whose judge can see
+  // both halves is not an audit — see lib/art.js. This is the one agent allowed both.
+  if (artRendered) {
+    artInputs['THE ART — open every sheet before you write'] = [
+      ...artRendered.map((s) => `${s.id}: ${String(s.file).replace(/\\/g, '/')}` +
+        `\n   ${s.cols} wide, ${s.rows} row(s), cells numbered left to right then top to bottom` +
+        `\n   ${s.pieces.map((c) => `${c.cell}=${c.id}`).join('  ')}`),
+    ].join('\n\n');
+  }
+
+  if (readingById.size) {
+    artInputs['WHAT A BLIND READER SAW IN EACH SPRITE — a second opinion, not a substitute for looking'] = pieces
+      .filter((p) => readingById.has(p.id))
+      .map((p) => {
+        const r = readingById.get(p.id);
+        const v = verdictById.get(p.id);
+        const flag = v && v.verdict !== 'match'
+          ? `\n   NOTE: the id and the drawing disagree (${v.verdict}). ${v.why} ` +
+            `Describe what is drawn, not what the id claims.`
+          : '';
+        return `${p.id}\n   drawn: ${r.depicts} (${r.legible})\n   ${r.detail}\n` +
+               `   condition: ${r.condition} | silhouette: ${r.bulk} | colours: ${(r.palette || []).join(', ')}${flag}`;
+      }).join('\n\n');
+  }
+
   const debrisRun = call('debris-flavourist', {
     'SOURCE PASSAGES FROM THE DESIGN DOCUMENT': sourceBlock(plans.debris.pool),
     "THE LOOT TABLE'S MECHANICAL FIELDS — decided, and not yours to change": mechanicalBlock,
+    ...artInputs,
     'PIECES TO WRITE': itemBlock(plans.debris.perItem, (id) => id),
   }, debrisSchema(pieces.length, catalog), 'debris-flavourist');
   const flavour = debrisRun.object.pieces;
@@ -404,7 +525,7 @@ async function main() {
   console.log('');
 
   // -- 4. check, deterministically then with the critic ----------------------
-  log('4/5  Checking — code first, then the critic reads every line against its sources');
+  log('5/6  Checking — code first, then the critic reads every line against its sources');
 
   const poolIds = (p) => new Set(p.pool.map((c) => c.id));
   const checks = {
@@ -415,7 +536,7 @@ async function main() {
     debris: [
       ...checkCoverage(flavour, pieces.map((p) => p.id), 'debris'),
       ...checkCitations(flavour, plans.debris.perItem, poolIds(plans.debris)),
-      ...checkReadsAs(flavour, new Map(pieces.map((p) => [p.id, p])), band),
+      ...checkReadsAs(flavour, new Map(pieces.map((p) => [p.id, p])), band, artVerdicts),
       ...checkExtremes(flavour, pieces, band),
     ],
     postmortems: [
@@ -457,9 +578,35 @@ async function main() {
   // Keeping them in one place is not tidiness: the re-check used to be built inline without
   // them, so the debris re-check judged flavour text with no loot table in front of it and
   // failed three pieces for stating masses the table it was not shown states exactly.
+  //
+  // The art block is here for a harder reason. The first run after the writer was given the
+  // sprites, the critic — which has the ids and the table but no pictures — "corrected" a
+  // description of a cracked grey PLATE back into a crumpled foil SHEET, reasoning from the id
+  // `torn_foil_blanket`. The audit had already established that id is wrong. So the pipeline
+  // found the error and then enforced it one stage later, which is worse than never having
+  // looked: it launders a known-bad label into a reviewed, corrected line.
+  //
+  // Adding a source for the writer and not for its judge is what caused that. The critic gets
+  // the same findings now — as text, never the images, so it stays a reader of records rather
+  // than a second opinion about what is drawn.
+  const artForCritic = artReadings.length ? pieces
+    .filter((p) => readingById.has(p.id))
+    .map((p) => {
+      const r = readingById.get(p.id);
+      const v = verdictById.get(p.id);
+      return `${p.id}\n   the sprite shows: ${r.depicts} (${r.legible}) — ${r.detail}` +
+        (v ? `\n   audit: ${v.verdict}${v.verdict === 'match' ? '' : ` — ${v.why}`}` : '');
+    }).join('\n\n') : null;
+
   const extras = {
     barks: {},
-    debris: { "THE LOOT TABLE'S MECHANICAL FIELDS — the fiction must match these": mechanicalBlock },
+    debris: {
+      "THE LOOT TABLE'S MECHANICAL FIELDS — the fiction must match these": mechanicalBlock,
+      ...(artForCritic ? {
+        'WHAT THE SPRITES SHOW — where a name and its picture disagree, the picture is the game':
+          artForCritic,
+      } : {}),
+    },
     postmortems: {},
   };
   const itemSpecs = { barks: barkSpec, debris: debrisSpec, postmortems: pmSpec };
@@ -518,7 +665,7 @@ async function main() {
   console.log('');
 
   // -- 5. artifacts ---------------------------------------------------------
-  log('5/5  Writing artifacts');
+  log('6/6  Writing artifacts');
 
   const stamp = new Date().toISOString();
   const provenance = {
@@ -618,6 +765,36 @@ async function main() {
 
   writeJson(path.join(outDir, 'checks', 'deterministic_checks.json'), { ...provenance, checks });
 
+  // The art stage's findings are text, and text ships. The page that shows the sprites does not —
+  // see lib/artsheet.js. Splitting them this way is what lets a published copy of this project
+  // carry the audit without carrying the pack.
+  if (artReadings.length) {
+    writeJson(path.join(outDir, 'art', 'art_reading.json'), {
+      ...provenance,
+      note: 'What each sprite shows, described by an agent that was shown the picture and NOT the '
+          + "piece's name. Blind on purpose: a reader told the name confirms the name.",
+      art_directory: artDir ? path.relative(path.join(ROOT, '..'), artDir).replace(/\\/g, '/') : null,
+      sprite_map: spriteMapPath ? path.relative(path.join(ROOT, '..'), spriteMapPath).replace(/\\/g, '/') : null,
+      sheets: artSheets.map((s) => ({ id: s.id, cells: s.pieces.length, cols: s.cols })),
+      readings: artReadings,
+    });
+
+    const tally = artVerdicts.reduce((a, v) => { a[v.verdict] = (a[v.verdict] || 0) + 1; return a; }, {});
+    writeJson(path.join(outDir, 'art', 'art_match.json'), {
+      ...provenance,
+      note: 'Whether each piece\'s name and its picture describe the same object. The judge was '
+          + 'given the name and the blind reading, and never the image — so its evidence is '
+          + "quotable and its verdict cannot be a second opinion about what's drawn.",
+      totals: {
+        judged: artVerdicts.length,
+        match: tally.match || 0,
+        loose: tally.loose || 0,
+        mismatch: tally.mismatch || 0,
+      },
+      verdicts: artVerdicts,
+    });
+  }
+
   const totals = {
     items: barks.length + flavour.length + screens.length,
     corrections: Object.values(applied).reduce((a, x) => a + x.corrections.length, 0),
@@ -680,6 +857,50 @@ async function main() {
     canon: CANON_BARKS, specs: { barks: BARK_STATES, postmortems: POSTMORTEM_STATES }, pieces, band,
   }));
 
+  // The art review page, only where the art is. It embeds the sprites, so it is the one artifact
+  // this pipeline produces that cannot be published — the JSON above carries the same findings.
+  if (artReadings.length && artVerdicts.length) {
+    const byId = artDir
+      ? new Map(resolveSprites(pieces, artDir, spriteMap).resolved.map((p) => [p.id, p]))
+      : new Map();
+    const items = pieces
+      .filter((p) => readingById.has(p.id))
+      .map((p) => {
+        const v = verdictById.get(p.id) || {};
+        const r = readingById.get(p.id);
+        const f = flavour.find((x) => x.id === p.id) || {};
+        return {
+          id: p.id,
+          display_name: f.display_name || p.display_name,
+          flavour: f.flavour,
+          spriteFile: byId.has(p.id) ? byId.get(p.id).spriteFile : null,
+          mass_kg: p.mass_kg, altitude_m: p.altitude_m,
+          size_class: p.size_class, fragile: p.fragile,
+          verdict: v.verdict || 'loose', why: v.why, evidence: v.evidence,
+          suggested_id: v.suggested_id, flag_for_human: v.flag_for_human,
+          depicts: r.depicts, detail: r.detail, legible: r.legible,
+        };
+      });
+    const common = {
+      generatedAt: stamp,
+      catalogPath: path.relative(path.join(ROOT, '..'), catalogPath).replace(/\\/g, '/'),
+    };
+
+    // The findings page always ships: it is how somebody sees what the audit concluded without
+    // running anything and without receiving the art. Each tile carries the blind reader's own
+    // words in place of the sprite, which is what the verdict rested on anyway.
+    fs.writeFileSync(path.join(outDir, 'report', 'art-findings.html'),
+      renderArtReview(items, { ...common, embedSprites: false }));
+
+    // And the one with the pictures, only where the pictures are. Never published.
+    if (artDir && items.every((i) => i.spriteFile)) {
+      fs.writeFileSync(path.join(outDir, 'report', 'art.html'), renderArtReview(items, {
+        ...common,
+        artDir: path.relative(path.join(ROOT, '..'), artDir).replace(/\\/g, '/'),
+      }));
+    }
+  }
+
   if (args.record) {
     fs.mkdirSync(stubDir, { recursive: true });
     const kept = new Set();
@@ -701,6 +922,10 @@ async function main() {
     // Snapshot the catalog with the fixtures. The flavour text describes THESE masses at
     // THESE altitudes, and the crew rewrites its own copy on every run.
     writeJson(snapshot, catalog);
+    // And the sprite map, for the same reason: the recorded readings are of the sprites THIS
+    // mapping pointed at, so a replay that read a re-mapped file would attach them to the wrong
+    // pieces. It is small, it is metadata, and it carries no art.
+    if (spriteMap) writeJson(path.join(ROOT, 'data', 'debris_sprites.json'), spriteMap);
     log(`recorded ${n} agent logs to stubs/ and snapshotted the catalog — \`--stub\` replays this run`);
   }
 
@@ -713,6 +938,11 @@ async function main() {
   console.log(line);
   console.log(`  barks             ${barks.length} generated + ${CANON_BARKS.length} canon from the GDD`);
   console.log(`  debris flavour    ${flavour.length} pieces`);
+  if (artVerdicts.length) {
+    const t = artVerdicts.reduce((a, v) => { a[v.verdict] = (a[v.verdict] || 0) + 1; return a; }, {});
+    console.log(`  art audit         ${artVerdicts.length} sprites read blind — ${t.match || 0} match ` +
+      `their id, ${t.loose || 0} loose, ${t.mismatch || 0} disagree`);
+  }
   console.log(`  post-mortems      ${screens.length} screens (5 terminal states + 4 stranded sub-cases)`);
   console.log(`  retrieval         P@1 ${(accuracy.precision_at_1 * 100).toFixed(0)}% on ${accuracy.labelled} ` +
     `hand-labelled states; each item written from ` +
@@ -725,7 +955,7 @@ async function main() {
   console.log('');
   console.log('  Game-ready output:');
   console.log('    content/armstrong_barks.json     the radio barks, keyed by game state');
-  console.log('    content/debris_flavour.json      display names and flavour for all 25 pieces');
+  console.log(`    content/debris_flavour.json      display names and flavour for all ${flavour.length} pieces`);
   console.log('    content/postmortem_screens.json  the end-of-run screens');
   console.log('    content/content.gd               the Godot autoload that loads all three');
   console.log('    report/content.html              query -> chunk -> output, and every correction');

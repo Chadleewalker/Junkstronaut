@@ -45,6 +45,52 @@ const ids = [...prompt.matchAll(/^\s*\d+\.\s+([a-z0-9_]+)\s*$/gm)].map((m) => m[
 const chunkIds = [...new Set([...prompt.matchAll(/^\[(\d+(?:\.\d+)?[a-z]?)\]/gm)].map((m) => m[1]))];
 const cite = (i) => [behaviour === 'unknown-cite' ? '99.9z' : (chunkIds[i % chunkIds.length] || '1a')];
 
+// The art reader is given a sheet, a cell count and no ids at all — so it is identified by its
+// charter and its reply is keyed by cell number. It cannot scrape ids because it is never shown
+// any, which is exactly the property art.test.js asserts.
+if (/# Art Reader/.test(prompt)) {
+  const n = Number((prompt.match(/It holds (\d+) sprites/) || [])[1] || 1);
+  const sheet = (prompt.match(/Sheet id:\s*(\S+)/) || [])[1] || 'sheet1';
+  envelope(JSON.stringify({
+    sheet,
+    unreadable: false,
+    cells: Array.from({ length: n }, (_, i) => ({
+      cell: i + 1,
+      depicts: `A fake object number ${i + 1}`,
+      detail: 'A fake description of a drawn shape, long enough to satisfy the schema minimum.',
+      condition: 'intact',
+      bulk: 'compact',
+      palette: ['grey'],
+      legible: 'clear',
+    })),
+  }));
+  process.exit(0);
+}
+
+// The art matcher is given ids and readings and never an image. `art-mismatch` makes it disagree
+// with the first piece, which is how the orchestrator's mismatch handling gets exercised.
+if (/# Art Matcher/.test(prompt)) {
+  const artIds = [...new Set([...prompt.matchAll(/^([a-z][a-z0-9_]+)$/gm)].map((x) => x[1]))];
+  envelope(JSON.stringify({
+    verdicts: artIds.map((id, i) => (behaviour === 'art-mismatch' && i === 0 ? {
+      id,
+      verdict: 'mismatch',
+      evidence: 'reading: "A fake object number 1"',
+      why: 'The fake matcher always disagrees with the first piece so the mismatch path runs.',
+      suggested_id: 'fake_object',
+      flag_for_human: '',
+    } : {
+      id,
+      verdict: 'match',
+      evidence: 'reading: "A fake object"',
+      why: 'The fake matcher agrees with everything it was not told to disagree with.',
+      suggested_id: '',
+      flag_for_human: '',
+    })),
+  }));
+  process.exit(0);
+}
+
 // The critic is identified by its own charter heading rather than by the presence of items,
 // because it is given the same item block the writer was.
 if (/# Lore Critic/.test(prompt)) {

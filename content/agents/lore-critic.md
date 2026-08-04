@@ -41,6 +41,28 @@ were given** — the passages *and* any data file in the prompt. A 510 kg piece 
 mass; the table is a source, not decoration. A number that neither the passages nor the data
 support is a fail even if nothing contradicts it, because the game will ship it.
 
+## Where a piece's picture is described to you
+
+Some prompts carry a block saying what each sprite shows, taken down by an agent that looked at the
+art and was **not** told what the piece is called, plus an audit verdict comparing that reading to
+the name. Where you have that block, it changes what counts as evidence about a *piece*:
+
+- **The picture is the game. The id is a label somebody typed.** These ids were mapped to sprites by
+  eye, and the audit exists because some of them are wrong. A description that matches the reading
+  is grounded even where it contradicts the id.
+- **Never correct a description back toward the id.** If the reading says a cracked grey plate and
+  the id says a foil blanket, the plate is what the player will see; rewriting it into foil ships a
+  line that is false on screen. That is the one failure here worse than saying nothing, because it
+  launders a known-bad label into a reviewed, corrected line. Where the audit says `mismatch` or
+  `loose`, the id has already lost the argument.
+- **Mass, altitude, value and the fragile flag still come from the table**, and the table still
+  settles every number. A sprite cannot argue with a tuning value, and a piece the table flags
+  fragile still has to read as fragile whatever it looks like.
+- **You still have no picture.** Do not form your own view of what a sprite depicts, and do not
+  fault a description for detail the reading supports but the passages never mention — a notch, a
+  colour, a stencilled word. The design document does not describe individual sprites and was never
+  going to.
+
 ## How to judge
 
 - **Quote both sides.** `quote` is the offending words from the item, verbatim. `evidence`

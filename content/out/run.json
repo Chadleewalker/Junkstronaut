@@ -1,7 +1,7 @@
 {
   "pipeline": "junkstronaut-content-pipeline",
   "mode": "stub",
-  "finished_at": "2026-07-28T22:31:46.721Z",
+  "finished_at": "2026-08-04T21:53:12.888Z",
   "duration_s": 0.1,
   "design_document": "Junkstronaut GDD Short.txt",
   "debris_catalog": "content/data/debris_catalog.snapshot.json",
@@ -17,15 +17,15 @@
     "precision_at_1": 1,
     "recall_at_k": 1,
     "labelled_states": 27,
-    "mean_chars_per_item": 2894,
-    "share_of_document_per_item": 0.07,
-    "share_of_document_pooled_max": 0.6304
+    "mean_chars_per_item": 2917,
+    "share_of_document_per_item": 0.0704,
+    "share_of_document_pooled_max": 0.6543
   },
   "totals": {
-    "items": 52,
-    "corrections": 10,
-    "issues": 11,
-    "checks_run": 82,
+    "items": 57,
+    "corrections": 12,
+    "issues": 12,
+    "checks_run": 92,
     "checks_failed": 0
   },
   "agents": [
@@ -37,7 +37,7 @@
     {
       "name": "debris-flavourist",
       "attempts": 1,
-      "produced": 25
+      "produced": 30
     },
     {
       "name": "postmortem-writer",
@@ -53,7 +53,7 @@
     {
       "name": "lore-critic.debris",
       "verdict": "revise",
-      "flagged": 4,
+      "flagged": 6,
       "rechecked": "revise"
     },
     {

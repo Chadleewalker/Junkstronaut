@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-28T22:31:46.721Z",
+  "generated_at": "2026-08-04T21:53:12.888Z",
   "design_document": "Junkstronaut GDD Short.txt",
   "pipeline": "content/run-content.js",
   "note": "Generated from passages retrieved from the design document, then checked against those same passages by the lore critic. Corrections and the drafts they replaced are in critique/critique_log.json.",
@@ -234,15 +234,29 @@
     },
     "debris": {
       "verdict": "revise",
-      "summary": "Twenty-one items pass; four need work — the reentry cone claims superlatives the passages hand to Armstrong's module, the antenna dish invents slot economy §4.3 rules out, the camera mast sells a degraded piece, and the wing spine quantifies a fuel cost nothing supports.",
+      "summary": "Twenty-four items pass; six need work — three lean on shelves and rates the document explicitly cut, two drop the table's FRAGILE flag, and Armstrong's module invents a fuel cost for cargo mass.",
       "reviews": [
         {
-          "id": "scorched_hull_panel",
-          "verdict": "pass",
-          "issues": []
+          "id": "torn_foil_blanket",
+          "verdict": "revise",
+          "issues": [
+            {
+              "type": "contradicts_gdd",
+              "quote": "Lightest thing on the low shelf",
+              "evidence": "[2.6a] \"One continuous orbital band, 50,000 m to 280,000 m, with a value gradient — no tiers, no discrete altitudes to keep in sync.\" [4.3] \"Discrete altitude bands. One continuous envelope with a value gradient does the same job with nothing to keep in sync (§2.6).\"",
+              "cites": [
+                "2.6a",
+                "4.3"
+              ],
+              "why": "\"The low shelf\" names a place in the field, which tells the player the envelope is divided into shelves. Discrete bands are the thing §4.3 records as cut. The superlative itself is fine — 15 kg is the lightest row in the table — so only the shelf has to go."
+            }
+          ],
+          "corrected": {
+            "flavour": "A six-sided grey slab with fracture lines crawling right across its face and a notch bitten out of the top edge. Lightest thing in the whole field, and it still wants to come apart in the tether."
+          }
         },
         {
-          "id": "bent_truss_section",
+          "id": "crumpled_panel_stack",
           "verdict": "pass",
           "issues": []
         },
@@ -252,271 +266,338 @@
           "issues": []
         },
         {
-          "id": "dented_fuel_bladder",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "foil_insulation_bale",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "collapsed_antenna_dish",
+          "id": "bent_truss_section",
           "verdict": "revise",
           "issues": [
             {
               "type": "contradicts_gdd",
-              "quote": "still wider than your cockpit",
-              "evidence": "[4.3] \"Size classes, fragile flag, compactor, crane magnet, oversized junk. All exist to serve the endgame. Every piece is one slot; the module is simply very heavy.\"",
-              "cites": [
-                "4.3"
-              ],
-              "why": "Raising this once, on this item, as the representative: §4.3 lists size classes, the fragile flag and oversized junk as cut from scope, and the loot table still carries all three (this row is flagged oversized; six rows are flagged FRAGILE). The collision is between the document and the table, not inside the writing — the table is what the game will spawn, so every size and fragility read in this batch stands, including this one. Nothing to correct here; it is a finding about the two sources disagreeing."
-            },
-            {
-              "type": "contradicts_gdd",
-              "quote": "and it eats the whole slot doing it",
-              "evidence": "[4.3] \"Every piece is one slot; the module is simply very heavy.\"",
-              "cites": [
-                "4.3"
-              ],
-              "why": "This goes past the table's size class into cargo-slot economy. The table says oversized; it does not say oversized pieces consume capacity differently, and §4.3 positively states every piece is one slot — including this one. Bulk is fair to describe; a slot cost is not."
-            }
-          ],
-          "corrected": {
-            "flavour": "Folded in on itself like a dropped umbrella and still wider than your cockpit. It hangs where the scrap is cheap, and it is all elbows on the tether the whole way down."
-          }
-        },
-        {
-          "id": "reaction_wheel_housing",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "snapped_boom_arm",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "shattered_camera_mast",
-          "verdict": "revise",
-          "issues": [
-            {
-              "type": "invented_mechanic",
-              "quote": "or you'll be selling gravel from the bargain end of the band",
-              "evidence": "[5d] \"Satellite → Apollo-era module that degrades (pristine → damaged → scrap) instead of being destroyed, and its condition selects the ending and scales payout.\"",
-              "cites": [
-                "5d"
-              ],
-              "why": "Selling the broken piece at a reduced rate is a payout that scales with condition. The passages define that mechanic for Armstrong's module alone, and define it by contrast — the module degrades *instead of being destroyed*, which is what ordinary debris does. A fragile piece may read as delicate and may be lost; it may not have a damaged resale price."
-            }
-          ],
-          "corrected": {
-            "flavour": "The optics head went first and the mast is holding its pieces together out of habit. Snatch it on the tether and there is nothing left to bring down — and this low, there was never much to bring down anyway."
-          }
-        },
-        {
-          "id": "battery_pallet",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "torn_radiator_panel",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "cryo_tank_girdle",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "gyro_package",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "docking_collar",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "buckled_truss_node",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "optics_bench",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "deployable_mast_cassette",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "ion_thruster_cluster",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "cracked_pressure_dome",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "reactor_shield_plug",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "comsat_bus_frame",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "telescope_mirror_segment",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "isotope_cask",
-          "verdict": "pass",
-          "issues": []
-        },
-        {
-          "id": "solar_wing_spine",
-          "verdict": "revise",
-          "issues": [
-            {
-              "type": "number_disagrees",
-              "quote": "it takes most of a tank to bring home",
-              "evidence": "[2.6a] \"a ballistic arc never pays for circularisation, which is most of the delta-v, but it comes back in faster and hotter and gives a short working window; circularising costs the rest of the tank and buys time.\"",
-              "cites": [
-                "2.6a"
-              ],
-              "why": "The only tank arithmetic the passages give is routing: circularisation is most of the delta-v and costs the rest of the tank. Nothing in the passages or the table prices a single piece of cargo in fuel, so \"most of a tank\" is a quantity neither source supports. §2.6a does back the qualitative version — the good stuff \"fights you on the tether and on the way down.\""
-            }
-          ],
-          "corrected": {
-            "flavour": "The full backbone of an array wing, panels stripped, still longer than your ship. It comes off the rich end of the band and it fights you on the tether and the whole way down."
-          }
-        },
-        {
-          "id": "scorched_reentry_cone",
-          "verdict": "revise",
-          "issues": [
-            {
-              "type": "contradicts_gdd",
-              "quote": "The heaviest thing on the board, the highest hanging",
-              "evidence": "[2.6a] \"At the very top hangs Armstrong's module: Apollo-era hardware that predates — and outlived — the cascade.\" / [4.3] \"Every piece is one slot; the module is simply very heavy.\"",
+              "quote": "Bottom-shelf steel that pays about what steel pays.",
+              "evidence": "[2.6a] \"a piece's value multiplier interpolates on its altitude from 1.0 at the floor to 5.5 at the ceiling ... Value scales with mass on top of the altitude gradient\"",
               "cites": [
                 "2.6a",
                 "4.3"
               ],
-              "why": "Both superlatives belong to Armstrong's module. The table does settle superlatives among its own rows — 1600 kg at 276,000 m is the heaviest and highest row it carries — but the passages put the module above everything in the band and describe it as very heavy, so \"the highest hanging\" and \"the heaviest thing on the board\" are claims about the field, and the field has the module in it. This also steps on the module's whole job: the glint overhead that the player is not ready for yet."
+              "why": "Two collisions in one clause. \"Bottom-shelf\" reads as a band, and \"pays about what steel pays\" says price comes from the material, when the document is explicit that price is mass times an altitude multiplier and nothing else. The piece is cheap because it is 30 kg at 67,000 m, not because it is steel."
             }
           ],
           "corrected": {
-            "flavour": "Something big came down wearing this once and it is charred through, the ablative crumbling wherever you grip. The heaviest thing you can get a tether on short of the module itself, and the one most likely to come apart on the way to the deck."
+            "flavour": "A dozen thin rusty bars crossed at every angle in a flat mat, speckled brown where the coating gave up. Scraped off the floor of the envelope, and it pays like the floor."
+          }
+        },
+        {
+          "id": "spent_kick_motor_casing",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "collapsed_dish_frame",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "shredded_antenna_mesh",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "cracked_battery_pallet",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "seized_reaction_wheel_housing",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "burst_pressurant_sphere",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "delaminated_radiator_fin",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "torn_solar_wing_spar",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "cracked_optics_barrel",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "fractured_docking_collar",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "dead_thruster_quad",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "buckled_pressure_bulkhead",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "ruptured_helium_tank",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "shattered_star_tracker",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "warped_gyro_deck",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "cracked_ablative_nose_cone",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "split_avionics_rack",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "torn_reactor_shield_plate",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "cracked_deep_space_dish",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "fused_ion_grid_assembly",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "severed_boom_mast",
+          "verdict": "revise",
+          "issues": [
+            {
+              "type": "contradicts_gdd",
+              "quote": "it pays the top-shelf rate for every kilo of it",
+              "evidence": "[2.6a] \"no tiers, no discrete altitudes to keep in sync ... a piece's value multiplier interpolates on its altitude from 1.0 at the floor to 5.5 at the ceiling\"",
+              "cites": [
+                "2.6a",
+                "4.3"
+              ],
+              "why": "A \"rate\" is a band you either qualify for or do not. The multiplier interpolates continuously, so this piece at 234,000 m is worth a hair less per kilo than one at 259,000 m. The per-kilo half of the line is correct and should stay — value does scale with mass."
+            }
+          ],
+          "corrected": {
+            "flavour": "A braided strand running long and twisted, frayed open into a bristly knot where it was cut. Bulky in the hold, and this high up every kilo of it pays."
+          }
+        },
+        {
+          "id": "scorched_fuel_cell_stack",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "shattered_cryo_dewar",
+          "verdict": "revise",
+          "issues": [
+            {
+              "type": "contradicts_gdd",
+              "quote": "Somebody's drinking water, worth a fortune this high up.",
+              "evidence": "[loot table] \"shattered_cryo_dewar   98 kg | 251,000 m (top third) | medium | FRAGILE\"",
+              "cites": [
+                "4.3"
+              ],
+              "why": "The table flags this piece FRAGILE and the flavour gives the player nothing that reads as delicate — it is described as a solid tank and priced, and that is all. The flag is what the game spawns, so the text has to carry it. The water reading and the H2O stencil stay; they come from the sprite, and the sprite is the game."
+            }
+          ],
+          "corrected": {
+            "flavour": "A bright cyan tank on its side, stub fittings at both ends, one nozzle up top and H2O stencilled black across the belly. Somebody's drinking water, worth a fortune this high up — and a shell thin enough to split on a rough haul."
+          }
+        },
+        {
+          "id": "impact_pitted_engine_bell",
+          "verdict": "pass",
+          "issues": []
+        },
+        {
+          "id": "cracked_command_module_hatch",
+          "verdict": "revise",
+          "issues": [
+            {
+              "type": "contradicts_gdd",
+              "quote": "One small hex ring, face-on, hole through the middle, a highlight on the upper corner and nothing else in the cell.",
+              "evidence": "[loot table] \"cracked_command_module_hatch   112 kg | 268,000 m (top third) | small | FRAGILE\" — and [4.3] \"Size classes, fragile flag, compactor, crane magnet, oversized junk. All exist to serve the endgame. Every piece is one slot; the module is simply very heavy.\"",
+              "cites": [
+                "4.3"
+              ],
+              "why": "Raising the document-versus-data collision once here, on the field it turns on: §4.3 records the fragile flag and size classes as cut from scope, and the loot table the game loads still carries both, on this row and eleven others. That is a collision between two files, not a fault in the writing, and it is not licence to strip fragility out of the twelve rows that carry it. The table is what ships, so this piece has to read as breakable and currently does not — it is drawn as a solid lump of hardware and the text adds nothing. The sale joke is sound: 112 kg at 268,000 m against 24 kg near the floor does outsell it by a wide margin."
+            }
+          ],
+          "corrected": {
+            "flavour": "One small hex ring, face-on, hole through the middle, a highlight on the upper corner and nothing else in the cell. It will not take a knock, and it is absurd that a nut from up here outsells a panel from down low."
+          }
+        },
+        {
+          "id": "armstrongs_module",
+          "verdict": "revise",
+          "issues": [
+            {
+              "type": "invented_mechanic",
+              "quote": "it takes the whole tank to bring home",
+              "evidence": "[2.6a] \"a ballistic arc never pays for circularisation, which is most of the delta-v, but it comes back in faster and hotter and gives a short working window; circularising costs the rest of the tank and buys time.\"",
+              "cites": [
+                "2.6a",
+                "4.3"
+              ],
+              "why": "The passages spend the tank on the route — ballistic versus circularised — and never on the cargo. Cargo mass fights you \"on the tether and on the way down\", which is a handling and reentry cost, not a fuel cost. Saying this piece drinks the tank tells the player propellant scales with what is in the hold, which is a system nothing here defines. The weight itself is worth keeping and the table proves it: 3,600 kg against 2,094 kg for the other twenty-nine rows combined."
+            }
+          ],
+          "corrected": {
+            "flavour": "A grey canister lying diagonal, rimmed at both ends, two yellow bands around its body, one end dented and a chip broken off beside it. Apollo-era, older than the cascade, and heavier on its own than everything else in the field put together."
           }
         }
       ],
       "corrections": [
         {
-          "id": "collapsed_antenna_dish",
+          "id": "torn_foil_blanket",
           "verdict": "revise",
           "issues": [
             {
               "type": "contradicts_gdd",
-              "quote": "still wider than your cockpit",
-              "evidence": "[4.3] \"Size classes, fragile flag, compactor, crane magnet, oversized junk. All exist to serve the endgame. Every piece is one slot; the module is simply very heavy.\"",
-              "cites": [
-                "4.3"
-              ],
-              "why": "Raising this once, on this item, as the representative: §4.3 lists size classes, the fragile flag and oversized junk as cut from scope, and the loot table still carries all three (this row is flagged oversized; six rows are flagged FRAGILE). The collision is between the document and the table, not inside the writing — the table is what the game will spawn, so every size and fragility read in this batch stands, including this one. Nothing to correct here; it is a finding about the two sources disagreeing."
-            },
-            {
-              "type": "contradicts_gdd",
-              "quote": "and it eats the whole slot doing it",
-              "evidence": "[4.3] \"Every piece is one slot; the module is simply very heavy.\"",
-              "cites": [
-                "4.3"
-              ],
-              "why": "This goes past the table's size class into cargo-slot economy. The table says oversized; it does not say oversized pieces consume capacity differently, and §4.3 positively states every piece is one slot — including this one. Bulk is fair to describe; a slot cost is not."
-            }
-          ],
-          "before": {
-            "flavour": "Folded in on itself like a dropped umbrella and still wider than your cockpit. It hangs where the scrap is cheap, and it eats the whole slot doing it."
-          },
-          "after": {
-            "flavour": "Folded in on itself like a dropped umbrella and still wider than your cockpit. It hangs where the scrap is cheap, and it is all elbows on the tether the whole way down."
-          }
-        },
-        {
-          "id": "shattered_camera_mast",
-          "verdict": "revise",
-          "issues": [
-            {
-              "type": "invented_mechanic",
-              "quote": "or you'll be selling gravel from the bargain end of the band",
-              "evidence": "[5d] \"Satellite → Apollo-era module that degrades (pristine → damaged → scrap) instead of being destroyed, and its condition selects the ending and scales payout.\"",
-              "cites": [
-                "5d"
-              ],
-              "why": "Selling the broken piece at a reduced rate is a payout that scales with condition. The passages define that mechanic for Armstrong's module alone, and define it by contrast — the module degrades *instead of being destroyed*, which is what ordinary debris does. A fragile piece may read as delicate and may be lost; it may not have a damaged resale price."
-            }
-          ],
-          "before": {
-            "flavour": "The optics head went first and the mast is holding its pieces together out of habit. Reel it in slow or you'll be selling gravel from the bargain end of the band."
-          },
-          "after": {
-            "flavour": "The optics head went first and the mast is holding its pieces together out of habit. Snatch it on the tether and there is nothing left to bring down — and this low, there was never much to bring down anyway."
-          }
-        },
-        {
-          "id": "solar_wing_spine",
-          "verdict": "revise",
-          "issues": [
-            {
-              "type": "number_disagrees",
-              "quote": "it takes most of a tank to bring home",
-              "evidence": "[2.6a] \"a ballistic arc never pays for circularisation, which is most of the delta-v, but it comes back in faster and hotter and gives a short working window; circularising costs the rest of the tank and buys time.\"",
-              "cites": [
-                "2.6a"
-              ],
-              "why": "The only tank arithmetic the passages give is routing: circularisation is most of the delta-v and costs the rest of the tank. Nothing in the passages or the table prices a single piece of cargo in fuel, so \"most of a tank\" is a quantity neither source supports. §2.6a does back the qualitative version — the good stuff \"fights you on the tether and on the way down.\""
-            }
-          ],
-          "before": {
-            "flavour": "The full backbone of an array wing, panels stripped, still longer than your ship. It comes off the rich end of the band and it takes most of a tank to bring home."
-          },
-          "after": {
-            "flavour": "The full backbone of an array wing, panels stripped, still longer than your ship. It comes off the rich end of the band and it fights you on the tether and the whole way down."
-          }
-        },
-        {
-          "id": "scorched_reentry_cone",
-          "verdict": "revise",
-          "issues": [
-            {
-              "type": "contradicts_gdd",
-              "quote": "The heaviest thing on the board, the highest hanging",
-              "evidence": "[2.6a] \"At the very top hangs Armstrong's module: Apollo-era hardware that predates — and outlived — the cascade.\" / [4.3] \"Every piece is one slot; the module is simply very heavy.\"",
+              "quote": "Lightest thing on the low shelf",
+              "evidence": "[2.6a] \"One continuous orbital band, 50,000 m to 280,000 m, with a value gradient — no tiers, no discrete altitudes to keep in sync.\" [4.3] \"Discrete altitude bands. One continuous envelope with a value gradient does the same job with nothing to keep in sync (§2.6).\"",
               "cites": [
                 "2.6a",
                 "4.3"
               ],
-              "why": "Both superlatives belong to Armstrong's module. The table does settle superlatives among its own rows — 1600 kg at 276,000 m is the heaviest and highest row it carries — but the passages put the module above everything in the band and describe it as very heavy, so \"the highest hanging\" and \"the heaviest thing on the board\" are claims about the field, and the field has the module in it. This also steps on the module's whole job: the glint overhead that the player is not ready for yet."
+              "why": "\"The low shelf\" names a place in the field, which tells the player the envelope is divided into shelves. Discrete bands are the thing §4.3 records as cut. The superlative itself is fine — 15 kg is the lightest row in the table — so only the shelf has to go."
             }
           ],
           "before": {
-            "flavour": "Something big came down wearing this once and it is charred through, the ablative crumbling wherever you grip. The heaviest thing on the board, the highest hanging, and the one most likely to come apart on the way to the deck."
+            "flavour": "A six-sided grey slab with fracture lines crawling right across its face and a notch bitten out of the top edge. Lightest thing on the low shelf, and it still wants to come apart in the tether."
           },
           "after": {
-            "flavour": "Something big came down wearing this once and it is charred through, the ablative crumbling wherever you grip. The heaviest thing you can get a tether on short of the module itself, and the one most likely to come apart on the way to the deck."
+            "flavour": "A six-sided grey slab with fracture lines crawling right across its face and a notch bitten out of the top edge. Lightest thing in the whole field, and it still wants to come apart in the tether."
+          }
+        },
+        {
+          "id": "bent_truss_section",
+          "verdict": "revise",
+          "issues": [
+            {
+              "type": "contradicts_gdd",
+              "quote": "Bottom-shelf steel that pays about what steel pays.",
+              "evidence": "[2.6a] \"a piece's value multiplier interpolates on its altitude from 1.0 at the floor to 5.5 at the ceiling ... Value scales with mass on top of the altitude gradient\"",
+              "cites": [
+                "2.6a",
+                "4.3"
+              ],
+              "why": "Two collisions in one clause. \"Bottom-shelf\" reads as a band, and \"pays about what steel pays\" says price comes from the material, when the document is explicit that price is mass times an altitude multiplier and nothing else. The piece is cheap because it is 30 kg at 67,000 m, not because it is steel."
+            }
+          ],
+          "before": {
+            "flavour": "A dozen thin rusty bars crossed at every angle in a flat mat, speckled brown where the coating gave up. Bottom-shelf steel that pays about what steel pays."
+          },
+          "after": {
+            "flavour": "A dozen thin rusty bars crossed at every angle in a flat mat, speckled brown where the coating gave up. Scraped off the floor of the envelope, and it pays like the floor."
+          }
+        },
+        {
+          "id": "severed_boom_mast",
+          "verdict": "revise",
+          "issues": [
+            {
+              "type": "contradicts_gdd",
+              "quote": "it pays the top-shelf rate for every kilo of it",
+              "evidence": "[2.6a] \"no tiers, no discrete altitudes to keep in sync ... a piece's value multiplier interpolates on its altitude from 1.0 at the floor to 5.5 at the ceiling\"",
+              "cites": [
+                "2.6a",
+                "4.3"
+              ],
+              "why": "A \"rate\" is a band you either qualify for or do not. The multiplier interpolates continuously, so this piece at 234,000 m is worth a hair less per kilo than one at 259,000 m. The per-kilo half of the line is correct and should stay — value does scale with mass."
+            }
+          ],
+          "before": {
+            "flavour": "A braided strand running long and twisted, frayed open into a bristly knot where it was cut. Bulky in the hold and it pays the top-shelf rate for every kilo of it."
+          },
+          "after": {
+            "flavour": "A braided strand running long and twisted, frayed open into a bristly knot where it was cut. Bulky in the hold, and this high up every kilo of it pays."
+          }
+        },
+        {
+          "id": "shattered_cryo_dewar",
+          "verdict": "revise",
+          "issues": [
+            {
+              "type": "contradicts_gdd",
+              "quote": "Somebody's drinking water, worth a fortune this high up.",
+              "evidence": "[loot table] \"shattered_cryo_dewar   98 kg | 251,000 m (top third) | medium | FRAGILE\"",
+              "cites": [
+                "4.3"
+              ],
+              "why": "The table flags this piece FRAGILE and the flavour gives the player nothing that reads as delicate — it is described as a solid tank and priced, and that is all. The flag is what the game spawns, so the text has to carry it. The water reading and the H2O stencil stay; they come from the sprite, and the sprite is the game."
+            }
+          ],
+          "before": {
+            "flavour": "A bright cyan tank on its side, stub fittings at both ends, one nozzle up top and H2O stencilled black across the belly. Somebody's drinking water, worth a fortune this high up."
+          },
+          "after": {
+            "flavour": "A bright cyan tank on its side, stub fittings at both ends, one nozzle up top and H2O stencilled black across the belly. Somebody's drinking water, worth a fortune this high up — and a shell thin enough to split on a rough haul."
+          }
+        },
+        {
+          "id": "cracked_command_module_hatch",
+          "verdict": "revise",
+          "issues": [
+            {
+              "type": "contradicts_gdd",
+              "quote": "One small hex ring, face-on, hole through the middle, a highlight on the upper corner and nothing else in the cell.",
+              "evidence": "[loot table] \"cracked_command_module_hatch   112 kg | 268,000 m (top third) | small | FRAGILE\" — and [4.3] \"Size classes, fragile flag, compactor, crane magnet, oversized junk. All exist to serve the endgame. Every piece is one slot; the module is simply very heavy.\"",
+              "cites": [
+                "4.3"
+              ],
+              "why": "Raising the document-versus-data collision once here, on the field it turns on: §4.3 records the fragile flag and size classes as cut from scope, and the loot table the game loads still carries both, on this row and eleven others. That is a collision between two files, not a fault in the writing, and it is not licence to strip fragility out of the twelve rows that carry it. The table is what ships, so this piece has to read as breakable and currently does not — it is drawn as a solid lump of hardware and the text adds nothing. The sale joke is sound: 112 kg at 268,000 m against 24 kg near the floor does outsell it by a wide margin."
+            }
+          ],
+          "before": {
+            "flavour": "One small hex ring, face-on, hole through the middle, a highlight on the upper corner and nothing else in the cell. Absurd that a nut from up here outsells a panel from down low."
+          },
+          "after": {
+            "flavour": "One small hex ring, face-on, hole through the middle, a highlight on the upper corner and nothing else in the cell. It will not take a knock, and it is absurd that a nut from up here outsells a panel from down low."
+          }
+        },
+        {
+          "id": "armstrongs_module",
+          "verdict": "revise",
+          "issues": [
+            {
+              "type": "invented_mechanic",
+              "quote": "it takes the whole tank to bring home",
+              "evidence": "[2.6a] \"a ballistic arc never pays for circularisation, which is most of the delta-v, but it comes back in faster and hotter and gives a short working window; circularising costs the rest of the tank and buys time.\"",
+              "cites": [
+                "2.6a",
+                "4.3"
+              ],
+              "why": "The passages spend the tank on the route — ballistic versus circularised — and never on the cargo. Cargo mass fights you \"on the tether and on the way down\", which is a handling and reentry cost, not a fuel cost. Saying this piece drinks the tank tells the player propellant scales with what is in the hold, which is a system nothing here defines. The weight itself is worth keeping and the table proves it: 3,600 kg against 2,094 kg for the other twenty-nine rows combined."
+            }
+          ],
+          "before": {
+            "flavour": "A grey canister lying diagonal, rimmed at both ends, two yellow bands around its body, one end dented and a chip broken off beside it. Apollo-era, older than the cascade, and it takes the whole tank to bring home."
+          },
+          "after": {
+            "flavour": "A grey canister lying diagonal, rimmed at both ends, two yellow bands around its body, one end dented and a chip broken off beside it. Apollo-era, older than the cascade, and heavier on its own than everything else in the field put together."
           }
         }
       ],
@@ -524,62 +605,76 @@
       "recheck": {
         "agent": "lore-critic",
         "verdict": "revise",
-        "summary": "Two items go past what the sources support — one describes the tether destroying a fragile piece, one ranks it as the most fragile of the set — and the loot table's size and fragile fields collide with §4.3, which cuts both.",
+        "summary": "Four of six hold up against the passages, the table and the art readings; two need a line each, and one item carries the standing collision between §4.3's cut size classes and the size_class column the table still ships.",
         "reviews": [
           {
-            "id": "collapsed_antenna_dish",
+            "id": "torn_foil_blanket",
             "verdict": "pass",
             "issues": []
           },
           {
-            "id": "shattered_camera_mast",
-            "verdict": "revise",
-            "issues": [
-              {
-                "type": "invented_mechanic",
-                "quote": "Snatch it on the tether and there is nothing left to bring down",
-                "evidence": "[4.3] \"Size classes, fragile flag, compactor, crane magnet, oversized junk. All exist to serve the endgame. Every piece is one slot; the module is simply very heavy.\"",
-                "cites": [
-                  "4.3"
-                ],
-                "why": "The line does not just read as delicate — it states the outcome of grabbing it: the piece is gone the moment the tether takes it. No passage defines what the fragile flag does, so destruction-on-grab is a rule the writing invented. It also makes the piece unhaulable, which sits badly against the value-scales-with-mass haul the band is built on."
-              },
-              {
-                "type": "contradicts_gdd",
-                "quote": "medium",
-                "evidence": "[4.3] \"Size classes, fragile flag, compactor, crane magnet, oversized junk. All exist to serve the endgame. Every piece is one slot; the module is simply very heavy.\" — the loot table nonetheless ships \"shattered_camera_mast 157 kg | 118,000 m (bottom third) | medium | FRAGILE\", and carries size classes and fragile flags on rows throughout.",
-                "cites": [
-                  "4.3"
-                ],
-                "why": "Raised once for the whole set, on this item as representative. The collision is between the document and the data file, not inside the writing: §4.3 records size classes and the fragile flag as cut from scope, and the table the game will load still carries both. The fiction stays as written where it matches the table — the flag is what the game will spawn — but the two files need reconciling."
-              }
-            ],
-            "corrected": {
-              "flavour": "The optics head went first and the mast is holding its pieces together out of habit. Handle it gentle on the tether — and this low on the band, it is not worth much even whole."
-            }
-          },
-          {
-            "id": "solar_wing_spine",
-            "verdict": "pass",
-            "issues": []
-          },
-          {
-            "id": "scorched_reentry_cone",
+            "id": "bent_truss_section",
             "verdict": "revise",
             "issues": [
               {
                 "type": "number_disagrees",
-                "quote": "the one most likely to come apart on the way to the deck",
-                "evidence": "The loot table carries FRAGILE as a boolean on seven rows — \"cracked_solar_array ... FRAGILE\", \"shattered_camera_mast ... FRAGILE\", \"torn_radiator_panel ... FRAGILE\", \"optics_bench ... FRAGILE\", \"cracked_pressure_dome ... FRAGILE\", \"telescope_mirror_segment ... FRAGILE\", \"scorched_reentry_cone ... FRAGILE\" — with no per-piece degree.",
+                "quote": "Scraped off the floor of the envelope, and it pays like the floor.",
+                "evidence": "[2.6a] \"One continuous orbital band, 50,000 m to 280,000 m, with a value gradient ... a piece's value multiplier interpolates on its altitude from 1.0 at the floor to 5.5 at the ceiling.\" Loot table: bent_truss_section 30 kg | 67,000 m; torn_foil_blanket sits lower at 52,500 m.",
                 "cites": [
-                  "4.3"
+                  "2.6a"
                 ],
-                "why": "The superlative claims a ranking that neither the passages nor the table contain: fragility is a flag, not a scale, and six other rows carry the same flag. The neighbouring superlative in this line — heaviest short of the module — is fine, because 1600 kg is the top row of the table and §4.3 puts the module above it."
+                "why": "The floor is 50,000 m and pays 1.0x. This piece is 17 km above it at 67,000 m, the fourth row up, paying about 1.33x — low in the band, but not the floor and not floor money."
               }
             ],
             "corrected": {
-              "flavour": "Something big came down wearing this once and it is charred through, the ablative crumbling wherever you grip. The heaviest thing you can get a tether on short of the module itself, and it comes off the top of the band already half ruined."
+              "flavour": "A dozen thin rusty bars crossed at every angle in a flat mat, speckled brown where the coating gave up. Low in the envelope, and it pays what low pays."
             }
+          },
+          {
+            "id": "severed_boom_mast",
+            "verdict": "revise",
+            "issues": [
+              {
+                "type": "contradicts_gdd",
+                "quote": "Bulky in the hold, and this high up every kilo of it pays.",
+                "evidence": "[4.3] \"Size classes, fragile flag, compactor, crane magnet, oversized junk. All exist to serve the endgame. Every piece is one slot; the module is simply very heavy.\" Loot table: severed_boom_mast 165 kg | 234,000 m | oversized.",
+                "cites": [
+                  "4.3"
+                ],
+                "why": "The collision is between the document and the table, not inside the writing: §4.3 cut size classes and fixed every piece at one slot, and the table still carries a size_class column with oversized rows. Raising it once here for the whole set. The table is what the game spawns, so the bulk stays in the fiction; what does not stay is \"in the hold\", which asserts variable cargo space the passage explicitly closed."
+              }
+            ],
+            "corrected": {
+              "flavour": "A braided strand running long and twisted, frayed open into a bristly knot where it was cut. Unwieldy for its weight, and this high up every kilo of it pays."
+            }
+          },
+          {
+            "id": "shattered_cryo_dewar",
+            "verdict": "pass",
+            "issues": []
+          },
+          {
+            "id": "cracked_command_module_hatch",
+            "verdict": "revise",
+            "issues": [
+              {
+                "type": "wrong_voice",
+                "quote": "a highlight on the upper corner and nothing else in the cell",
+                "evidence": "[1c] \"Pillars: #Thematic — Scrapyard Spaceflight, blue-collar handmade spacecraft.\"",
+                "cites": [
+                  "1c"
+                ],
+                "why": "\"the cell\" is the contact sheet's grid square — production language about the sprite sheet, not a place in the world. A player reading this in the hold is being told about an art asset."
+              }
+            ],
+            "corrected": {
+              "flavour": "One small hex ring, face-on, hole through the middle, a highlight on the upper corner and nothing else to it. It will not take a knock, and it is absurd that a nut from up here outsells a panel from down low."
+            }
+          },
+          {
+            "id": "armstrongs_module",
+            "verdict": "pass",
+            "issues": []
           }
         ]
       }

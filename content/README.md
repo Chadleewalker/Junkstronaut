@@ -44,13 +44,16 @@ content is read back out of the recorded envelope rather than asserted.
 |---|---|
 | **`out/report/content.html`** | **Start here.** Every item as **query → retrieved passage → generated output**, side by side, plus every correction the critic made with the draft it replaced. |
 | `out/content/armstrong_barks.json` | 18 generated radio barks + the 3 already in the GDD, keyed by game state |
-| `out/content/debris_flavour.json` | display name and flavour for all 25 junk types |
+| `out/content/debris_flavour.json` | display name and flavour for all 30 junk types |
 | `out/content/postmortem_screens.json` | the 5 terminal states and the 4 stranded sub-cases |
 | `out/content/content.gd` | the Godot autoload that loads all three |
 | `out/critique/critique_log.json` | every rejected draft, the passage that condemned it, and the fix |
 | `out/retrieval/retrieval_log.json` | every query, every chunk it returned, every score |
+| `out/art/art_reading.json` | what each sprite shows, from an agent that was never told the piece's name |
+| `out/art/art_match.json` | whether each name and its picture describe the same object, with the reading quoted |
+| `out/report/art.html` | every sprite beside the words written for it — **written only where the art is present, because it embeds the pack** |
 
-Tests: `node --test "test/*.test.js"` from this folder — 32 tests, about four seconds, no
+Tests: `node --test "test/*.test.js"` from this folder — 49 tests, about five seconds, no
 credentials.
 
 ---
@@ -76,16 +79,25 @@ plasma, the CHUTE lamp going green, the shield running out, the hold-mass dial i
 then red, the RETURN lamp, the tow fee, a hard landing, the module tethered, the module
 degrading, burn-up, and the two endings the canon lines do not already cover.
 
-**2 · Debris flavour.** `crew/out/data/debris_catalog.json` holds 25 real junk types with mass,
-altitude, size class and a fragile flag. It reads like a spreadsheet. The pipeline writes a
-`display_name` and one line of flavour for each — from **the real pieces**, never invented ones,
-which is checked by code rather than promised.
+**2 · Debris flavour.** `config/debris_catalog.json` holds 30 real junk types with mass, altitude,
+size class and a fragile flag. It reads like a spreadsheet. The pipeline writes a `display_name`
+and one line of flavour for each — from **the real pieces**, never invented ones, which is checked
+by code rather than promised.
 
-The constraint that matters is that the fiction has to match the mechanics. A 1,600 kg piece at
-276,000 m has to read as heavy and high; a fragile piece has to read as fragile. That is
-enforced two ways: the writer must *declare* what it was going for in a `reads_as` field, which
-is compared against the catalog's own numbers by `lib/verify.js`, and the critic then judges
-whether the words actually earn the declaration.
+Two constraints, and the second one is the reason this type is worth generating at all.
+
+*The fiction has to match the mechanics.* A 3,600 kg piece at 277,000 m has to read as heavy and
+high; a fragile piece has to read as fragile. Enforced two ways: the writer must *declare* what it
+was going for in a `reads_as` field, which `lib/verify.js` compares against the catalog's own
+numbers, and the critic then judges whether the words earn the declaration.
+
+*The fiction has to match the picture.* This one was added late, after an uncomfortable discovery.
+The writer used to be handed the piece's `id` — `torn_foil_blanket` — and never the sprite, so it
+described **the name**. The name was a label somebody typed, and the mapping from names to sprites
+was made by eye and never checked; `debris_sprites.json` says so in its own header. Where a name
+was wrong the pipeline produced fluent, confident prose about an object the player will never see,
+and nothing could catch it: an art mismatch contradicts no passage, and there was no image in any
+prompt. See [the art stage](#the-art-stage) below.
 
 **3 · Post-mortem screens.** §1: "the first run still teaches reentry through one cheap, legible
 failure — a post-mortem screen names the cause of death and the rule broken." §2.7 defines the
@@ -116,7 +128,7 @@ hit comes back labelled `2.2d` and a reader can go and check it. Sections are fo
 structurally — a line that is a number followed by a title — not from a hardcoded table of
 contents, because the GDD is a living file. Long sections are split at **sentence boundaries**;
 no chunk ever starts or ends mid-sentence, and a test asserts every chunk is verbatim document
-text. 44,500 characters become 48 chunks over 15 sections, averaging 910 characters.
+text. 44,573 characters become 48 chunks over 15 sections, averaging 911 characters.
 
 **Retrieval is BM25 over those chunks.** No embedding service: none is available offline, and an
 online one would break the one-command promise the other two crews in this repo make. It is also
@@ -130,10 +142,10 @@ states it, which is what later gives the critic something to check a generated n
 
 **Generation sees the retrieved passages and nothing else about the game.** Each item gets its
 own retrieval; the passages are printed once and each item cites the ids it retrieved. Each item
-is written from about **2,900 characters — under 7% of the document**.
+is written from about **2,900 characters — 7% of the document**.
 
 > The honest second number: because the passages are pooled and printed once, and because 18
-> bark states span §1 to §2.7, the union in that one prompt is 63% of the document. The per-item
+> bark states span §1 to §2.7, the union in that one prompt is 65% of the document. The per-item
 > figure is what grounding means; the pooled figure is what the model saw in one call. Both are
 > in `run.json` and both are printed by the run. An earlier version repeated each item's
 > passages under that item, which printed §2.2 nine times and ran the prompt to 40,000
@@ -161,6 +173,97 @@ against the same passages, with no memory that it wrote them.
 
 ---
 
+## The art stage
+
+**The bug that caused it.** For most of this pipeline's life the debris writer was given a piece's
+`id` and its numbers, and never the sprite. So it wrote a very good sentence about torn foil for
+`torn_foil_blanket`, and the sprite is a cracked steel plate. Thirty pieces, one hand-made mapping
+from names to pictures, no verification anywhere in the chain.
+
+The lore critic could not have caught it. It reads generated writing against retrieved passages,
+and "this describes foil, the picture is a plate" contradicts no passage. It passed those lines
+because, judged against everything it was given, they were correct. **A consistency checker can
+only catch contradictions between things it can see** — and this one had an eye closed without
+ever reporting low confidence.
+
+**An audit made of two blind halves, and a writer that can see.**
+
+*The reader* is shown contact sheets the pipeline renders itself — every sprite at 7× on a flat
+grey ground, cells numbered, a white corner mark on each — and is **never told a name**. It returns
+what is drawn, how damaged it looks, its silhouette, its colours, and how confidently it could name
+the thing at all.
+
+*The matcher* is shown the names and the reader's words, and **never an image**. It returns
+`match` / `loose` / `mismatch` per piece with the reading quoted as evidence, and a suggested id
+where it disagrees.
+
+One agent given both would read the picture through the name and confirm whatever it was told —
+which is the exact failure this stage exists to catch. It is the same discipline the lore critic
+runs on, applied to a second kind of source, and two tests hold the seam open: one asserts the
+reader's prompt contains no piece name, the other that the matcher's prompt contains no image path.
+
+*The writer* gets the sheets too, and the names, and the numbers, and the passages. It is the one
+agent allowed everything, because it is not judging anything — it writes the words a player reads
+*while looking at the sprite*, so it had better be looking at the sprite.
+
+> That was not the first design, and the first design was worse in a way worth recording. The
+> writer originally worked from the reader's *paraphrase* rather than the picture, which is a game
+> of telephone. The reader, looking at the art, wrote: *"An irregular hexagonal grey slab with dark
+> fracture lines running across its face and a chipped notch out of the upper right edge."* The
+> writer, one hop downstream, produced: *"flat as a lid and cracked end to end."* Not wrong — but
+> the notch and the fracture line are exactly what make that piece recognisable in a field of grey
+> wreckage, and a paraphrase is where that kind of detail goes to die. The fix was to stop
+> describing the description.
+>
+> Fixing it broke something else, which is the more useful half of the story. With the writer
+> describing plates and the critic still holding only the ids, the critic "corrected" a cracked
+> grey **plate** back into a crumpled foil **sheet** — enforcing the very id the audit had just
+> proved wrong, and stamping it reviewed on the way past. Adding a source for the writer and not
+> for its judge is what caused that. The critic now gets the readings and the verdicts as text,
+> never the images, and its charter says the picture is the game and the id is a label somebody
+> typed.
+
+**Why the reader is allowed to say "I can't tell".** Twelve of the thirty came back `partial` or
+`ambiguous` — these are 29-pixel sprites. The matcher's charter caps an ambiguous reading at
+`loose`, so it can never call a confident mismatch on weak evidence. That is why its tally
+(**11 match, 12 loose, 7 disagree**) is more conservative than a human's eyeball pass over the same
+sheets, and it is the right trade: a false mismatch would send someone renaming art that was fine.
+
+**What it found.** Seven pieces where the game calls something by a name its picture does not
+support:
+
+| id | what the reader saw, blind | suggested |
+|---|---|---|
+| `torn_foil_blanket` | a rigid grey slab that fractures rather than creases | `cracked_hull_plate` |
+| `shattered_cryo_dewar` | a tank with **`H2O` stencilled on it**, intact | `potable_water_tank` |
+| `cracked_command_module_hatch` | a plain six-sided fastener | `hex_nut_fastener` |
+| `torn_reactor_shield_plate` | a green board fragment with components and a wire | *(withheld — reading only partial)* |
+| `severed_boom_mast` | a braided flexible strand | *(withheld)* |
+| `ruptured_helium_tank` | quilted material strapped into a roll | *(withheld)* |
+| `burst_pressurant_sphere` | no manufactured surfaces, nothing vessel-like | *(withheld)* |
+
+The stencilled `H2O` is the one I would point at. The artist drew lettering on that sprite, and the
+matcher's charter says drawn text outranks the id — so it read the label and called the piece a
+water tank. Four of the seven withhold a suggested name because the reading was only partial, which
+is the charter working: an invented name for a smudge is worse than no name.
+
+**What it changed in the output.** The writer now gets the reading, plus an explicit note where the
+id and the drawing disagree, and it describes the picture:
+
+> `torn_foil_blanket` → **Cracked Hull Plate** — *"A thin grey offcut off the floor of the band,
+> flat as a lid and cracked end to end."*
+>
+> `shattered_cryo_dewar` → **Stencilled Water Tank** — *"A cyan tank lying on its side, H2O
+> stencilled across the belly and stub fittings at either end."*
+
+**The findings ship; the pixels do not.** The sprite pack is licensed for use and not for
+redistribution, so `out/report/art.html` — which embeds every sprite — is excluded from any
+published copy. `art_reading.json` and `art_match.json` carry the same evidence as text. The stage
+is optional throughout: with no art it says so and every other stage runs, which is how the
+public copy of this project works.
+
+---
+
 ## Does it sound like the game?
 
 Mostly yes, and I can say where it does not.
@@ -171,10 +274,19 @@ output says "commander", nothing is heroic, and failure is consistently written 
 than a tragedy: *"Suit was never rated for that, kid. She's back on the pad — you're out the
 haul and the cost of turning her around, and nothing past that."*
 
-The debris flavour is the strongest of the three. Grounding each description in the piece's own
-mass and altitude produced lines that do the mechanical job by saying something physical rather
-than by restating the number the HUD already shows — *"A squat shielded drum that outweighs
-three of you and takes up the space of one"* for a 1,220 kg cask that occupies one slot.
+The debris flavour is the strongest of the three, and it got stronger once the writer could see
+the sprite. Grounding each description in the piece's own mass and altitude produced lines that do
+the mechanical job by saying something physical rather than restating the number the HUD already
+shows — *"It is the whole tank and then some, all in one piece"* for Armstrong's module at
+3,600 kg, against *"it barely bends the tether, and rough handling gives you two halves"* for a
+15 kg offcut at the floor. Neither line states a number and both are unmistakable about which end
+of the table they came from.
+
+Adding the picture changed what those lines are *about*. Before, `shattered_cryo_dewar` got a
+sentence about a cryogenic tank coming apart, because that is what the id says. Now it reads
+*"A cyan tank lying on its side, H2O stencilled across the belly and stub fittings at either
+end"* — the writer describing lettering the artist actually drew. That is the difference between
+prose grounded in a label and prose grounded in the thing.
 
 The post-mortem screens do the thing §1 actually asked for, which is name the rule without
 blaming the player. *"Landed needs the pilot aboard"* is the whole lesson of the stranded (c)
@@ -196,21 +308,22 @@ case in five words.
   paraphrases of it. That is correct for a teaching line and it is the register the screen
   wants — instrument-like, not conversational — but it does mean those fields are the least
   *authored* text in the output.
-- **The critic is not perfectly repeatable, and things get through.** Across three live runs it
-  flagged 4, 4 and 3 of the 18 barks. `first_launch`, `hold_mass_red` and `burned_up` came up
-  every time — those are the hard factual contradictions, two of which are below. The marginal
-  ones move, and the recorded run misses some that an earlier run caught. Three that shipped:
+- **The critic is not perfectly repeatable, and things get through.** Across live runs it flagged
+  4, 4 and 3 of the 18 barks. `first_launch`, `hold_mass_red` and `burned_up` came up every
+  time — those are the hard factual contradictions, two of which are below. The marginal ones
+  move. It flagged the phrase "the low band" on three pieces and let it stand on a fourth in the
+  same reply; the three it caught are in *The three that did not hold* below, and the fourth
+  shipped clean. Same phrase, same rule, same run.
 
-  | shipped text | what an earlier run said about it |
-  |---|---|
-  | `telescope_mirror_segment` — "it will shatter into worthless dust if you bring it in rough" | `invented_mechanic` — condition scaling a payout is defined for Armstrong's module and nothing else |
-  | `cracked_pressure_dome` — "will finish splitting if you dock it hard — and up here that is real money to drop" | `invented_mechanic` — same rule, plus a docking action no passage describes |
-  | `isotope_cask` — a 1,220 kg drum "outweighs three of you" | `number_disagrees` — three people is a couple of hundred kilos |
-
-  I agree with all three, and they are in the shipped files anyway. That is the honest shape of
-  this gate: it is a filter with real variance, not a proof, which is why the report page prints
-  per-item verdicts rather than a pass/fail badge, and why the critic's own findings are kept in
-  `critique_log.json` whether or not they were acted on.
+  That is the honest shape of this gate: a filter with real variance, not a proof — which is why
+  the report page prints per-item verdicts rather than a pass/fail badge, and why the critic's own
+  findings are kept in `critique_log.json` whether or not they were acted on.
+- **The art reader cannot see well enough to be certain, and says so.** Twelve of thirty sprites
+  came back `partial` or `ambiguous`. These are 29-pixel images; there is a real ceiling on what
+  any reader gets from them. The matcher caps an ambiguous reading at `loose` rather than calling a
+  mismatch, so the audit under-reports rather than over-reports — a false mismatch would send
+  someone renaming art that was fine. Four of the seven disagreements withhold a suggested name for
+  the same reason.
 
 **What the pipeline cannot tell you.** Nothing here measures whether the content is *good*. It
 measures whether it is grounded, whether it covers what it was asked to cover, and whether it
@@ -221,8 +334,8 @@ number on the report page should be mistaken for that.
 
 ## What the critic caught
 
-The critic ran on all 52 items, raised **11 issues** and produced **10 corrections**; a fresh
-critic call then re-read every corrected item against the same passages, and **8 of the 10
+The critic ran on all 57 items, raised **15 issues** and produced **13 corrections**; a fresh
+critic call then re-read every corrected item against the same passages, and **10 of the 13
 held**. None of these are stylistic quibbles. Each is the writer filling a gap in the retrieved
 passages with what a game like this usually does — the exact failure mode of writing from
 fragments, and the reason this stage exists.
@@ -280,18 +393,41 @@ This is the one I did not expect an automated stage to find. It is not a wording
 a formal property of §2.7 — one state, one outcome — being violated by a screen title, and the
 critic found it by reading the detector's own sentence.
 
-### The two that did not hold
+### The three that did not hold — and the correction that introduced the break
 
-`shattered_camera_mast` and `scorched_reentry_cone` were corrected and then flagged again by
-the re-check, and they **shipped that way**, flagged. Both are the same argument: how much a
-`fragile` flag licenses you to say. The corrected camera mast says snatching it leaves "nothing
-left to bring down", and the re-check calls that destruction-on-grab — a rule no passage
-defines. It is a fair call, and the pipeline reports it rather than looping until the critic
-runs out of objections. A second correction round would have produced a third opinion, not a
-better line.
+`collapsed_dish_frame`, `shredded_antenna_mesh` and `burst_pressurant_sphere` were corrected and
+then flagged again by the re-check. They **shipped that way**, flagged, and all three are the same
+mistake — one the *correction* put there:
 
-The re-check verdicts sit beside each correction on the report page for that reason: a
-correction that did not hold shows up as one instead of being quietly counted as a fix.
+| | |
+|---|---|
+| **Shipped** | "eighty-odd kilos, and it pays what **the low band** pays" |
+| **Re-check** | `contradicts_gdd`, citing §5b and §4.3 |
+| **Why** | *"'the low band' is the discrete-band scheme by name — the exact thing §5b says was replaced and §4.3 lists as cut. Value interpolates continuously on altitude from 1.0 at the floor to 5.5 at the ceiling; there is no low band to pay a low-band rate."* |
+
+This is the most instructive failure in the run. The first critic pass told the writer to stop
+restating raw altitudes, the writer reached for the natural phrase — "the low band" — and that
+phrase names a system the design document explicitly removed. **A correction is a draft too**, and
+the only reason this was caught is that the re-check is a fresh call with no memory of having
+written the fix. A pipeline that trusted its own corrections would have shipped a tutorial-adjacent
+line describing a mechanic that does not exist, in three places.
+
+It is not fixed here, deliberately. A second correction round produces a third opinion, not a
+better line, and the report prints the standing verdict beside each correction so a fix that did
+not hold shows up as one instead of being quietly counted.
+
+**One of the three is a referral, not a verdict.** On `shredded_antenna_mesh` the critic wrote:
+
+> "The record the game loads calls this a shredded mesh; the display name and the flavour ('A long
+> shaft strung with short crossbars') describe a boom, with no mesh anywhere in the line. That is a
+> different object, not a rewording. **I have left the name and the description alone because I
+> cannot see the sprite** — if the picture is a boom, this is a finding about what the game calls
+> the piece, and the art audit is the stage that settles it."
+
+The critic worked out the limit of its own evidence and named the stage that has the missing half.
+The art reader, which does see it, called that sprite *"a crossed array of rods"* — so the writing
+is right and the catalogue's name is wrong. Two stages, neither able to reach that conclusion
+alone, and no human in the loop to join them up.
 
 ### One finding that is about the repository, not the writing
 
@@ -299,13 +435,13 @@ The critic raised a `contradicts_gdd` it could not fix, and it is the most usefu
 
 > §4.3 lists "Size classes, fragile flag, compactor, crane magnet, oversized junk" as **cut from
 > scope** — "Every piece is one slot" — and `crew/out/data/debris_catalog.json`, the file the
-> game will actually load, still ships `size_class` on all 25 rows — three of them `oversized`
-> — and `fragile` on 7. The tuning crew's Spec Auditor still checks rules about both.
+> game will actually load, still ships `size_class` on all 30 rows — three of them `oversized`
+> — and `fragile` on 12. The tuning crew's Spec Auditor still checks rules about both.
 
 That is a collision between the design document and the artifact, not inside the writing. The
 critic's charter tells it to raise that once and then leave the fiction alone, because the table
 is what the game will spawn — and to keep failing anything that goes *past* the flag into a
-system nobody defined, which is what it did to the camera mast. Reconciling the two files is a
+system nobody defined, which is what it did to the bulkhead. Reconciling the two files is a
 decision for a human, and it is now written down instead of being absorbed silently by whichever
 agent noticed it last.
 
@@ -334,12 +470,12 @@ Scored against the section a human labelled as the answer for each of the 27 sta
 | | before | after |
 |---|---|---|
 | chunks in the index | 15 | 48 |
-| mean chunk size | 2,914 chars | 910 chars |
+| mean chunk size | 2,918 chars | 911 chars |
 | **precision@1** | **74%** | **100%** |
 | recall@3 | 100% | 100% |
-| characters retrieved per query | 14,878 | 2,989 |
+| characters retrieved per query | 14,875 | 3,028 |
 | §3/§4 **winning** a player-facing query | 4 of 27 | **0** |
-| §3/§4 anywhere in the top 3 | 29 | 11 |
+| §3/§4 anywhere in the top 3 | 29 | 14 |
 
 The four queries §3 won outright under the old retriever were `chute_green`, `hard_landing`,
 `refused` and `stranded_d` — four of the states whose whole job is to teach the player a rule.
@@ -385,9 +521,11 @@ content/
   run-content.js              the orchestrator — deterministic, contains no model
   agents/
     bark-writer.md            18 state-triggered radio lines
-    debris-flavourist.md      25 display names and flavour lines
+    debris-flavourist.md      30 display names and flavour lines
     postmortem-writer.md      9 end-of-run screens
     lore-critic.md            the gate — reads content against its sources
+    art-reader.md             says what a sprite shows; never told its name
+    art-matcher.md            name vs. drawing; never shown a picture
   schemas/                    the output contract for each agent
   lib/
     chunk.js                  section-aware, sentence-bounded chunking
@@ -396,8 +534,11 @@ content/
     prompt.js                 passages printed once, cited per item
     verify.js                 the checks that are code rather than judgement
     render.js                 the report page, computed from the run's own data
-  test/                       32 tests against a fake CLI — see CLAUDE.md
-  data/                       the debris catalog snapshot a replay reads
+    sheet.js                  a PNG codec and the contact-sheet tiler, zlib only
+    art.js                    the art stage: sheet planning and the two prompts
+    artsheet.js               the art review page — embeds the pack, never published
+  test/                       49 tests against a fake CLI — see CLAUDE.md
+  data/                       the catalog and sprite-map snapshots a replay reads
   stubs/                      recorded agent output; what `--stub` replays
   out/                        everything a run produces
 ```
@@ -411,20 +552,31 @@ node run-content.js --record        live, then save the logs as replay fixtures
 node run-content.js --reuse a,b     replay these agents, run the rest live
 node run-content.js --gdd <file>    a different design document
 node run-content.js --catalog <f>   a different debris catalog
+node run-content.js --art <dir>     read and audit the sprites in this folder
+node run-content.js --no-art        skip the art stage even where art is present
 node run-content.js --out <dir>     write artifacts somewhere else
 ```
 
-`--reuse` takes agent labels — `bark-writer`, `lore-critic.debris`,
-`lore-critic.barks.rev1` — which is how you iterate on one charter without paying for the
-other eight calls.
+`--reuse` takes agent labels — `bark-writer`, `lore-critic.debris`, `lore-critic.barks.rev1`,
+`art-reader.sheet1`, `art-matcher` — which is how you iterate on one charter without paying for
+the other eleven calls.
 
-## Relationship to the rest of the repo
+`--art` accepts any folder of PNGs. Sprites are matched to pieces through
+`config/debris_sprites.json` if it exists, and otherwise by filename: a folder holding
+`cracked_solar_array.png` needs no mapping file at all. A catalogue piece with no sprite is a hard
+error rather than a warning — an unmapped piece would shift every later cell number, and the point
+of the stage is that the mapping gets audited rather than trusted.
 
-Zero dependencies, like `crew/` and `board/`. It shares `../crew/lib/` — the agent runner, the
-schema validator and the envelope parser — rather than copying them, in one direction only, so
-`crew/` still runs standalone.
+## Relationship to the rest of the game
 
-It **reads** `crew/out/data/debris_catalog.json` and writes nothing into `crew/`. Because a live
-crew run rewrites that file, `--record` snapshots the catalog into `data/` alongside the
-fixtures, and `--stub` reads the snapshot — otherwise a replay would be describing pieces whose
-masses had since changed.
+Zero dependencies. It shares `../crew/lib/` — the agent runner, the schema validator and the
+envelope parser — with the game's two sibling agent crews rather than copying them, in one
+direction only, so each still runs standalone. Those two crews are deliberately not in this
+repository: a nine-agent board that reviews the design document, and a five-agent tuning crew
+whose flight simulator produces the debris catalog and the game's balance parameters.
+
+It **reads** `config/debris_catalog.json` and never writes to it. In the game repository that file
+is owned by the tuning crew and a live crew run rewrites it, so `--record` snapshots the catalog
+and the sprite map into `data/` alongside the fixtures, and `--stub` reads the snapshots.
+Otherwise a replay would be describing pieces whose masses had since changed, or attaching a
+recorded reading of one sprite to a piece that has since been re-mapped to another.

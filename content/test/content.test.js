@@ -343,7 +343,7 @@ test('the Godot loader is syntactically plausible and tab-indented', () => {
 
 test('the pipeline runs end to end against a fake CLI, and writes every artifact', () => {
   const out = fs.mkdtempSync(path.join(os.tmpdir(), 'junk-content-'));
-  execFileSync(process.execPath, [path.join(ROOT, 'run-content.js'), '--out', out], {
+  execFileSync(process.execPath, [path.join(ROOT, 'run-content.js'), '--no-art', '--out', out], {
     cwd: ROOT,
     env: { ...process.env, JUNK_AGENT_CMD: `node "${path.join(ROOT, 'test', 'fixtures', 'fake-writer.js')}" ok` },
     encoding: 'utf8',
@@ -360,7 +360,15 @@ test('the pipeline runs end to end against a fake CLI, and writes every artifact
   }
 
   const manifest = JSON.parse(fs.readFileSync(path.join(out, 'run.json'), 'utf8'));
-  assert.strictEqual(manifest.totals.items, BARK_STATES.length + POSTMORTEM_STATES.length + 25);
+  // Counted from the catalog the run actually read, not typed in here. A hardcoded piece count
+  // goes stale the day the tuning crew adds one — which is exactly what happened at 25.
+  // Same two candidate paths run-content.js searches, so the suite passes in either repo.
+  const catalogPath = [
+    path.join(ROOT, '..', 'crew', 'out', 'data', 'debris_catalog.json'),
+    path.join(ROOT, '..', 'config', 'debris_catalog.json'),
+  ].find((p) => fs.existsSync(p));
+  const pieces = JSON.parse(fs.readFileSync(catalogPath, 'utf8')).debris.length;
+  assert.strictEqual(manifest.totals.items, BARK_STATES.length + POSTMORTEM_STATES.length + pieces);
   assert.strictEqual(manifest.retrieval.precision_at_1, 1);
 
   const barks = JSON.parse(fs.readFileSync(path.join(out, 'content/armstrong_barks.json'), 'utf8'));
@@ -376,7 +384,7 @@ test('a malformed reply is retried with the reason fed back, then fails cleanly'
   const out = fs.mkdtempSync(path.join(os.tmpdir(), 'junk-content-'));
   let threw = null;
   try {
-    execFileSync(process.execPath, [path.join(ROOT, 'run-content.js'), '--out', out], {
+    execFileSync(process.execPath, [path.join(ROOT, 'run-content.js'), '--no-art', '--out', out], {
       cwd: ROOT,
       env: { ...process.env, JUNK_AGENT_CMD: `node "${path.join(ROOT, 'test', 'fixtures', 'fake-writer.js')}" malformed` },
       encoding: 'utf8',
@@ -397,7 +405,7 @@ test('a malformed reply is retried with the reason fed back, then fails cleanly'
 
 test('a citation the writer invented is caught by code, not by the critic', () => {
   const out = fs.mkdtempSync(path.join(os.tmpdir(), 'junk-content-'));
-  const stdout = execFileSync(process.execPath, [path.join(ROOT, 'run-content.js'), '--out', out], {
+  const stdout = execFileSync(process.execPath, [path.join(ROOT, 'run-content.js'), '--no-art', '--out', out], {
     cwd: ROOT,
     env: { ...process.env, JUNK_AGENT_CMD: `node "${path.join(ROOT, 'test', 'fixtures', 'fake-writer.js')}" unknown-cite` },
     encoding: 'utf8',
